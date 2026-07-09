@@ -1,0 +1,60 @@
+name: PaperorgNotes
+options:
+  bundleIdPrefix: com.paperorg
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: "3N4Q2GQ558"
+    INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+    INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+
+targets:
+  PaperorgNotes:
+    type: application
+    platform: iOS
+    sources:
+      - path: PaperorgNotes
+    info:
+      path: PaperorgNotes/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Paperorg Notes
+        LSApplicationCategoryType: public.app-category.productivity
+        NSMicrophoneUsageDescription: Paperorg Notes needs microphone access to record voice notes and meetings.
+        NSSpeechRecognitionUsageDescription: Paperorg Notes uses speech recognition for on-device English transcription.
+        NSFaceIDUsageDescription: Paperorg Notes uses Face ID to protect your private notes.
+        UIBackgroundModes:
+          - audio
+        UILaunchStoryboardName: LaunchScreen
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.notes
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+    dependencies: []
+
+  PaperorgNotesTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: PaperorgNotesTests
+    dependencies:
+      - target: PaperorgNotes
+
+schemes:
+  PaperorgNotes:
+    build:
+      targets:
+        PaperorgNotes: all
+    test:
+      targets:
+        - PaperorgNotesTests

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — Paperorg Notes</title>
+  <style>
+    :root {
+      --teal: #1a6b6b;
+      --paper: #faf8f5;
+      --text: #1c1c1e;
+      --muted: #6b6b6b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--paper);
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+    }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 2.5rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.06);
+    }
+    h1 { color: var(--teal); font-size: 1.75rem; margin-top: 0; }
+    h2 { color: var(--teal); font-size: 1.15rem; margin-top: 2rem; }
+    p, li { color: var(--text); }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    a { color: var(--teal); }
+    ul { padding-left: 1.25rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 1rem 0; }
+    th, td { border: 1px solid #e8e4df; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+    th { background: var(--paper); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Privacy Policy</h1>
+    <p class="muted"><strong>Paperorg Notes</strong> · Last updated: 9 July 2026</p>
+
+    <p>
+      Paperorg Notes (&ldquo;the App&rdquo;) is a voice recording and transcription app for iOS,
+      operated by Germain Delagardelle (&ldquo;we&rdquo;, &ldquo;us&rdquo;). This policy explains what data
+      the App processes, where it is stored, and what choices you have. We designed the App
+      with privacy and GDPR compliance in mind.
+    </p>
+
+    <h2>1. Summary</h2>
+    <ul>
+      <li>Audio and transcripts are stored <strong>on your device</strong> by default.</li>
+      <li>Transcription may send audio to <strong>third-party services you configure</strong> (OpenAI, ElevenLabs, LuxASR).</li>
+      <li>We do <strong>not</strong> operate user accounts or cloud backends in the current version.</li>
+      <li>We do <strong>not</strong> sell your data or use it for advertising.</li>
+      <li>We do <strong>not</strong> use your content to train AI models unless a provider&apos;s terms state otherwise and you have consented.</li>
+    </ul>
+
+    <h2>2. Data We Process</h2>
+    <table>
+      <thead>
+        <tr><th>Data</th><th>Purpose</th><th>Storage</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Audio recordings</td>
+          <td>Capture voice notes and meetings</td>
+          <td>On your iPhone (local filesystem)</td>
+        </tr>
+        <tr>
+          <td>Transcripts &amp; summaries</td>
+          <td>Display and search your notes</td>
+          <td>On your iPhone (SwiftData)</td>
+        </tr>
+        <tr>
+          <td>API keys (optional)</td>
+          <td>Connect to transcription providers you choose</td>
+          <td>iOS Keychain on your device</td>
+        </tr>
+        <tr>
+          <td>App settings</td>
+          <td>Language, email preferences, privacy choices</td>
+          <td>On your iPhone (UserDefaults)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3. Third-Party Transcription Services</h2>
+    <p>
+      When you transcribe audio, the App may send audio files to external providers
+      <strong>only after you have given explicit consent</strong> for that provider in Settings.
+      You supply your own API keys (bring-your-own-key model).
+    </p>
+    <table>
+      <thead>
+        <tr><th>Provider</th><th>Data sent</th><th>Location</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://openai.com/policies/privacy-policy" rel="noopener">OpenAI</a></td>
+          <td>Audio; transcript text for summarisation</td>
+          <td>United States</td>
+        </tr>
+        <tr>
+          <td><a href="https://elevenlabs.io/privacy-policy" rel="noopener">ElevenLabs</a></td>
+          <td>Audio for transcription</td>
+          <td>United States</td>
+        </tr>
+        <tr>
+          <td><a href="https://luxasr.uni.lu/" rel="noopener">LuxASR</a> (University of Luxembourg)</td>
+          <td>Audio for transcription</td>
+          <td>Luxembourg / EU</td>
+        </tr>
+        <tr>
+          <td>Apple Speech (optional, English)</td>
+          <td>On-device processing; audio does not leave your device</td>
+          <td>On-device</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Each provider&apos;s own privacy policy and data retention terms apply when you use their service.
+      Review those policies before enabling a provider.
+    </p>
+
+    <h2>4. Legal Basis (GDPR)</h2>
+    <p>For users in the European Economic Area and Luxembourg:</p>
+    <ul>
+      <li><strong>Consent</strong> — processing audio via third-party APIs, after you opt in per provider.</li>
+      <li><strong>Contract / legitimate use</strong> — local recording, storage, and features you request on your device.</li>
+    </ul>
+
+    <h2>5. Your Rights</h2>
+    <p>You can exercise the following rights directly in the App (Settings → Privacy &amp; GDPR):</p>
+    <ul>
+      <li><strong>Access</strong> — export all notes, transcripts, and audio (GDPR export).</li>
+      <li><strong>Erasure</strong> — delete all data, including audio, transcripts, and API keys.</li>
+      <li><strong>Rectification</strong> — edit transcripts; corrected text is stored separately from the original.</li>
+      <li><strong>Portability</strong> — export as JSON, plain text, Markdown, or PDF.</li>
+      <li><strong>Object / restrict</strong> — disable cloud providers; use on-device transcription where available.</li>
+    </ul>
+    <p>
+      You may also contact us at
+      <a href="mailto:germain@delagardelle.lu">germain@delagardelle.lu</a>
+      to exercise your rights or ask questions about this policy.
+    </p>
+
+    <h2>6. Data Retention</h2>
+    <ul>
+      <li>Data remains on your device until you delete it or uninstall the App.</li>
+      <li>You may enable &ldquo;Delete audio after transcription&rdquo; or automatic deletion after a set number of days.</li>
+      <li>Third-party providers may retain data according to their own policies for the duration of API processing.</li>
+    </ul>
+
+    <h2>7. Security</h2>
+    <ul>
+      <li>API keys are stored in the iOS Keychain.</li>
+      <li>Audio files use iOS Data Protection.</li>
+      <li>All network communication with transcription providers uses HTTPS (TLS).</li>
+      <li>Optional Face ID lock protects access to the App.</li>
+    </ul>
+
+    <h2>8. Children</h2>
+    <p>The App is not directed at children under 16. We do not knowingly collect data from children.</p>
+
+    <h2>9. Changes</h2>
+    <p>
+      We may update this policy from time to time. The &ldquo;Last updated&rdquo; date at the top will change.
+      Continued use of the App after changes constitutes acceptance of the updated policy.
+    </p>
+
+    <h2>10. Contact</h2>
+    <p>
+      <strong>Data controller:</strong> Germain Delagardelle<br>
+      <strong>Email:</strong> <a href="mailto:germain@delagardelle.lu">germain@delagardelle.lu</a><br>
+      <strong>App:</strong> Paperorg Notes (com.paperorg.notes)
+    </p>
+  </main>
+</body>
+</html>
