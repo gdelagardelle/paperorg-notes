@@ -41,6 +41,23 @@ enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
         case .portuguese: return "por"
         }
     }
+    
+    /// ISO 639-1 code for OpenAI — nil when the model does not support the language code.
+    var openAITranscriptionCode: String? {
+        switch self {
+        case .luxembourgish: return nil
+        default: return rawValue
+        }
+    }
+    
+    var openAITranscriptionPromptHint: String? {
+        switch self {
+        case .luxembourgish:
+            return "Transcribe in Lëtzebuergesch (Luxembourgish)."
+        default:
+            return nil
+        }
+    }
 }
 
 // MARK: - Output Type

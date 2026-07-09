@@ -32,10 +32,12 @@ final class OpenAITranscriptionProvider: TranscriptionProvider, @unchecked Senda
         
         // gpt-4o-transcribe supports "json" or "text" — not verbose_json
         appendField("model", "gpt-4o-transcribe")
-        appendField("language", request.language.rawValue)
+        if let languageCode = request.language.openAITranscriptionCode {
+            appendField("language", languageCode)
+        }
         appendField("response_format", "json")
         
-        if let prompt = request.prompt {
+        if let prompt = combinedPrompt(for: request) {
             appendField("prompt", prompt)
         }
         
@@ -119,6 +121,18 @@ final class OpenAITranscriptionProvider: TranscriptionProvider, @unchecked Senda
         }
         
         throw TranscriptionError.providerError("Could not parse OpenAI transcription response")
+    }
+    
+    private func combinedPrompt(for request: TranscriptionRequest) -> String? {
+        var parts: [String] = []
+        if let hint = request.language.openAITranscriptionPromptHint {
+            parts.append(hint)
+        }
+        if let vocabulary = request.prompt?.trimmingCharacters(in: .whitespacesAndNewlines), !vocabulary.isEmpty {
+            parts.append(vocabulary)
+        }
+        guard !parts.isEmpty else { return nil }
+        return String(parts.joined(separator: " ").prefix(900))
     }
 }
 
