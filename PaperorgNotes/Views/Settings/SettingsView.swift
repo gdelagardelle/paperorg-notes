@@ -1,7 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct SettingsView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Query(sort: \Note.createdAt, order: .reverse) private var notes: [Note]
     @State private var showDeleteConfirmation = false
     @State private var showProviderConsent: ProviderID?
     @State private var newEmail = ""
@@ -9,6 +11,9 @@ struct SettingsView: View {
     @State private var elevenLabsKey = ""
     @State private var luxASRKey = ""
     @State private var newVocabularyTerm = ""
+    @State private var gdprExportURL: URL?
+    @State private var showGDPRExportShare = false
+    @State private var gdprExportError: String?
     
     var body: some View {
         @Bindable var settings = environment.settingsService
@@ -163,7 +168,7 @@ struct SettingsView: View {
                     Toggle("Delete Audio After Transcription", isOn: $settings.deleteAudioAfterTranscription)
                     
                     Button("Export All Data") {
-                        _ = try? environment.storageService.exportGDPRArchive(notes: [])
+                        exportAllData()
                     }
                     
                     Button("Delete All Data", role: .destructive) {
@@ -209,6 +214,28 @@ struct SettingsView: View {
             .sheet(item: $showProviderConsent) { provider in
                 ProviderConsentView(provider: provider)
             }
+            .sheet(isPresented: $showGDPRExportShare) {
+                if let gdprExportURL {
+                    ActivityShareSheet(items: [gdprExportURL])
+                }
+            }
+            .alert("Export Failed", isPresented: Binding(
+                get: { gdprExportError != nil },
+                set: { if !$0 { gdprExportError = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(gdprExportError ?? "")
+            }
+        }
+    }
+    
+    private func exportAllData() {
+        do {
+            gdprExportURL = try environment.storageService.exportGDPRArchive(notes: notes)
+            showGDPRExportShare = true
+        } catch {
+            gdprExportError = error.localizedDescription
         }
     }
     
