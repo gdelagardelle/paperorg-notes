@@ -7,17 +7,25 @@ struct NoteDetailView: View {
     @Bindable var note: Note
     
     @State private var selectedTab = 0
-    @State private var showExportSheet = false
-    @State private var showMail = false
-    @State private var mailPayload: EmailPayload?
+    @State private var selectedOutputType: OutputType = .meetingNotes
+    @State private var selectedLanguage: AppLanguage = .luxembourgish
+    @State private var isProcessing = false
+    @State private var processingStage: ProcessingStage = .transcribing
+    @State private var processingError: String?
     @State private var editingSegment: TranscriptSegmentModel?
     @State private var editText = ""
     @StateObject private var playback = AudioPlaybackService()
+    
+    private var audioAvailable: Bool {
+        FileManager.default.fileExists(atPath: environment.storageService.audioURL(for: note.id).path)
+    }
     
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 metadataHeader
+                NoteOrganizerSection(note: note)
+                reprocessSection
                 tabPicker
                 tabContent
                 actionButtons
@@ -27,6 +35,10 @@ struct NoteDetailView: View {
         .background(AppTheme.background)
         .navigationTitle(note.title)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            selectedOutputType = note.noteOutputType
+            selectedLanguage = note.appLanguage
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: toggleFavorite) {
@@ -35,14 +47,57 @@ struct NoteDetailView: View {
                 }
             }
         }
-        .sheet(isPresented: $showMail) {
-            if let payload = mailPayload {
-                MailComposeWrapper(payload: payload)
-            }
-        }
         .sheet(item: $editingSegment) { segment in
             segmentEditSheet(segment)
         }
+        .sheet(isPresented: $isProcessing) {
+            ProcessingView(
+                stage: processingStage,
+                error: processingError,
+                language: selectedLanguage
+            )
+        }
+    }
+    
+    private var reprocessSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Reprocess")
+                .font(.headline)
+            
+            OutputTypePicker(selection: $selectedOutputType, label: "Note style")
+            
+            if note.noteStatus == .ready || note.noteStatus == .failed {
+                LanguagePicker(selection: $selectedLanguage)
+            }
+            
+            HStack(spacing: 12) {
+                Button {
+                    transcribeAgain()
+                } label: {
+                    Label("Transcribe again", systemImage: "arrow.clockwise")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(isProcessing || !audioAvailable)
+                
+                Button {
+                    resummarizeOnly()
+                } label: {
+                    Label("Re-summarize", systemImage: "sparkles")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .tint(AppTheme.primary)
+                .disabled(isProcessing || note.displayTranscript.isEmpty)
+            }
+            
+            if !audioAvailable {
+                Label("Audio deleted — re-summarize only", systemImage: "info.circle")
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+        }
+        .cardStyle()
     }
     
     private var metadataHeader: some View {
@@ -117,10 +172,15 @@ struct NoteDetailView: View {
     
     private var summaryTab: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if let short = note.summaryShort, !short.isEmpty {
+            if let short = note.summaryShort, !short.isEmpty, !TranscriptTextFormatter.isRawJSON(short) {
                 Text("Summary")
                     .font(.headline)
-                Text(short)
+                Text(note.displaySummaryShort)
+                    .font(.body)
+            } else if !note.displaySummaryShort.isEmpty {
+                Text("Summary")
+                    .font(.headline)
+                Text(note.displaySummaryShort)
                     .font(.body)
             }
             
@@ -187,8 +247,7 @@ struct NoteDetailView: View {
                 Button("Export") { exportNote() }
                     .buttonStyle(PrimaryButtonStyle())
                 
-                Button("Email") { prepareEmail() }
-                    .buttonStyle(PrimaryButtonStyle())
+                EmailButton(note: note)
             }
             
             if let exportURL = try? environment.exportService.exportPlainText(note: note) {
@@ -230,12 +289,56 @@ struct NoteDetailView: View {
         }
     }
     
-    private func prepareEmail() {
-        mailPayload = try? environment.emailService.buildPayload(
-            for: note,
-            exportService: environment.exportService
-        )
-        showMail = mailPayload != nil
+    private func applySelectionsToNote() {
+        note.outputType = selectedOutputType.rawValue
+        note.language = selectedLanguage.rawValue
+    }
+    
+    private func transcribeAgain() {
+        applySelectionsToNote()
+        isProcessing = true
+        processingError = nil
+        processingStage = .transcribing
+        
+        Task {
+            do {
+                try await environment.processRecordingUseCase.transcribeAgain(note: note) { stage in
+                    processingStage = stage
+                }
+                try? modelContext.save()
+                selectedOutputType = note.noteOutputType
+                try? await Task.sleep(nanoseconds: 600_000_000)
+                isProcessing = false
+            } catch {
+                processingError = error.localizedDescription
+                note.status = NoteStatus.failed.rawValue
+                note.errorMessage = error.localizedDescription
+                try? modelContext.save()
+            }
+        }
+    }
+    
+    private func resummarizeOnly() {
+        applySelectionsToNote()
+        isProcessing = true
+        processingError = nil
+        processingStage = .summarizing
+        
+        Task {
+            do {
+                try await environment.processRecordingUseCase.resummarize(note: note) { stage in
+                    processingStage = stage
+                }
+                try? modelContext.save()
+                try? await Task.sleep(nanoseconds: 600_000_000)
+                isProcessing = false
+            } catch {
+                processingError = error.localizedDescription
+                note.status = NoteStatus.failed.rawValue
+                note.errorMessage = error.localizedDescription
+                try? modelContext.save()
+            }
+        }
     }
     
     private func segmentEditSheet(_ segment: TranscriptSegmentModel) -> some View {
@@ -285,9 +388,16 @@ struct SegmentRow: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(timeLabel)
-                    .font(.caption2)
-                    .foregroundStyle(AppTheme.textSecondary)
+                HStack(spacing: 8) {
+                    if let speaker = SpeakerLabelFormatter.displayName(for: segment.speakerLabel) {
+                        Text(speaker)
+                            .font(.caption.bold())
+                            .foregroundStyle(AppTheme.speakerColor(for: segment.speakerLabel))
+                    }
+                    Text(timeLabel)
+                        .font(.caption2)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
                 
                 Text(segment.text)
                     .font(.body)

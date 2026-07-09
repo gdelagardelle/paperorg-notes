@@ -28,6 +28,7 @@ struct PaperorgNotesApp: App {
             RootView()
                 .environment(environment)
                 .modelContainer(sharedModelContainer)
+                .onOpenURL { environment.deepLinkHandler.handle($0) }
         }
     }
 }

@@ -21,10 +21,12 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
-    @State private var selectedTab = 0
+    @Environment(AppEnvironment.self) private var environment
     
     var body: some View {
-        TabView(selection: $selectedTab) {
+        @Bindable var deepLink = environment.deepLinkHandler
+        
+        TabView(selection: $deepLink.selectedTab) {
             RecordView()
                 .tabItem {
                     Label("Record", systemImage: "mic.fill")
@@ -50,5 +52,8 @@ struct MainTabView: View {
                 .tag(3)
         }
         .tint(AppTheme.primary)
+        .onAppear {
+            environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
+        }
     }
 }

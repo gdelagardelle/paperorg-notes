@@ -71,7 +71,28 @@ final class Note {
     }
     
     var displayTranscript: String {
-        correctedTranscript ?? rawTranscript ?? ""
+        if let corrected = correctedTranscript, !corrected.isEmpty {
+            return corrected
+        }
+        if !segments.isEmpty {
+            return segments
+                .sorted { $0.segmentIndex < $1.segmentIndex }
+                .map(\.text)
+                .joined(separator: " ")
+        }
+        if let cleaned = TranscriptTextFormatter.readableText(from: rawTranscript) {
+            return cleaned
+        }
+        return rawTranscript ?? ""
+    }
+    
+    var displaySummaryShort: String {
+        if let summary = summaryShort,
+           !summary.isEmpty,
+           !TranscriptTextFormatter.isRawJSON(summary) {
+            return summary
+        }
+        return displayTranscript
     }
     
     var structuredOutput: StructuredOutput? {

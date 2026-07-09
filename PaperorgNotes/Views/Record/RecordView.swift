@@ -13,6 +13,10 @@ struct RecordView: View {
     @State private var processingStage: ProcessingStage = .savingAudio
     @State private var processingError: String?
     @State private var pulseAnimation = false
+    @State private var pendingEmailNote: Note?
+    @State private var pendingEmailPayload: EmailPayload?
+    @State private var showPostRecordingEmail = false
+    @State private var showEmailAskConfirm = false
     
     var body: some View {
         NavigationStack {
@@ -42,6 +46,13 @@ struct RecordView: View {
             .onAppear {
                 selectedLanguage = environment.settingsService.defaultLanguage
                 selectedOutputType = environment.settingsService.defaultOutputType
+                environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
+                handleQuickRecordRequestIfNeeded()
+            }
+            .onChange(of: environment.deepLinkHandler.pendingQuickRecord) { _, pending in
+                if pending {
+                    handleQuickRecordRequestIfNeeded()
+                }
             }
             .sheet(isPresented: $showProcessing) {
                 ProcessingView(
@@ -49,6 +60,17 @@ struct RecordView: View {
                     error: processingError,
                     language: selectedLanguage
                 )
+            }
+            .sheet(isPresented: $showPostRecordingEmail) {
+                if let payload = pendingEmailPayload {
+                    EmailComposeSheet(payload: payload)
+                }
+            }
+            .alert("Send by email?", isPresented: $showEmailAskConfirm) {
+                Button("Send") { showPostRecordingEmail = true }
+                Button("Not now", role: .cancel) {}
+            } message: {
+                Text("Send this recording to your configured email recipients?")
             }
         }
     }
@@ -128,21 +150,7 @@ struct RecordView: View {
     }
     
     private var outputTypePicker: some View {
-        Menu {
-            ForEach(OutputType.allCases) { type in
-                Button(type.displayName) { selectedOutputType = type }
-            }
-        } label: {
-            HStack {
-                Text("Output:")
-                    .foregroundStyle(AppTheme.textSecondary)
-                Text(selectedOutputType.displayName)
-                    .fontWeight(.medium)
-                Image(systemName: "chevron.down")
-                    .font(.caption)
-            }
-            .font(.subheadline)
-        }
+        OutputTypePicker(selection: $selectedOutputType, label: "Note style")
     }
     
     private var recentSection: some View {
@@ -254,9 +262,7 @@ struct RecordView: View {
                 
                 try? modelContext.save()
                 
-                if environment.emailService.shouldAutoPrepare {
-                    // Email prepared on detail view
-                }
+                preparePostRecordingEmail(for: note)
                 
                 try? await Task.sleep(nanoseconds: 800_000_000)
                 showProcessing = false
@@ -266,6 +272,43 @@ struct RecordView: View {
                 activeNote?.errorMessage = error.localizedDescription
                 try? modelContext.save()
             }
+        }
+    }
+    
+    private func handleQuickRecordRequestIfNeeded() {
+        guard environment.deepLinkHandler.pendingQuickRecord else { return }
+        environment.deepLinkHandler.clearQuickRecordFlag()
+        
+        let prefs = environment.deepLinkHandler.quickRecordPreferences()
+        if let language = prefs.language {
+            selectedLanguage = language
+        }
+        if let outputType = prefs.outputType {
+            selectedOutputType = outputType
+        }
+        
+        guard environment.recordingService.state == .idle else { return }
+        startRecording()
+    }
+    
+    private func preparePostRecordingEmail(for note: Note) {
+        guard note.noteStatus == .ready else { return }
+        
+        do {
+            let payload = try environment.emailService.buildPayload(
+                for: note,
+                exportService: environment.exportService
+            )
+            pendingEmailPayload = payload
+            pendingEmailNote = note
+            
+            if environment.emailService.shouldAutoPrepare {
+                showPostRecordingEmail = true
+            } else if environment.emailService.shouldAskBeforeSend {
+                showEmailAskConfirm = true
+            }
+        } catch {
+            // Silently skip auto-email if not configured
         }
     }
 }

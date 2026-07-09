@@ -105,6 +105,19 @@ final class StructuredOutputTests: XCTestCase {
     }
 }
 
+final class TranscriptTextFormatterTests: XCTestCase {
+    func testExtractsTextFromLuxASRJSONArray() {
+        let json = """
+        [{"speaker":"SPEAKER_00","start":1.2,"end":5.0,"text":"Ech testen dat hei."}]
+        """
+        let text = TranscriptTextFormatter.readableText(from: json)
+        XCTAssertEqual(text, "Ech testen dat hei.")
+    }
+    
+    func testPlainTextPassesThrough() {
+        let text = TranscriptTextFormatter.readableText(from: "Hello world")
+        XCTAssertEqual(text, "Hello world")
+    }
 final class KeychainServiceTests: XCTestCase {
     func testSaveAndRetrieveAPIKey() throws {
         let keychain = KeychainService()

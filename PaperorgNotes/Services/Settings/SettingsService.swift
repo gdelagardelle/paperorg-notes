@@ -25,6 +25,8 @@ final class SettingsService {
         static let hasAcceptedPrivacyPolicy = "hasAcceptedPrivacyPolicy"
         static let consentedProviders = "consentedProviders"
         static let deleteAudioAfterTranscription = "deleteAudioAfterTranscription"
+        static let customVocabulary = "customVocabulary"
+        static let reviewBeforeEmail = "reviewBeforeEmail"
     }
     
     var defaultLanguage: AppLanguage {
@@ -97,6 +99,28 @@ final class SettingsService {
         didSet { defaults.set(Array(consentedProviders), forKey: Keys.consentedProviders) }
     }
     
+    var customVocabulary: [String] {
+        didSet { defaults.set(customVocabulary, forKey: Keys.customVocabulary) }
+    }
+    
+    var reviewBeforeEmail: Bool {
+        didSet { defaults.set(reviewBeforeEmail, forKey: Keys.reviewBeforeEmail) }
+    }
+    
+    func transcriptionPrompt() -> String? {
+        VocabularyFormatter.prompt(from: customVocabulary)
+    }
+    
+    func addVocabularyTerm(_ term: String) {
+        let trimmed = term.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !customVocabulary.contains(trimmed) else { return }
+        customVocabulary.append(trimmed)
+    }
+    
+    func removeVocabularyTerm(_ term: String) {
+        customVocabulary.removeAll { $0 == term }
+    }
+    
     init(keychain: KeychainService, defaults: UserDefaults = .standard) {
         self.keychain = keychain
         self.defaults = defaults
@@ -120,6 +144,8 @@ final class SettingsService {
         self.faceIDEnabled = defaults.bool(forKey: Keys.faceIDEnabled)
         self.hasAcceptedPrivacyPolicy = defaults.bool(forKey: Keys.hasAcceptedPrivacyPolicy)
         self.consentedProviders = Set(defaults.stringArray(forKey: Keys.consentedProviders) ?? [])
+        self.customVocabulary = defaults.stringArray(forKey: Keys.customVocabulary) ?? []
+        self.reviewBeforeEmail = defaults.object(forKey: Keys.reviewBeforeEmail) as? Bool ?? true
     }
     
     func providerPreferences() -> [AppLanguage: [ProviderID]] {
@@ -206,5 +232,7 @@ final class SettingsService {
         faceIDEnabled = false
         hasAcceptedPrivacyPolicy = false
         consentedProviders = []
+        customVocabulary = []
+        reviewBeforeEmail = true
     }
 }

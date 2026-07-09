@@ -4,12 +4,18 @@ import SwiftData
 struct NotesListView: View {
     @Query(sort: \Note.createdAt, order: .reverse) private var notes: [Note]
     @State private var filterLanguage: AppLanguage?
+    @State private var filterProject: String?
     @State private var showFavoritesOnly = false
+    
+    private var projectNames: [String] {
+        Array(Set(notes.compactMap(\.projectName).filter { !$0.isEmpty })).sorted()
+    }
     
     var filteredNotes: [Note] {
         notes.filter { note in
             if showFavoritesOnly && !note.isFavorite { return false }
             if let lang = filterLanguage, note.language != lang.rawValue { return false }
+            if let project = filterProject, note.projectName != project { return false }
             return true
         }
     }
@@ -38,6 +44,11 @@ struct NotesListView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Toggle("Favorites Only", isOn: $showFavoritesOnly)
+                        Divider()
+                        Button("All Projects") { filterProject = nil }
+                        ForEach(projectNames, id: \.self) { project in
+                            Button(project) { filterProject = project }
+                        }
                         Divider()
                         Button("All Languages") { filterLanguage = nil }
                         ForEach(AppLanguage.allCases) { lang in
@@ -74,9 +85,29 @@ struct NoteListRow: View {
                 Text(note.appLanguage.flag)
                 Text(formattedDate)
                 Text(DurationFormatter.format(note.durationSeconds))
+                if let project = note.projectName, !project.isEmpty {
+                    Text(project)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(AppTheme.primary.opacity(0.12))
+                        .clipShape(Capsule())
+                }
             }
             .font(.caption)
             .foregroundStyle(AppTheme.textSecondary)
+            
+            if !note.tags.isEmpty {
+                HStack(spacing: 6) {
+                    ForEach(note.tags.prefix(3), id: \.self) { tag in
+                        Text(tag)
+                            .font(.caption2)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(AppTheme.surface)
+                            .clipShape(Capsule())
+                    }
+                }
+            }
             
             if let summary = note.summaryShort, !summary.isEmpty {
                 Text(summary)

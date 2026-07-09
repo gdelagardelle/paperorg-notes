@@ -6,16 +6,23 @@ struct SearchView: View {
     @State private var query = ""
     @State private var filterLanguage: AppLanguage?
     @State private var filterTag = ""
+    @State private var filterProject: String?
+    
+    private var projectNames: [String] {
+        Array(Set(notes.compactMap(\.projectName).filter { !$0.isEmpty })).sorted()
+    }
     
     var results: [Note] {
         notes.filter { note in
             if let lang = filterLanguage, note.language != lang.rawValue { return false }
+            if let project = filterProject, note.projectName != project { return false }
             if !filterTag.isEmpty && !note.tags.contains(where: { $0.localizedCaseInsensitiveContains(filterTag) }) {
                 return false
             }
             guard !query.isEmpty else { return true }
             let q = query.lowercased()
             return note.title.lowercased().contains(q)
+                || (note.projectName?.lowercased().contains(q) ?? false)
                 || (note.rawTranscript?.lowercased().contains(q) ?? false)
                 || (note.correctedTranscript?.lowercased().contains(q) ?? false)
                 || (note.summaryShort?.lowercased().contains(q) ?? false)
@@ -29,7 +36,7 @@ struct SearchView: View {
                 searchBar
                 filterBar
                 
-                if query.isEmpty && filterLanguage == nil && filterTag.isEmpty {
+                if query.isEmpty && filterLanguage == nil && filterTag.isEmpty && filterProject == nil {
                     ContentUnavailableView(
                         "Search Transcripts",
                         systemImage: "magnifyingglass",
@@ -71,18 +78,40 @@ struct SearchView: View {
     }
     
     private var filterBar: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(AppLanguage.allCases) { lang in
-                    FilterChip(
-                        title: "\(lang.flag) \(lang.displayName)",
-                        isSelected: filterLanguage == lang
-                    ) {
-                        filterLanguage = filterLanguage == lang ? nil : lang
+        VStack(spacing: 8) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(AppLanguage.allCases) { lang in
+                        FilterChip(
+                            title: "\(lang.flag) \(lang.displayName)",
+                            isSelected: filterLanguage == lang
+                        ) {
+                            filterLanguage = filterLanguage == lang ? nil : lang
+                        }
                     }
                 }
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(projectNames, id: \.self) { project in
+                        FilterChip(
+                            title: project,
+                            isSelected: filterProject == project
+                        ) {
+                            filterProject = filterProject == project ? nil : project
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+            
+            HStack {
+                TextField("Filter by tag", text: $filterTag)
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.horizontal)
+            }
         }
         .padding(.bottom, 8)
     }

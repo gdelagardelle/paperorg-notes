@@ -59,14 +59,27 @@ enum OutputType: String, Codable, CaseIterable, Identifiable, Sendable {
     
     var displayName: String {
         switch self {
-        case .meetingNotes: return "Meeting Notes"
+        case .meetingNotes: return "Meeting"
         case .brainstorm: return "Brainstorm"
-        case .personalMemo: return "Personal Memo"
-        case .clientCall: return "Client Call"
+        case .personalMemo: return "Memo"
+        case .clientCall: return "Client call"
         case .interview: return "Interview"
-        case .taskList: return "Task List"
-        case .cleanResume: return "Clean Résumé"
-        case .rawTranscript: return "Raw Transcript Only"
+        case .taskList: return "Tasks"
+        case .cleanResume: return "Résumé"
+        case .rawTranscript: return "Transcript only"
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .meetingNotes: return "person.3.fill"
+        case .brainstorm: return "lightbulb.fill"
+        case .personalMemo: return "note.text"
+        case .clientCall: return "phone.fill"
+        case .interview: return "mic.fill"
+        case .taskList: return "checklist"
+        case .cleanResume: return "doc.richtext"
+        case .rawTranscript: return "text.alignleft"
         }
     }
 }

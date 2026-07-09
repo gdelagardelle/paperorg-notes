@@ -14,6 +14,7 @@ final class AppEnvironment {
     let qualityPipeline: QualityPipeline
     let keychainService: KeychainService
     let processRecordingUseCase: ProcessRecordingUseCase
+    let deepLinkHandler: DeepLinkHandler
     
     init(
         recordingService: RecordingService,
@@ -24,7 +25,8 @@ final class AppEnvironment {
         emailService: EmailService,
         exportService: ExportService,
         qualityPipeline: QualityPipeline,
-        keychainService: KeychainService
+        keychainService: KeychainService,
+        deepLinkHandler: DeepLinkHandler
     ) {
         self.recordingService = recordingService
         self.transcriptionService = transcriptionService
@@ -35,6 +37,7 @@ final class AppEnvironment {
         self.exportService = exportService
         self.qualityPipeline = qualityPipeline
         self.keychainService = keychainService
+        self.deepLinkHandler = deepLinkHandler
         self.processRecordingUseCase = ProcessRecordingUseCase(
             transcriptionService: transcriptionService,
             summaryService: summaryService,
@@ -56,6 +59,7 @@ final class AppEnvironment {
         let email = EmailService(settings: settings)
         let export = ExportService(storage: storage)
         let quality = QualityPipeline(orchestrator: orchestrator)
+        let deepLink = DeepLinkHandler()
         
         return AppEnvironment(
             recordingService: recording,
@@ -66,7 +70,8 @@ final class AppEnvironment {
             emailService: email,
             exportService: export,
             qualityPipeline: quality,
-            keychainService: keychain
+            keychainService: keychain,
+            deepLinkHandler: deepLink
         )
     }()
 }

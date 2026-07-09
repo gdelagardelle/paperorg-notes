@@ -1,6 +1,20 @@
 import Foundation
 import SwiftData
 
+enum ReprocessError: LocalizedError {
+    case audioMissing
+    case transcriptMissing
+    
+    var errorDescription: String? {
+        switch self {
+        case .audioMissing:
+            return "Audio file no longer available. Cannot transcribe again."
+        case .transcriptMissing:
+            return "No transcript available to re-summarize."
+        }
+    }
+}
+
 @MainActor
 final class ProcessRecordingUseCase {
     private let transcriptionService: TranscriptionService
@@ -28,53 +42,31 @@ final class ProcessRecordingUseCase {
         audioURL: URL,
         onStageChange: @escaping (ProcessingStage) -> Void
     ) async throws {
+        clearTranscriptionResults(note)
         note.status = NoteStatus.processing.rawValue
+        note.errorMessage = nil
         
-        // Transcribe
         onStageChange(.transcribing)
         let request = TranscriptionRequest(
             audioURL: audioURL,
             language: note.appLanguage,
-            enableDiarization: true
+            enableDiarization: true,
+            prompt: settingsService.transcriptionPrompt()
         )
         let initialResult = try await transcriptionService.transcribe(request)
         
-        // Quality check
         onStageChange(.checkingQuality)
         let finalTranscript = try await qualityPipeline.process(
             initialResult: initialResult,
             audioURL: audioURL,
-            expectedLanguage: note.appLanguage
+            expectedLanguage: note.appLanguage,
+            prompt: settingsService.transcriptionPrompt()
         )
         
-        note.rawTranscript = finalTranscript.fullText
-        note.primaryProvider = finalTranscript.primaryProvider
-        note.detectedLanguage = note.language
-        note.qualityReportJSON = try? JSONEncoder().encode(finalTranscript.qualityReport)
+        applyTranscript(finalTranscript, to: note)
         
-        note.segments = finalTranscript.segments.map { TranscriptSegmentModel(from: $0, note: note) }
+        try await generateSummary(for: note, transcript: finalTranscript.fullText, onStageChange: onStageChange)
         
-        // Summarize
-        if note.noteOutputType != .rawTranscript {
-            onStageChange(.summarizing)
-            let structured = try await summaryService.generate(
-                transcript: finalTranscript.fullText,
-                outputType: note.noteOutputType,
-                language: note.appLanguage
-            )
-            
-            note.summaryShort = structured.shortSummary
-            note.summaryDetailed = structured.detailedSummary
-            note.structuredOutputJSON = try? JSONEncoder().encode(structured)
-            
-            if note.title == "Untitled Recording", let title = structured.title, !title.isEmpty {
-                note.title = title
-            }
-            
-            note.structuredSections = buildSections(from: structured, note: note)
-        }
-        
-        // Audio retention
         if settingsService.deleteAudioAfterTranscription {
             storageService.deleteAudio(for: note.id)
             note.audioDeletedAt = .now
@@ -84,6 +76,97 @@ final class ProcessRecordingUseCase {
         note.processingStage = ProcessingStage.ready.rawValue
         note.updatedAt = .now
         onStageChange(.ready)
+    }
+    
+    func transcribeAgain(
+        note: Note,
+        onStageChange: @escaping (ProcessingStage) -> Void
+    ) async throws {
+        let audioURL = storageService.audioURL(for: note.id)
+        guard FileManager.default.fileExists(atPath: audioURL.path) else {
+            throw ReprocessError.audioMissing
+        }
+        
+        onStageChange(.savingAudio)
+        try await execute(note: note, audioURL: audioURL, onStageChange: onStageChange)
+    }
+    
+    func resummarize(
+        note: Note,
+        onStageChange: @escaping (ProcessingStage) -> Void
+    ) async throws {
+        let transcript = note.displayTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !transcript.isEmpty else {
+            throw ReprocessError.transcriptMissing
+        }
+        
+        note.status = NoteStatus.processing.rawValue
+        note.errorMessage = nil
+        clearSummaryResults(note)
+        
+        try await generateSummary(for: note, transcript: transcript, onStageChange: onStageChange)
+        
+        note.status = NoteStatus.ready.rawValue
+        note.processingStage = ProcessingStage.ready.rawValue
+        note.updatedAt = .now
+        onStageChange(.ready)
+    }
+    
+    private func applyTranscript(_ finalTranscript: FinalTranscript, to note: Note) {
+        note.rawTranscript = finalTranscript.fullText
+        note.primaryProvider = finalTranscript.primaryProvider
+        note.detectedLanguage = note.language
+        note.qualityReportJSON = try? JSONEncoder().encode(finalTranscript.qualityReport)
+        note.segments = finalTranscript.segments.map { TranscriptSegmentModel(from: $0, note: note) }
+    }
+    
+    private func generateSummary(
+        for note: Note,
+        transcript: String,
+        onStageChange: @escaping (ProcessingStage) -> Void
+    ) async throws {
+        if note.noteOutputType == .rawTranscript {
+            note.summaryShort = nil
+            note.summaryDetailed = nil
+            note.structuredOutputJSON = nil
+            note.structuredSections = []
+            return
+        }
+        
+        onStageChange(.summarizing)
+        let structured = try await summaryService.generate(
+            transcript: transcript,
+            outputType: note.noteOutputType,
+            language: note.appLanguage
+        )
+        
+        note.summaryShort = structured.shortSummary
+        note.summaryDetailed = structured.detailedSummary
+        note.structuredOutputJSON = try? JSONEncoder().encode(structured)
+        
+        if note.title == "Untitled Recording", let title = structured.title, !title.isEmpty {
+            note.title = title
+        }
+        
+        note.structuredSections = buildSections(from: structured, note: note)
+    }
+    
+    private func clearTranscriptionResults(_ note: Note) {
+        note.segments.removeAll()
+        note.structuredSections.removeAll()
+        note.rawTranscript = nil
+        note.correctedTranscript = nil
+        note.primaryProvider = nil
+        note.detectedLanguage = nil
+        note.qualityReportJSON = nil
+        clearSummaryResults(note)
+    }
+    
+    private func clearSummaryResults(_ note: Note) {
+        note.summaryShort = nil
+        note.summaryDetailed = nil
+        note.structuredOutputJSON = nil
+        note.structuredSections.removeAll()
     }
     
     private func buildSections(from output: StructuredOutput, note: Note) -> [StructuredSectionModel] {

@@ -123,18 +123,17 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
     }
     
     private func parseLuxASRResult(_ data: Data, language: AppLanguage, start: Date) throws -> TranscriptionResult {
-        // Try JSON first (outfmt=json)
-        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            let segments = parseJSONSegments(json)
+        if let object = try? JSONSerialization.jsonObject(with: data) {
+            let segments = parseJSONSegments(from: object)
             if !segments.isEmpty {
                 return makeResult(segments: segments, language: language, start: start)
             }
         }
         
-        // Fallback: plain text response (outfmt=text)
         if let text = String(data: data, encoding: .utf8)?
             .trimmingCharacters(in: .whitespacesAndNewlines),
-           !text.isEmpty {
+           !text.isEmpty,
+           !text.hasPrefix("[") && !text.hasPrefix("{") {
             let segments = [TranscriptSegmentDTO(
                 index: 0,
                 text: text,
@@ -149,38 +148,63 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
         throw TranscriptionError.emptyResult
     }
     
-    private func parseJSONSegments(_ json: [String: Any]) -> [TranscriptSegmentDTO] {
-        var segments: [TranscriptSegmentDTO] = []
-        
-        if let segmentsArray = json["segments"] as? [[String: Any]] {
-            for (index, seg) in segmentsArray.enumerated() {
-                guard let text = seg["text"] as? String, !text.isEmpty else { continue }
-                let startTime = seg["start"] as? Double ?? seg["start_time"] as? Double ?? 0
-                let endTime = seg["end"] as? Double ?? seg["end_time"] as? Double ?? startTime
-                let confidence = seg["confidence"] as? Double ?? 0.9
-                let speaker = seg["speaker"] as? String ?? seg["speaker_id"] as? String
-                segments.append(TranscriptSegmentDTO(
-                    index: index,
-                    text: text,
-                    startTime: startTime,
-                    endTime: endTime,
-                    confidence: confidence,
-                    speakerLabel: speaker,
-                    providerId: identifier
-                ))
+    private func parseJSONSegments(from object: Any) -> [TranscriptSegmentDTO] {
+        if let rootArray = object as? [[String: Any]] {
+            return rootArray.enumerated().compactMap { index, seg in
+                parseSegmentDictionary(seg, index: index)
             }
-        } else if let text = json["text"] as? String ?? json["transcript"] as? String, !text.isEmpty {
-            segments.append(TranscriptSegmentDTO(
-                index: 0,
-                text: text,
-                startTime: 0,
-                endTime: 0,
-                confidence: 0.9,
-                providerId: identifier
-            ))
         }
         
-        return segments
+        if let json = object as? [String: Any] {
+            if let segmentsArray = json["segments"] as? [[String: Any]] {
+                return segmentsArray.enumerated().compactMap { index, seg in
+                    parseSegmentDictionary(seg, index: index)
+                }
+            }
+            if let text = json["text"] as? String ?? json["transcript"] as? String, !text.isEmpty {
+                return [TranscriptSegmentDTO(
+                    index: 0,
+                    text: text,
+                    startTime: 0,
+                    endTime: 0,
+                    confidence: 0.9,
+                    providerId: identifier
+                )]
+            }
+        }
+        
+        return []
+    }
+    
+    private func parseSegmentDictionary(_ seg: [String: Any], index: Int) -> TranscriptSegmentDTO? {
+        guard let text = seg["text"] as? String, !text.isEmpty else { return nil }
+        
+        let startTime = seg["start"] as? Double ?? seg["start_time"] as? Double ?? 0
+        let endTime = seg["end"] as? Double ?? seg["end_time"] as? Double ?? startTime
+        let speaker = seg["speaker"] as? String ?? seg["speaker_id"] as? String
+        
+        var confidence = seg["confidence"] as? Double ?? 0.9
+        if let words = seg["words"] as? [[String: Any]], !words.isEmpty {
+            let probs = words.compactMap { $0["probability"] as? Double }
+            if !probs.isEmpty {
+                confidence = probs.reduce(0, +) / Double(probs.count)
+            }
+        }
+        
+        return TranscriptSegmentDTO(
+            index: index,
+            text: text,
+            startTime: startTime,
+            endTime: endTime,
+            confidence: confidence,
+            speakerLabel: speaker,
+            isUnclear: confidence < 0.55,
+            providerId: identifier
+        )
+    }
+    
+    private func parseJSONSegments(_ json: [String: Any]) -> [TranscriptSegmentDTO] {
+        parseJSONSegments(from: json)
     }
     
     private func makeResult(segments: [TranscriptSegmentDTO], language: AppLanguage, start: Date) -> TranscriptionResult {

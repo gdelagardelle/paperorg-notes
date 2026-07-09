@@ -10,6 +10,17 @@ enum AppTheme {
     static let error = Color(red: 0.84, green: 0.27, blue: 0.27)
     static let unclearHighlight = Color(red: 1.0, green: 0.95, blue: 0.80)
     static let recordRed = Color(red: 0.90, green: 0.22, blue: 0.27)
+    
+    static let speakerColors: [Color] = [
+        Color(red: 0.10, green: 0.42, blue: 0.42),
+        Color(red: 0.20, green: 0.35, blue: 0.75),
+        Color(red: 0.55, green: 0.28, blue: 0.65),
+        Color(red: 0.85, green: 0.45, blue: 0.15)
+    ]
+    
+    static func speakerColor(for label: String?) -> Color {
+        speakerColors[SpeakerLabelFormatter.colorIndex(for: label) % speakerColors.count]
+    }
 }
 
 struct CardModifier: ViewModifier {

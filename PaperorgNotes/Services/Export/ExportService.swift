@@ -52,9 +52,9 @@ final class ExportService {
         parts.append("Language: \(note.appLanguage.displayName)")
         parts.append("")
         
-        if let summary = note.summaryShort, !summary.isEmpty {
+        if !note.displaySummaryShort.isEmpty {
             parts.append("SUMMARY")
-            parts.append(summary)
+            parts.append(note.displaySummaryShort)
             parts.append("")
         }
         
@@ -84,8 +84,8 @@ final class ExportService {
         md += "**Date:** \(formattedDate(note.createdAt))  \n"
         md += "**Language:** \(note.appLanguage.displayName)  \n\n"
         
-        if let summary = note.summaryShort, !summary.isEmpty {
-            md += "## Summary\n\n\(summary)\n\n"
+        if !note.displaySummaryShort.isEmpty {
+            md += "## Summary\n\n\(note.displaySummaryShort)\n\n"
         }
         
         if let structured = note.structuredOutput {

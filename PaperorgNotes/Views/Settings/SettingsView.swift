@@ -8,6 +8,7 @@ struct SettingsView: View {
     @State private var openAIKey = ""
     @State private var elevenLabsKey = ""
     @State private var luxASRKey = ""
+    @State private var newVocabularyTerm = ""
     
     var body: some View {
         @Bindable var settings = environment.settingsService
@@ -65,6 +66,40 @@ struct SettingsView: View {
                     }
                 }
                 
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Custom Vocabulary")
+                            .font(.subheadline.bold())
+                        Text("Names, brands, and terms to improve transcription accuracy.")
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
+                    
+                    ForEach(settings.customVocabulary, id: \.self) { term in
+                        HStack {
+                            Text(term)
+                            Spacer()
+                            Button(role: .destructive) {
+                                settings.removeVocabularyTerm(term)
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                        }
+                    }
+                    
+                    HStack {
+                        TextField("Add term", text: $newVocabularyTerm)
+                            .textInputAutocapitalization(.never)
+                        Button("Add") {
+                            settings.addVocabularyTerm(newVocabularyTerm)
+                            newVocabularyTerm = ""
+                        }
+                        .disabled(newVocabularyTerm.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
+                } header: {
+                    Text("Vocabulary")
+                }
+                
                 Section("Output") {
                     Picker("Default Output Type", selection: $settings.defaultOutputType) {
                         ForEach(OutputType.allCases) { type in
@@ -94,6 +129,7 @@ struct SettingsView: View {
                     Toggle("Attach Audio", isOn: $settings.emailAttachAudio)
                     Toggle("Attach PDF", isOn: $settings.emailAttachPDF)
                     Toggle("Attach Markdown", isOn: $settings.emailAttachMarkdown)
+                    Toggle("Review before send", isOn: $settings.reviewBeforeEmail)
                     
                     HStack {
                         TextField("Add email address", text: $newEmail)

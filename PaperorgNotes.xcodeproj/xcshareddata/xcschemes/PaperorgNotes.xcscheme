@@ -21,6 +21,20 @@
                ReferencedContainer = "container:PaperorgNotes.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "AB87B253C8F1B026D3F065F5"
+               BuildableName = "PaperorgNotesWidgetExtension.appex"
+               BlueprintName = "PaperorgNotesWidgetExtension"
+               ReferencedContainer = "container:PaperorgNotes.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

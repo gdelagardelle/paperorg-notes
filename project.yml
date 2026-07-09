@@ -21,6 +21,8 @@ targets:
     platform: iOS
     sources:
       - path: PaperorgNotes
+    entitlements:
+      path: PaperorgNotes/Resources/PaperorgNotes.entitlements
     info:
       path: PaperorgNotes/Resources/Info.plist
       properties:
@@ -40,7 +42,28 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-    dependencies: []
+        CODE_SIGN_ENTITLEMENTS: PaperorgNotes/Resources/PaperorgNotes.entitlements
+    dependencies:
+      - target: PaperorgNotesWidgetExtension
+        embed: true
+
+  PaperorgNotesWidgetExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: PaperorgNotesWidget
+    entitlements:
+      path: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.notes.widget
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Paperorg Notes Widget
+        INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        CODE_SIGN_ENTITLEMENTS: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
+        SKIP_INSTALL: YES
 
   PaperorgNotesTests:
     type: bundle.unit-test
@@ -55,6 +78,7 @@ schemes:
     build:
       targets:
         PaperorgNotes: all
+        PaperorgNotesWidgetExtension: all
     test:
       targets:
         - PaperorgNotesTests

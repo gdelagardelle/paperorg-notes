@@ -13,7 +13,8 @@ final class QualityPipeline {
     func process(
         initialResult: TranscriptionResult,
         audioURL: URL,
-        expectedLanguage: AppLanguage
+        expectedLanguage: AppLanguage,
+        prompt: String? = nil
     ) async throws -> FinalTranscript {
         var segments = initialResult.segments
         var providersUsed = [initialResult.providerId]
@@ -43,6 +44,7 @@ final class QualityPipeline {
                 audioURL: audioURL,
                 language: expectedLanguage,
                 enableDiarization: false,
+                prompt: prompt,
                 segmentTimeRange: range
             )
             
