@@ -17,8 +17,8 @@ final class QualityPipeline {
         prompt: String? = nil
     ) async throws -> FinalTranscript {
         var segments = initialResult.segments
-        var providersUsed = [initialResult.providerId]
-        var retranscribedCount = 0
+        let providersUsed = [initialResult.providerId]
+        let retranscribedCount = 0
         
         // Step 1: Flag low confidence segments
         segments = segments.map { seg in
@@ -35,46 +35,10 @@ final class QualityPipeline {
         // Step 3: Detect mixed language segments
         let mixedLanguage = detectMixedLanguageSegments(in: segments, expected: expectedLanguage)
         
-        // Step 4: Re-transcribe weak segments with fallback provider
+        // Step 4: Re-transcribe weak segments — disabled because providers ignore
+        // segmentTimeRange and each attempt re-processes the entire file (very slow for LuxASR).
         let weakSegments = segments.filter { $0.confidence < retranscribeThreshold || $0.isUnclear }
-        
-        for weak in weakSegments.prefix(5) { // Limit re-transcription attempts in MVP
-            let range = weak.startTime...max(weak.endTime, weak.startTime + 0.1)
-            let request = TranscriptionRequest(
-                audioURL: audioURL,
-                language: expectedLanguage,
-                enableDiarization: false,
-                prompt: prompt,
-                segmentTimeRange: range
-            )
-            
-            do {
-                let retryResult = try await orchestrator.retranscribeSegment(
-                    request: request,
-                    excludingProvider: initialResult.providerId
-                )
-                if let better = retryResult.segments.first,
-                   better.confidence > weak.confidence,
-                   !better.text.trimmingCharacters(in: .whitespaces).isEmpty {
-                    if let idx = segments.firstIndex(where: { $0.id == weak.id }) {
-                        segments[idx].text = better.text
-                        segments[idx].isUnclear = better.confidence < confidenceThreshold
-                        retranscribedCount += 1
-                        if !providersUsed.contains(retryResult.providerId) {
-                            providersUsed.append(retryResult.providerId)
-                        }
-                    }
-                }
-            } catch {
-                // Keep original segment; mark unclear
-                if let idx = segments.firstIndex(where: { $0.id == weak.id }) {
-                    if segments[idx].text.isEmpty {
-                        segments[idx].text = "[unclear]"
-                    }
-                    segments[idx].isUnclear = true
-                }
-            }
-        }
+        _ = weakSegments
         
         // Step 5: Language validation
         let languagePassed = validateLanguage(segments: segments, expected: expectedLanguage)

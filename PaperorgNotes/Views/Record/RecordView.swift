@@ -390,6 +390,14 @@ struct ProcessingView: View {
                         .foregroundStyle(AppTheme.textSecondary)
                 }
                 
+                if let detail = stage.detailMessage(for: language) {
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+                
                 if stage != .ready {
                     ProgressView()
                 }

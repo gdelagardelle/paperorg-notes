@@ -2,10 +2,13 @@ import SwiftUI
 import SwiftData
 
 struct NotesListView: View {
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \Note.createdAt, order: .reverse) private var notes: [Note]
     @State private var filterLanguage: AppLanguage?
     @State private var filterProject: String?
     @State private var showFavoritesOnly = false
+    @State private var notePendingDelete: Note?
     
     private var projectNames: [String] {
         Array(Set(notes.compactMap(\.projectName).filter { !$0.isEmpty })).sorted()
@@ -34,6 +37,13 @@ struct NotesListView: View {
                         NavigationLink(destination: NoteDetailView(note: note)) {
                             NoteListRow(note: note)
                         }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                notePendingDelete = note
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                     .listStyle(.plain)
                 }
@@ -60,6 +70,22 @@ struct NotesListView: View {
                         Image(systemName: "line.3.horizontal.decrease.circle")
                     }
                 }
+            }
+            .alert("Delete Note?", isPresented: Binding(
+                get: { notePendingDelete != nil },
+                set: { if !$0 { notePendingDelete = nil } }
+            )) {
+                Button("Delete", role: .destructive) {
+                    if let note = notePendingDelete {
+                        environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
+                    }
+                    notePendingDelete = nil
+                }
+                Button("Cancel", role: .cancel) {
+                    notePendingDelete = nil
+                }
+            } message: {
+                Text("Permanently deletes this note, transcript, summary, and recording.")
             }
         }
     }

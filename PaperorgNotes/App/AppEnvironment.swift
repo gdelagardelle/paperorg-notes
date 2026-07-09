@@ -14,6 +14,7 @@ final class AppEnvironment {
     let qualityPipeline: QualityPipeline
     let keychainService: KeychainService
     let processRecordingUseCase: ProcessRecordingUseCase
+    let deleteNoteUseCase: DeleteNoteUseCase
     let deepLinkHandler: DeepLinkHandler
     
     init(
@@ -45,6 +46,7 @@ final class AppEnvironment {
             qualityPipeline: qualityPipeline,
             settingsService: settingsService
         )
+        self.deleteNoteUseCase = DeleteNoteUseCase(storageService: storageService)
     }
     
     static let live: AppEnvironment = {

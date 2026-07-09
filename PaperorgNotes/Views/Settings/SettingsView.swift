@@ -3,6 +3,7 @@ import SwiftData
 
 struct SettingsView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: \Note.createdAt, order: .reverse) private var notes: [Note]
     @State private var showDeleteConfirmation = false
     @State private var showProviderConsent: ProviderID?
@@ -204,6 +205,7 @@ struct SettingsView: View {
             .onAppear { loadKeys() }
             .alert("Delete All Data?", isPresented: $showDeleteConfirmation) {
                 Button("Delete Everything", role: .destructive) {
+                    environment.deleteNoteUseCase.deleteAllNotes(notes, context: modelContext)
                     environment.storageService.deleteAllAudio()
                     environment.settingsService.resetAllData()
                 }

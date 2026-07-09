@@ -23,6 +23,7 @@
 		517509262D50F3108147C612 /* AppleSpeechProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAB3995B0D7080BE3AFC20C7 /* AppleSpeechProvider.swift */; };
 		51E2E8EC0F74C349152E75BF /* ProcessRecordingUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5243CB5415532B47C9904D /* ProcessRecordingUseCase.swift */; };
 		525E797077F692277186F223 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A47C931C30D4142808038E /* SettingsView.swift */; };
+		53A84583C3B43D6875DCA00C /* DeleteNoteUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */; };
 		53DC4B6EAD4747272CC3EB7B /* PaperorgNotesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C47221B81917C0FD802E52 /* PaperorgNotesWidget.swift */; };
 		5659B8363936129D5E6448BA /* QualityPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CB1C8B9F80F34734755D2C /* QualityPipeline.swift */; };
 		5D9B4272A0E335AADB6CDDFB /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10F451B9CE45F448ED5357EA /* AppConstants.swift */; };
@@ -90,6 +91,7 @@
 		10F451B9CE45F448ED5357EA /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 		111EBE0439A2EDDB89A24C20 /* SummaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryService.swift; sourceTree = "<group>"; };
 		182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionProvider.swift; sourceTree = "<group>"; };
+		1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteNoteUseCase.swift; sourceTree = "<group>"; };
 		2BF5DBF0A62BECF4981A7BE7 /* ReviewBeforeSendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewBeforeSendView.swift; sourceTree = "<group>"; };
 		2C4CCE7823C18246EF50175B /* PrivacyConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyConsentView.swift; sourceTree = "<group>"; };
 		2D726C5822C87F122AA6765A /* PaperorgNotesTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PaperorgNotesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -130,6 +132,7 @@
 		CF1762B9D2A80DF2BDFFD225 /* RecordingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingService.swift; sourceTree = "<group>"; };
 		D2CB1C8B9F80F34734755D2C /* QualityPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualityPipeline.swift; sourceTree = "<group>"; };
 		D682905B816444B9E87CD2FC /* PaperorgNotesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesApp.swift; sourceTree = "<group>"; };
+		DE0C06053A99804E1AA8110D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E5C627A5CB7405AD3E454F04 /* StartRecordingIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartRecordingIntent.swift; sourceTree = "<group>"; };
 		FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptTextFormatter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -258,6 +261,7 @@
 		4DE0C497B46B6DDD578E7B70 /* UseCases */ = {
 			isa = PBXGroup;
 			children = (
+				1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */,
 				5A5243CB5415532B47C9904D /* ProcessRecordingUseCase.swift */,
 			);
 			path = UseCases;
@@ -274,6 +278,7 @@
 		5319BEDC57964CBD273F9FE9 /* PaperorgNotesWidget */ = {
 			isa = PBXGroup;
 			children = (
+				DE0C06053A99804E1AA8110D /* Info.plist */,
 				B97FC756EBB626004AB78526 /* PaperorgNotesWidget.entitlements */,
 				89C47221B81917C0FD802E52 /* PaperorgNotesWidget.swift */,
 				829314BC54DCB82DDAC7E449 /* PaperorgNotesWidgetBundle.swift */,
@@ -530,6 +535,7 @@
 				517509262D50F3108147C612 /* AppleSpeechProvider.swift in Sources */,
 				86D9F89F6DE0D92FF1189E16 /* AudioPlaybackService.swift in Sources */,
 				180B2284CCCCBFF9B09A60B4 /* DeepLinkHandler.swift in Sources */,
+				53A84583C3B43D6875DCA00C /* DeleteNoteUseCase.swift in Sources */,
 				C372E6B396493FA331A1DA18 /* ElevenLabsScribeProvider.swift in Sources */,
 				D4B680849B70B937681292C5 /* EmailService.swift in Sources */,
 				47EE42893ACF727B1C51C409 /* EncryptionService.swift in Sources */,
@@ -754,8 +760,7 @@
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Paperorg Notes Widget";
-				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
+				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -829,8 +834,7 @@
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Paperorg Notes Widget";
-				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
+				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

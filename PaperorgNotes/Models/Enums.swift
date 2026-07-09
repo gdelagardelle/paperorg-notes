@@ -109,6 +109,23 @@ enum ProcessingStage: String, Codable, Sendable, CaseIterable {
         case .ready: return "Ready"
         }
     }
+    
+    func detailMessage(for language: AppLanguage) -> String? {
+        switch self {
+        case .savingAudio:
+            return "Finalizing your recording file."
+        case .transcribing where language == .luxembourgish:
+            return "LuxASR processes audio on Uni Luxembourg servers. This usually takes 30 seconds to a few minutes depending on length."
+        case .transcribing:
+            return "Sending audio to your configured transcription provider."
+        case .checkingQuality:
+            return "Reviewing confidence scores in the transcript."
+        case .summarizing:
+            return "Generating structured notes with AI."
+        case .ready:
+            return nil
+        }
+    }
 }
 
 // MARK: - Email Settings

@@ -83,8 +83,10 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
     private func pollUntilComplete(jobId: String) async throws -> LuxASRStatusResponse {
         let statusURL = baseURL.appendingPathComponent("v3/asr/jobs/\(jobId)")
         
-        for _ in 0..<maxPollAttempts {
-            try await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+        for attempt in 0..<maxPollAttempts {
+            if attempt > 0 {
+                try await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
+            }
             
             let (statusData, response) = try await URLSession.shared.data(from: statusURL)
             

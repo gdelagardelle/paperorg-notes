@@ -60,14 +60,18 @@ targets:
       - path: PaperorgNotesWidget
     entitlements:
       path: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
+    info:
+      path: PaperorgNotesWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Paperorg Notes Widget
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.notes.widget
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Paperorg Notes Widget
-        INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier: com.apple.widgetkit-extension
         CODE_SIGN_ENTITLEMENTS: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
         SKIP_INSTALL: YES
 

@@ -4,6 +4,7 @@ import SwiftData
 struct NoteDetailView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @Bindable var note: Note
     
     @State private var selectedTab = 0
@@ -14,6 +15,8 @@ struct NoteDetailView: View {
     @State private var processingError: String?
     @State private var editingSegment: TranscriptSegmentModel?
     @State private var editText = ""
+    @State private var showDeleteAudioConfirm = false
+    @State private var showDeleteNoteConfirm = false
     @StateObject private var playback = AudioPlaybackService()
     
     private var audioAvailable: Bool {
@@ -41,11 +44,49 @@ struct NoteDetailView: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button(action: toggleFavorite) {
-                    Image(systemName: note.isFavorite ? "star.fill" : "star")
-                        .foregroundStyle(note.isFavorite ? AppTheme.warning : AppTheme.textSecondary)
+                HStack(spacing: 16) {
+                    Button(action: toggleFavorite) {
+                        Image(systemName: note.isFavorite ? "star.fill" : "star")
+                            .foregroundStyle(note.isFavorite ? AppTheme.warning : AppTheme.textSecondary)
+                    }
+                    
+                    Menu {
+                        if audioAvailable {
+                            Button(role: .destructive) {
+                                showDeleteAudioConfirm = true
+                            } label: {
+                                Label("Delete Recording", systemImage: "waveform.slash")
+                            }
+                        }
+                        
+                        Button(role: .destructive) {
+                            showDeleteNoteConfirm = true
+                        } label: {
+                            Label("Delete Note", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
                 }
             }
+        }
+        .alert("Delete Recording?", isPresented: $showDeleteAudioConfirm) {
+            Button("Delete Audio", role: .destructive) {
+                environment.deleteNoteUseCase.deleteAudio(for: note, context: modelContext)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Removes the audio file but keeps the transcript and summary.")
+        }
+        .alert("Delete Note?", isPresented: $showDeleteNoteConfirm) {
+            Button("Delete", role: .destructive) {
+                environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Permanently deletes this note, transcript, summary, and recording.")
         }
         .sheet(item: $editingSegment) { segment in
             segmentEditSheet(segment)
