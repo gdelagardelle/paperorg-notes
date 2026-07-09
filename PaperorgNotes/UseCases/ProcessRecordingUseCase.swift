@@ -47,6 +47,7 @@ final class ProcessRecordingUseCase {
         note.errorMessage = nil
         
         onStageChange(.transcribing)
+        storageService.prepareAudioForReading(noteId: note.id)
         let request = TranscriptionRequest(
             audioURL: audioURL,
             language: note.appLanguage,

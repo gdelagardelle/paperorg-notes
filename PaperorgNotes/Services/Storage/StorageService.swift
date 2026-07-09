@@ -32,6 +32,10 @@ final class StorageService {
     init() {
         for dir in [recordingsDirectory, checkpointsDirectory, exportsDirectory, gdprDirectory] {
             try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
+            try? fileManager.setAttributes(
+                [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+                ofItemAtPath: dir.path
+            )
         }
     }
     
@@ -71,10 +75,18 @@ final class StorageService {
         }
         try fileManager.moveItem(at: tempURL, to: destination)
         try fileManager.setAttributes(
-            [.protectionKey: FileProtectionType.complete],
+            [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
             ofItemAtPath: destination.path
         )
         return destination
+    }
+    
+    func readAudioData(for noteId: UUID) throws -> Data {
+        try AudioFileReader.readData(from: audioURL(for: noteId))
+    }
+    
+    func prepareAudioForReading(noteId: UUID) {
+        AudioFileReader.prepareForReading(audioURL(for: noteId))
     }
     
     func deleteAudio(for noteId: UUID) {

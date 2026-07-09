@@ -11,6 +11,7 @@ final class AudioPlaybackService: ObservableObject {
     func play(url: URL, segment: TranscriptSegmentModel) {
         stop()
         do {
+            AudioFileReader.prepareForReading(url)
             try AVAudioSession.sharedInstance().setCategory(.playback)
             player = try AVAudioPlayer(contentsOf: url)
             player?.currentTime = segment.startTime

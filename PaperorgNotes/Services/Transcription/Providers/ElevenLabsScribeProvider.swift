@@ -19,7 +19,7 @@ final class ElevenLabsScribeProvider: TranscriptionProvider, @unchecked Sendable
         }
         
         let start = Date()
-        let audioData = try Data(contentsOf: request.audioURL)
+        let audioData = try AudioFileReader.readData(from: request.audioURL)
         let boundary = UUID().uuidString
         var body = Data()
         

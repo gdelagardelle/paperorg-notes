@@ -18,7 +18,7 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
     
     func transcribe(_ request: TranscriptionRequest, credentials: TranscriptionCredentials) async throws -> TranscriptionResult {
         let start = Date()
-        let audioData = try Data(contentsOf: request.audioURL)
+        let audioData = try AudioFileReader.readData(from: request.audioURL)
         let mimeType = mimeType(for: request.audioURL)
         let filename = request.audioURL.lastPathComponent
         

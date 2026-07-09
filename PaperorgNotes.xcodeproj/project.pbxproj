@@ -10,6 +10,7 @@
 		026EFC7E07DD0201D8FBD951 /* NoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E171CA6AC03EC4611DD5EB2 /* NoteDetailView.swift */; };
 		02ECA3A767DDA35414C2E876 /* TranscriptionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC82CA43248D13335C7DBE96 /* TranscriptionProvider.swift */; };
 		04CFA2851125FEF94203EB4F /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B3C01618A0601C86CA1CF7 /* Note.swift */; };
+		09B3CC195AEDAE6321FAAAC5 /* AudioFileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82977FFEA0CD98DC14761648 /* AudioFileReader.swift */; };
 		10D073E462BA623872D954B5 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015CA9C9BF4BA1A913E6E87E /* ExportService.swift */; };
 		129CE3D23578AA4B51A0B063 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47612546C77D2EBA71ED4283 /* AppEnvironment.swift */; };
 		13AEF56FF88E35287FDA4CA3 /* ReviewBeforeSendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5DBF0A62BECF4981A7BE7 /* ReviewBeforeSendView.swift */; };
@@ -112,6 +113,7 @@
 		76B3C01618A0601C86CA1CF7 /* Note.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Note.swift; sourceTree = "<group>"; };
 		7A23290AE1D4C2DF9E4BEA45 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
 		829314BC54DCB82DDAC7E449 /* PaperorgNotesWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesWidgetBundle.swift; sourceTree = "<group>"; };
+		82977FFEA0CD98DC14761648 /* AudioFileReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFileReader.swift; sourceTree = "<group>"; };
 		89C47221B81917C0FD802E52 /* PaperorgNotesWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesWidget.swift; sourceTree = "<group>"; };
 		8E64381808162838B2D811BC /* EmailService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailService.swift; sourceTree = "<group>"; };
 		923CEA82446856AA18906690 /* PaperorgNotes.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PaperorgNotes.entitlements; sourceTree = "<group>"; };
@@ -194,6 +196,7 @@
 			children = (
 				10F451B9CE45F448ED5357EA /* AppConstants.swift */,
 				C9A087642002F869CCB02526 /* AppTheme.swift */,
+				82977FFEA0CD98DC14761648 /* AudioFileReader.swift */,
 				68B74C5620F1B13BDE12A809 /* DeepLinkHandler.swift */,
 				FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */,
 			);
@@ -533,6 +536,7 @@
 				129CE3D23578AA4B51A0B063 /* AppEnvironment.swift in Sources */,
 				3A9C435B67B50413336FBEA5 /* AppTheme.swift in Sources */,
 				517509262D50F3108147C612 /* AppleSpeechProvider.swift in Sources */,
+				09B3CC195AEDAE6321FAAAC5 /* AudioFileReader.swift in Sources */,
 				86D9F89F6DE0D92FF1189E16 /* AudioPlaybackService.swift in Sources */,
 				180B2284CCCCBFF9B09A60B4 /* DeepLinkHandler.swift in Sources */,
 				53A84583C3B43D6875DCA00C /* DeleteNoteUseCase.swift in Sources */,
