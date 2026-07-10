@@ -8,7 +8,6 @@ struct NotesListView: View {
     @State private var filterLanguage: AppLanguage?
     @State private var filterProject: String?
     @State private var showFavoritesOnly = false
-    @State private var notePendingDelete: Note?
     
     private var projectNames: [String] {
         Array(Set(notes.compactMap(\.projectName).filter { !$0.isEmpty })).sorted()
@@ -39,7 +38,7 @@ struct NotesListView: View {
                         }
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
-                                notePendingDelete = note
+                                try? environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
@@ -70,22 +69,6 @@ struct NotesListView: View {
                         Image(systemName: "line.3.horizontal.decrease.circle")
                     }
                 }
-            }
-            .alert("Delete Note?", isPresented: Binding(
-                get: { notePendingDelete != nil },
-                set: { if !$0 { notePendingDelete = nil } }
-            )) {
-                Button("Delete", role: .destructive) {
-                    if let note = notePendingDelete {
-                        try? environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
-                    }
-                    notePendingDelete = nil
-                }
-                Button("Cancel", role: .cancel) {
-                    notePendingDelete = nil
-                }
-            } message: {
-                Text("Permanently deletes this note, transcript, summary, and recording.")
             }
         }
     }

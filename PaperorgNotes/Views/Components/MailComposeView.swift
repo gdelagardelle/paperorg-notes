@@ -149,7 +149,11 @@ struct EmailButton: View {
             if let payload = mailPayload {
                 ReviewBeforeSendView(note: note, payload: payload) { reviewed in
                     mailPayload = reviewed
-                    showMail = true
+                    showReview = false
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 350_000_000)
+                        showMail = true
+                    }
                 }
             }
         }

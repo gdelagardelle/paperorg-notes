@@ -94,10 +94,12 @@ final class SummaryService {
         let lengthInstruction = settings.summaryLength == .short
             ? "Keep summaries concise (2-3 sentences for short summary)."
             : "Provide a thorough detailed summary."
+        let outputLanguageInstruction = languageOutputInstruction(for: language)
         
         return """
         Output type: \(outputType.displayName)
-        Language: \(language.displayName)
+        Required output language: \(language.displayName)
+        \(outputLanguageInstruction)
         \(lengthInstruction)
         
         Transcript:
@@ -109,6 +111,23 @@ final class SummaryService {
         risks (array), nextSteps (array), peopleMentioned (array),
         datesMentioned (array), importantNumbers (array), followUpEmailDraft (string or null)
         """
+    }
+
+    private func languageOutputInstruction(for language: AppLanguage) -> String {
+        switch language {
+        case .luxembourgish:
+            return """
+            MANDATORY: Write every generated natural-language value exclusively in Lëtzebuergesch:
+            title, shortSummary, detailedSummary, keyIdeas, decisions, actionItems, openQuestions,
+            risks, nextSteps, and followUpEmailDraft. Do not write any explanatory content in English,
+            French, German, or Portuguese. Preserve proper names and direct quotations unchanged.
+            """
+        default:
+            return """
+            MANDATORY: Write every generated natural-language value exclusively in \(language.displayName).
+            Preserve proper names and direct quotations unchanged.
+            """
+        }
     }
     
     private func sanitize(_ output: StructuredOutputDTO, transcript: String) -> StructuredOutputDTO {
