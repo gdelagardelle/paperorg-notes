@@ -9,24 +9,28 @@ final class DeleteNoteUseCase {
         self.storageService = storageService
     }
     
-    func deleteAudio(for note: Note, context: ModelContext) {
+    func deleteAudio(for note: Note, context: ModelContext) throws {
         storageService.deleteAudio(for: note.id)
         note.audioDeletedAt = .now
         note.updatedAt = .now
-        try? context.save()
+        try context.save()
     }
     
-    func deleteNote(_ note: Note, context: ModelContext) {
+    func deleteNote(_ note: Note, context: ModelContext) throws {
         storageService.deleteAudio(for: note.id)
+        for segment in note.segments {
+            context.delete(segment)
+        }
+        for section in note.structuredSections {
+            context.delete(section)
+        }
         context.delete(note)
-        try? context.save()
+        try context.save()
     }
     
-    func deleteAllNotes(_ notes: [Note], context: ModelContext) {
+    func deleteAllNotes(_ notes: [Note], context: ModelContext) throws {
         for note in notes {
-            storageService.deleteAudio(for: note.id)
-            context.delete(note)
+            try deleteNote(note, context: context)
         }
-        try? context.save()
     }
 }

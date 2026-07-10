@@ -37,7 +37,7 @@ struct NotesListView: View {
                         NavigationLink(destination: NoteDetailView(note: note)) {
                             NoteListRow(note: note)
                         }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
                                 notePendingDelete = note
                             } label: {
@@ -77,7 +77,7 @@ struct NotesListView: View {
             )) {
                 Button("Delete", role: .destructive) {
                     if let note = notePendingDelete {
-                        environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
+                        try? environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
                     }
                     notePendingDelete = nil
                 }

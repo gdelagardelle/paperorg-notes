@@ -223,7 +223,7 @@ struct SettingsView: View {
             }
             .alert("Delete All Data?", isPresented: $showDeleteConfirmation) {
                 Button("Delete Everything", role: .destructive) {
-                    environment.deleteNoteUseCase.deleteAllNotes(notes, context: modelContext)
+                    try? environment.deleteNoteUseCase.deleteAllNotes(notes, context: modelContext)
                     environment.storageService.deleteAllLocalData()
                     environment.settingsService.resetAllData()
                 }

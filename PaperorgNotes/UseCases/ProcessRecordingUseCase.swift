@@ -71,6 +71,15 @@ final class ProcessRecordingUseCase {
             let initialResult = try await transcriptionService.transcribe(request)
             debugEvents.append("Transcription provider: \(initialResult.providerId)")
             debugEvents.append("Transcription time: \(initialResult.processingTimeMs) ms")
+            if let attemptLog = initialResult.metadata["attemptLog"] {
+                debugEvents.append("Provider attempts: \(attemptLog)")
+            }
+            if let jobId = initialResult.metadata["jobId"] {
+                debugEvents.append("LuxASR job ID: \(jobId)")
+            }
+            if let pollHistory = initialResult.metadata["pollHistory"] {
+                debugEvents.append("LuxASR poll history: \(pollHistory)")
+            }
 
             advance(.checkingQuality)
             let finalTranscript = try await qualityPipeline.process(

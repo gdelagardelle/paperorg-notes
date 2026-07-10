@@ -83,6 +83,7 @@ final class TranscriptionOrchestrator {
         }
         
         var lastError: Error?
+        var attemptLog: [String] = []
         let credentials = TranscriptionCredentials.from(registry.settings)
         
         for provider in providers {
@@ -90,22 +91,37 @@ final class TranscriptionOrchestrator {
             
             if provider.sendsAudioOffDevice && !registry.settings.isProviderConsented(providerId) {
                 lastError = TranscriptionError.providerNotConsented(providerId)
+                attemptLog.append("\(provider.identifier): skipped — consent missing")
                 continue
             }
             
             guard provider.isConfigured(credentials: credentials) else {
                 lastError = TranscriptionError.missingAPIKey(providerId)
+                attemptLog.append("\(provider.identifier): skipped — API key missing")
                 continue
             }
             
+            let startedAt = Date()
             do {
                 let result = try await provider.transcribe(request, credentials: credentials)
                 guard !result.fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                     throw TranscriptionError.emptyResult
                 }
-                return result
+                attemptLog.append("\(provider.identifier): succeeded in \(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s")
+                var metadata = result.metadata
+                metadata["attemptLog"] = attemptLog.joined(separator: " | ")
+                return TranscriptionResult(
+                    providerId: result.providerId,
+                    language: result.language,
+                    segments: result.segments,
+                    fullText: result.fullText,
+                    averageConfidence: result.averageConfidence,
+                    processingTimeMs: result.processingTimeMs,
+                    metadata: metadata
+                )
             } catch {
                 lastError = error
+                attemptLog.append("\(provider.identifier): failed after \(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s — \(error.localizedDescription)")
                 continue
             }
         }

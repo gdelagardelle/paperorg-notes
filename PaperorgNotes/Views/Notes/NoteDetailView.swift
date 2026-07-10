@@ -79,7 +79,7 @@ struct NoteDetailView: View {
         }
         .alert("Delete Recording?", isPresented: $showDeleteAudioConfirm) {
             Button("Delete Audio", role: .destructive) {
-                environment.deleteNoteUseCase.deleteAudio(for: note, context: modelContext)
+                try? environment.deleteNoteUseCase.deleteAudio(for: note, context: modelContext)
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -87,7 +87,7 @@ struct NoteDetailView: View {
         }
         .alert("Delete Note?", isPresented: $showDeleteNoteConfirm) {
             Button("Delete", role: .destructive) {
-                environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
+                try? environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
                 dismiss()
             }
             Button("Cancel", role: .cancel) {}

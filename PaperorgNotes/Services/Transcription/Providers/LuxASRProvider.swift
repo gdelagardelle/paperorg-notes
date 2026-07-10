@@ -65,15 +65,25 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
         
         let job = try JSONDecoder().decode(LuxASRJobResponse.self, from: submitData)
         
-        let jobStatus = try await pollUntilComplete(jobId: job.job_id, apiKey: credentials.luxASRAPIKey)
+        let pollResult = try await pollUntilComplete(jobId: job.job_id, apiKey: credentials.luxASRAPIKey)
+        let jobStatus = pollResult.status
         
         guard jobStatus.status == "completed" else {
             throw TranscriptionError.providerError(jobStatus.error ?? "LuxASR job failed")
         }
         
-        let resultURL = baseURL.appendingPathComponent("v3/asr/jobs/\(job.job_id)/result")
+        var resultComponents = URLComponents(
+            url: baseURL.appendingPathComponent("v3/asr/jobs/\(job.job_id)/result"),
+            resolvingAgainstBaseURL: false
+        )!
+        resultComponents.queryItems = [URLQueryItem(name: "_", value: UUID().uuidString)]
+        guard let resultURL = resultComponents.url else {
+            throw TranscriptionError.providerError("Invalid LuxASR result URL")
+        }
         var resultRequest = URLRequest(url: resultURL)
         resultRequest.timeoutInterval = 20
+        resultRequest.cachePolicy = .reloadIgnoringLocalCacheData
+        resultRequest.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
         if let apiKey = credentials.luxASRAPIKey, !apiKey.isEmpty {
             resultRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         }
@@ -84,19 +94,41 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
             throw TranscriptionError.providerError(msg)
         }
         
-        return try parseLuxASRResult(resultData, language: request.language, start: start)
+        let parsed = try parseLuxASRResult(resultData, language: request.language, start: start)
+        var metadata = parsed.metadata
+        metadata["jobId"] = job.job_id
+        metadata["pollHistory"] = pollResult.history.joined(separator: " | ")
+        return TranscriptionResult(
+            providerId: parsed.providerId,
+            language: parsed.language,
+            segments: parsed.segments,
+            fullText: parsed.fullText,
+            averageConfidence: parsed.averageConfidence,
+            processingTimeMs: parsed.processingTimeMs,
+            metadata: metadata
+        )
     }
     
-    private func pollUntilComplete(jobId: String, apiKey: String?) async throws -> LuxASRStatusResponse {
-        let statusURL = baseURL.appendingPathComponent("v3/asr/jobs/\(jobId)")
+    private func pollUntilComplete(jobId: String, apiKey: String?) async throws -> LuxASRPollResult {
+        let statusBaseURL = baseURL.appendingPathComponent("v3/asr/jobs/\(jobId)")
+        var lastStatus = "no status response"
+        var history: [String] = []
+        let startedAt = Date()
         
         for attempt in 0..<maxPollAttempts {
             if attempt > 0 {
                 try await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
             }
             
+            var components = URLComponents(url: statusBaseURL, resolvingAgainstBaseURL: false)!
+            components.queryItems = [URLQueryItem(name: "_", value: UUID().uuidString)]
+            guard let statusURL = components.url else {
+                throw TranscriptionError.providerError("Invalid LuxASR status URL")
+            }
             var statusRequest = URLRequest(url: statusURL)
             statusRequest.timeoutInterval = 20
+            statusRequest.cachePolicy = .reloadIgnoringLocalCacheData
+            statusRequest.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
             if let apiKey, !apiKey.isEmpty {
                 statusRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
             }
@@ -108,10 +140,12 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
             }
             
             let status = try JSONDecoder().decode(LuxASRStatusResponse.self, from: statusData)
+            lastStatus = status.status
+            history.append("+\(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s: \(status.status)")
             
             switch status.status {
             case "completed", "failed":
-                return status
+                return LuxASRPollResult(status: status, history: history)
             case "queued", "processing":
                 continue
             default:
@@ -119,7 +153,9 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
             }
         }
         
-        throw TranscriptionError.providerError("LuxASR is taking too long. Trying the next configured provider.")
+        throw TranscriptionError.providerError(
+            "LuxASR timed out after \(Int(pollInterval * Double(maxPollAttempts))) seconds (last status: \(lastStatus))."
+        )
     }
     
     private func mimeType(for url: URL) -> String {
@@ -245,4 +281,9 @@ private struct LuxASRJobResponse: Decodable {
 private struct LuxASRStatusResponse: Decodable {
     let status: String
     let error: String?
+}
+
+private struct LuxASRPollResult {
+    let status: LuxASRStatusResponse
+    let history: [String]
 }
