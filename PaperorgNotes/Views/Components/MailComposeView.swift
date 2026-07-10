@@ -130,9 +130,7 @@ struct EmailComposeSheet: View {
 struct EmailButton: View {
     let note: Note
     @Environment(AppEnvironment.self) private var environment
-    @State private var mailPayload: EmailPayload?
-    @State private var showMail = false
-    @State private var showReview = false
+    @State private var presentation: EmailPresentation?
     @State private var alertMessage: String?
     
     private var shouldReviewFirst: Bool {
@@ -145,20 +143,13 @@ struct EmailButton: View {
             sendEmail()
         }
         .buttonStyle(PrimaryButtonStyle())
-        .sheet(isPresented: $showReview) {
-            if let payload = mailPayload {
+        .sheet(item: $presentation) { presentation in
+            switch presentation {
+            case .review(let payload, _):
                 ReviewBeforeSendView(note: note, payload: payload) { reviewed in
-                    mailPayload = reviewed
-                    showReview = false
-                    Task { @MainActor in
-                        try? await Task.sleep(nanoseconds: 350_000_000)
-                        showMail = true
-                    }
+                    self.presentation = .compose(reviewed, UUID())
                 }
-            }
-        }
-        .sheet(isPresented: $showMail) {
-            if let payload = mailPayload {
+            case .compose(let payload, _):
                 EmailComposeSheet(payload: payload)
             }
         }
@@ -169,7 +160,8 @@ struct EmailButton: View {
             Button("OK", role: .cancel) {}
             if alertMessage == EmailError.noRecipients.localizedDescription {
                 Button("Open Settings") {
-                    // Tab switching handled by parent if needed
+                    alertMessage = nil
+                    environment.deepLinkHandler.selectedTab = 3
                 }
             }
         } message: {
@@ -183,14 +175,25 @@ struct EmailButton: View {
                 for: note,
                 exportService: environment.exportService
             )
-            mailPayload = payload
             if shouldReviewFirst {
-                showReview = true
+                presentation = .review(payload, UUID())
             } else {
-                showMail = true
+                presentation = .compose(payload, UUID())
             }
         } catch {
             alertMessage = error.localizedDescription
+        }
+    }
+}
+
+enum EmailPresentation: Identifiable {
+    case review(EmailPayload, UUID)
+    case compose(EmailPayload, UUID)
+
+    var id: UUID {
+        switch self {
+        case .review(_, let id), .compose(_, let id):
+            return id
         }
     }
 }

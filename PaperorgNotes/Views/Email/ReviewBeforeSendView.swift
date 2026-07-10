@@ -66,7 +66,6 @@ struct ReviewBeforeSendView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Send") {
                         onSend(reviewedPayload)
-                        dismiss()
                     }
                     .fontWeight(.semibold)
                 }

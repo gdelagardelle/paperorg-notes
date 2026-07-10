@@ -8,6 +8,7 @@ struct SettingsView: View {
     @State private var showDeleteConfirmation = false
     @State private var showProviderConsent: ProviderID?
     @State private var newEmail = ""
+    @State private var emailValidationMessage: String?
     @State private var openAIKey = ""
     @State private var elevenLabsKey = ""
     @State private var luxASRKey = ""
@@ -122,12 +123,13 @@ struct SettingsView: View {
                 }
                 
                 Section("Email") {
-                    Picker("Policy", selection: $settings.emailPolicy) {
-                        ForEach(EmailPolicy.allCases) { policy in
-                            Text(policy.displayName).tag(policy)
-                        }
+                    Toggle("Send email after transcription", isOn: $settings.sendEmailAfterTranscription)
+                    if settings.sendEmailAfterTranscription {
+                        Text("Opens the email composer automatically when a recording finishes processing.")
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textSecondary)
                     }
-                    
+
                     Picker("Content", selection: $settings.emailContent) {
                         ForEach(EmailContent.allCases) { content in
                             Text(content.displayName).tag(content)
@@ -145,12 +147,14 @@ struct SettingsView: View {
                             .keyboardType(.emailAddress)
                             .textInputAutocapitalization(.never)
                         Button("Add") {
-                            guard !newEmail.isEmpty else { return }
-                            var recipients = settings.emailRecipients
-                            recipients.append(newEmail)
-                            settings.emailRecipients = recipients
-                            newEmail = ""
+                            addRecipient()
                         }
+                        .disabled(newEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                    if let emailValidationMessage {
+                        Text(emailValidationMessage)
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.error)
                     }
                     
                     ForEach(settings.emailRecipients, id: \.self) { email in
@@ -158,7 +162,7 @@ struct SettingsView: View {
                             Text(email)
                             Spacer()
                             Button(role: .destructive) {
-                                settings.emailRecipients.removeAll { $0 == email }
+                                settings.emailRecipients = settings.emailRecipients.filter { $0 != email }
                             } label: {
                                 Image(systemName: "trash")
                             }
@@ -168,15 +172,27 @@ struct SettingsView: View {
                 
                 Section("Privacy & GDPR") {
                     Toggle("Keep Audio Files", isOn: $settings.keepAudioFiles)
-                    Toggle("Delete Audio After Transcription", isOn: $settings.deleteAudioAfterTranscription)
-                    Picker("Delete Audio After", selection: Binding(
-                        get: { settings.deleteAudioAfterDays ?? 0 },
-                        set: { settings.deleteAudioAfterDays = $0 == 0 ? nil : $0 }
-                    )) {
-                        Text("Never").tag(0)
-                        Text("7 days").tag(7)
-                        Text("30 days").tag(30)
-                        Text("90 days").tag(90)
+                    if settings.keepAudioFiles {
+                        Toggle("Delete Audio After Transcription", isOn: $settings.deleteAudioAfterTranscription)
+                        if settings.deleteAudioAfterTranscription {
+                            Text("Audio is removed as soon as transcription completes.")
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.textSecondary)
+                        } else {
+                            Picker("Delete Audio After", selection: Binding(
+                                get: { settings.deleteAudioAfterDays ?? 0 },
+                                set: { settings.deleteAudioAfterDays = $0 == 0 ? nil : $0 }
+                            )) {
+                                Text("Never").tag(0)
+                                Text("7 days").tag(7)
+                                Text("30 days").tag(30)
+                                Text("90 days").tag(90)
+                            }
+                        }
+                    } else {
+                        Text("Audio is removed after transcription. Retention options are unavailable.")
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textSecondary)
                     }
                     
                     Button("Export All Data") {
@@ -263,6 +279,31 @@ struct SettingsView: View {
         openAIKey = environment.settingsService.openAIAPIKey ?? ""
         elevenLabsKey = environment.settingsService.elevenLabsAPIKey ?? ""
         luxASRKey = environment.settingsService.luxASRAPIKey ?? ""
+    }
+
+    private func addRecipient() {
+        let email = newEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard isValidEmail(email) else {
+            emailValidationMessage = "Enter a valid email address."
+            return
+        }
+        guard !environment.settingsService.emailRecipients.contains(where: {
+            $0.caseInsensitiveCompare(email) == .orderedSame
+        }) else {
+            emailValidationMessage = "This recipient is already listed."
+            return
+        }
+
+        environment.settingsService.emailRecipients += [email]
+        newEmail = ""
+        emailValidationMessage = nil
+    }
+
+    private func isValidEmail(_ email: String) -> Bool {
+        email.range(
+            of: #"^[^\s@]+@[^\s@]+\.[^\s@]+$"#,
+            options: .regularExpression
+        ) != nil
     }
 }
 

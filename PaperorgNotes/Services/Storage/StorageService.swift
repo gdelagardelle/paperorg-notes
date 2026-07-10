@@ -63,6 +63,23 @@ final class StorageService {
         guard let data = try? Data(contentsOf: checkpointURL(sessionId: sessionId)) else { return nil }
         return try? JSONDecoder().decode(RecordingCheckpoint.self, from: data)
     }
+
+    func loadPendingCheckpoints() -> [RecordingCheckpoint] {
+        guard let urls = try? fileManager.contentsOfDirectory(
+            at: checkpointsDirectory,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            return []
+        }
+        return urls.compactMap { url in
+            guard url.pathExtension == "checkpoint",
+                  let data = try? Data(contentsOf: url) else {
+                return nil
+            }
+            return try? JSONDecoder().decode(RecordingCheckpoint.self, from: data)
+        }
+    }
     
     func deleteCheckpoint(sessionId: UUID) {
         try? fileManager.removeItem(at: checkpointURL(sessionId: sessionId))
@@ -118,11 +135,47 @@ final class StorageService {
             note.updatedAt = .now
         }
     }
+
+    func deleteExportArtifact(at url: URL) throws {
+        let allowedDirectories = [exportsDirectory, gdprDirectory]
+        guard allowedDirectories.contains(where: { url.path.hasPrefix($0.path + "/") }) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        guard fileManager.fileExists(atPath: url.path) else { return }
+        try fileManager.removeItem(at: url)
+    }
+
+    @discardableResult
+    func purgeExportArtifacts(olderThan cutoff: Date) -> [URL] {
+        var removed: [URL] = []
+        for directory in [exportsDirectory, gdprDirectory] {
+            guard let files = try? fileManager.contentsOfDirectory(
+                at: directory,
+                includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey],
+                options: [.skipsHiddenFiles]
+            ) else {
+                continue
+            }
+            for file in files {
+                let values = try? file.resourceValues(forKeys: [.contentModificationDateKey, .isRegularFileKey])
+                guard values?.isRegularFile == true,
+                      let modified = values?.contentModificationDate,
+                      modified < cutoff else {
+                    continue
+                }
+                if (try? fileManager.removeItem(at: file)) != nil {
+                    removed.append(file)
+                }
+            }
+        }
+        return removed
+    }
     
     func exportGDPRArchive(notes: [Note]) throws -> URL {
         let exportId = UUID()
         let tempDir = gdprDirectory.appendingPathComponent("export-\(exportId.uuidString)", isDirectory: true)
         try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: tempDir) }
         
         let metadata = notes.map { note -> [String: Any] in
             [
@@ -167,7 +220,6 @@ final class StorageService {
         
         let zipURL = gdprDirectory.appendingPathComponent("paperorg-export-\(Int(Date.now.timeIntervalSince1970)).zip")
         try ZipUtility.zip(directory: tempDir, to: zipURL)
-        try? fileManager.removeItem(at: tempDir)
         return zipURL
     }
 }

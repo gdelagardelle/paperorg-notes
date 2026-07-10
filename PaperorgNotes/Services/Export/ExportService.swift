@@ -44,6 +44,15 @@ final class ExportService {
         let url = storage.audioURL(for: note.id)
         return FileManager.default.fileExists(atPath: url.path) ? url : nil
     }
+
+    func deleteArtifact(at url: URL) throws {
+        try storage.deleteExportArtifact(at: url)
+    }
+
+    @discardableResult
+    func purgeArtifacts(olderThan cutoff: Date) -> [URL] {
+        storage.purgeExportArtifacts(olderThan: cutoff)
+    }
     
     private func buildTextContent(note: Note) -> String {
         var parts: [String] = []

@@ -13,10 +13,9 @@ struct RecordView: View {
     @State private var processingStage: ProcessingStage = .savingAudio
     @State private var processingError: String?
     @State private var pulseAnimation = false
-    @State private var pendingEmailNote: Note?
     @State private var pendingEmailPayload: EmailPayload?
-    @State private var showPostRecordingEmail = false
-    @State private var showEmailAskConfirm = false
+    @State private var postRecordingEmailPresentation: EmailPresentation?
+    @State private var showQuickRecordQueued = false
     
     var body: some View {
         NavigationStack {
@@ -61,16 +60,17 @@ struct RecordView: View {
                     language: selectedLanguage
                 )
             }
-            .sheet(isPresented: $showPostRecordingEmail) {
-                if let payload = pendingEmailPayload {
+            .sheet(item: $postRecordingEmailPresentation) { presentation in
+                switch presentation {
+                case .review(let payload, _):
+                    if let note = activeNote {
+                        ReviewBeforeSendView(note: note, payload: payload) { reviewed in
+                            postRecordingEmailPresentation = .compose(reviewed, UUID())
+                        }
+                    }
+                case .compose(let payload, _):
                     EmailComposeSheet(payload: payload)
                 }
-            }
-            .alert("Send by email?", isPresented: $showEmailAskConfirm) {
-                Button("Send") { showPostRecordingEmail = true }
-                Button("Not now", role: .cancel) {}
-            } message: {
-                Text("Send this recording to your configured email recipients?")
             }
             .alert("Recording Failed", isPresented: Binding(
                 get: { processingError != nil && !showProcessing },
@@ -79,6 +79,11 @@ struct RecordView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(processingError ?? "")
+            }
+            .alert("Quick Record Queued", isPresented: $showQuickRecordQueued) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("Your recording will start after the current recording finishes processing.")
             }
         }
     }
@@ -231,7 +236,13 @@ struct RecordView: View {
                 )
                 modelContext.insert(note)
                 activeNote = note
-                try? modelContext.save()
+                do {
+                    try modelContext.save()
+                } catch {
+                    environment.recordingService.cancel()
+                    modelContext.delete(note)
+                    throw RecordingError.saveFailed("Could not create the recording. Please try again.")
+                }
                 pulseAnimation = true
             } catch {
                 processingError = error.localizedDescription
@@ -256,11 +267,13 @@ struct RecordView: View {
         Task {
             do {
                 let result = try await environment.recordingService.stop()
-                guard let note = activeNote else { return }
+                guard let note = activeNote else {
+                    throw RecordingError.saveFailed("Recording was saved, but its note could not be found.")
+                }
                 
                 note.durationSeconds = result.duration
                 note.status = NoteStatus.processing.rawValue
-                try? modelContext.save()
+                try modelContext.save()
                 
                 try await environment.processRecordingUseCase.execute(
                     note: note,
@@ -269,27 +282,43 @@ struct RecordView: View {
                     processingStage = stage
                 }
                 
-                try? modelContext.save()
+                try modelContext.save()
                 
                 preparePostRecordingEmail(for: note)
                 
                 try? await Task.sleep(nanoseconds: 800_000_000)
                 showProcessing = false
+                startQueuedQuickRecordIfPossible()
             } catch {
-                processingError = error.localizedDescription
+                processingError = safeProcessingError(error)
                 activeNote?.status = NoteStatus.failed.rawValue
-                activeNote?.errorMessage = error.localizedDescription
-                try? modelContext.save()
+                activeNote?.errorMessage = processingError
+                if let activeNote {
+                    activeNote.updatedAt = .now
+                    try? modelContext.save()
+                }
                 showProcessing = false
+                startQueuedQuickRecordIfPossible()
             }
         }
+    }
+
+    private func safeProcessingError(_ error: Error) -> String {
+        if let error = error as? RecordingError {
+            return error.localizedDescription
+        }
+        return "Processing failed. Your recording remains available to retry."
     }
     
     private func handleQuickRecordRequestIfNeeded() {
         guard environment.deepLinkHandler.pendingQuickRecord else { return }
-        environment.deepLinkHandler.clearQuickRecordFlag()
+        guard environment.recordingService.state == .idle, !showProcessing else {
+            showQuickRecordQueued = true
+            return
+        }
         
         let prefs = environment.deepLinkHandler.quickRecordPreferences()
+        environment.deepLinkHandler.clearQuickRecordFlag()
         if let language = prefs.language {
             selectedLanguage = language
         }
@@ -297,12 +326,17 @@ struct RecordView: View {
             selectedOutputType = outputType
         }
         
-        guard environment.recordingService.state == .idle else { return }
         startRecording()
+    }
+
+    private func startQueuedQuickRecordIfPossible() {
+        guard environment.deepLinkHandler.pendingQuickRecord else { return }
+        handleQuickRecordRequestIfNeeded()
     }
     
     private func preparePostRecordingEmail(for note: Note) {
-        guard note.noteStatus == .ready else { return }
+        guard note.noteStatus == .ready,
+              environment.emailService.shouldSendAfterTranscription else { return }
         
         do {
             let payload = try environment.emailService.buildPayload(
@@ -310,16 +344,15 @@ struct RecordView: View {
                 exportService: environment.exportService
             )
             pendingEmailPayload = payload
-            pendingEmailNote = note
-            
-            if environment.emailService.shouldAutoPrepare {
-                showPostRecordingEmail = true
-            } else if environment.emailService.shouldAskBeforeSend {
-                showEmailAskConfirm = true
-            }
+            presentPostRecordingEmail()
         } catch {
             // Silently skip auto-email if not configured
         }
+    }
+
+    private func presentPostRecordingEmail() {
+        guard let payload = pendingEmailPayload else { return }
+        postRecordingEmailPresentation = .compose(payload, UUID())
     }
 }
 
@@ -368,6 +401,7 @@ struct ProcessingView: View {
     let stage: ProcessingStage
     let error: String?
     let language: AppLanguage
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         VStack(spacing: 24) {
@@ -381,6 +415,10 @@ struct ProcessingView: View {
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.textSecondary)
                     .multilineTextAlignment(.center)
+                Button("Done") {
+                    dismiss()
+                }
+                .buttonStyle(PrimaryButtonStyle())
             } else {
                 Text("Processing your recording")
                     .font(.title2.bold())

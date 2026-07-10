@@ -23,6 +23,9 @@ targets:
       - path: PaperorgNotes
     entitlements:
       path: PaperorgNotes/Resources/PaperorgNotes.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.paperorg.notes
     info:
       path: PaperorgNotes/Resources/Info.plist
       properties:
@@ -60,6 +63,9 @@ targets:
       - path: PaperorgNotesWidget
     entitlements:
       path: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.paperorg.notes
     info:
       path: PaperorgNotesWidget/Info.plist
       properties:

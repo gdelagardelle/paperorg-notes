@@ -11,7 +11,7 @@ enum EmailError: LocalizedError {
         case .noRecipients:
             return "Add at least one email address in Settings → Email."
         case .disabled:
-            return "Email sending is disabled. Change the policy in Settings → Email."
+            return "Email sending is disabled in Settings → Email."
         case .emptyContent:
             return "Nothing to send yet — wait for transcription to finish."
         case .mailNotAvailable:
@@ -29,7 +29,6 @@ final class EmailService {
     }
     
     func buildPayload(for note: Note, exportService: ExportService) throws -> EmailPayload {
-        guard settings.emailPolicy != .never else { throw EmailError.disabled }
         guard !settings.emailRecipients.isEmpty else { throw EmailError.noRecipients }
         
         let subject = note.title
@@ -82,11 +81,7 @@ final class EmailService {
         )
     }
     
-    var shouldAutoPrepare: Bool {
-        settings.emailPolicy == .always && !settings.emailRecipients.isEmpty
-    }
-    
-    var shouldAskBeforeSend: Bool {
-        settings.emailPolicy == .ask && !settings.emailRecipients.isEmpty
+    var shouldSendAfterTranscription: Bool {
+        settings.sendEmailAfterTranscription && !settings.emailRecipients.isEmpty
     }
 }

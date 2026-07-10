@@ -122,10 +122,14 @@ final class TranscriptTextFormatterTests: XCTestCase {
 
 final class KeychainServiceTests: XCTestCase {
     func testSaveAndRetrieveAPIKey() throws {
+        #if targetEnvironment(simulator)
+        throw XCTSkip("Keychain access is unavailable for the unit test bundle in the simulator.")
+        #else
         let keychain = KeychainService()
         keychain.delete(for: .openAIAPIKey)
         try keychain.save("test-key-123", for: .openAIAPIKey)
         XCTAssertEqual(keychain.retrieve(for: .openAIAPIKey), "test-key-123")
         keychain.delete(for: .openAIAPIKey)
+        #endif
     }
 }

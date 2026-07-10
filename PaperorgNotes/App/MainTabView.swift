@@ -6,7 +6,7 @@ struct RootView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \Note.createdAt, order: .reverse) private var notes: [Note]
-    @State private var isUnlocked = true
+    @State private var isUnlocked = false
     
     var body: some View {
         @Bindable var settings = environment.settingsService
@@ -27,16 +27,47 @@ struct RootView: View {
                 isUnlocked = false
             }
         }
+        .onChange(of: settings.faceIDEnabled) { _, enabled in
+            if enabled {
+                isUnlocked = false
+            }
+        }
     }
 
     private func recoverInterruptedProcessing() {
+        let recoveredRecordings = environment.recordingService.recoverInterruptedRecordings()
+        let recoveredByNoteID = Dictionary(
+            uniqueKeysWithValues: recoveredRecordings.map { ($0.noteId, $0) }
+        )
+
+        for note in notes {
+            if let recovered = recoveredByNoteID[note.id] {
+                note.audioFileName = recovered.audioURL.lastPathComponent
+                note.durationSeconds = recovered.duration
+                note.status = NoteStatus.draft.rawValue
+                note.processingStage = nil
+                note.errorMessage = "Recording recovered after an interruption. You can transcribe it when ready."
+                note.updatedAt = .now
+            }
+        }
+
         for note in notes where note.noteStatus == .processing {
             note.status = NoteStatus.failed.rawValue
             note.processingStage = nil
             note.errorMessage = "Processing was interrupted. You can transcribe again or re-summarize."
             note.updatedAt = .now
         }
-        try? modelContext.save()
+
+        environment.storageService.purgeExpiredAudio(
+            notes: notes,
+            retentionDays: environment.settingsService.deleteAudioAfterDays
+        )
+
+        do {
+            try modelContext.save()
+        } catch {
+            print("Failed to recover interrupted notes: \(error.localizedDescription)")
+        }
     }
 }
 
@@ -73,6 +104,8 @@ struct MainTabView: View {
         }
         .tint(AppTheme.primary)
         .onAppear {
+            // Defer consuming the request until the record tab exists so a
+            // cold-launch deep link cannot be lost behind privacy or Face ID.
             environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
         }
     }

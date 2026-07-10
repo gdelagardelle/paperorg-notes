@@ -27,6 +27,7 @@ final class SettingsService {
         static let deleteAudioAfterTranscription = "deleteAudioAfterTranscription"
         static let customVocabulary = "customVocabulary"
         static let reviewBeforeEmail = "reviewBeforeEmail"
+        static let sendEmailAfterTranscription = "sendEmailAfterTranscription"
     }
     
     var defaultLanguage: AppLanguage {
@@ -106,6 +107,10 @@ final class SettingsService {
     var reviewBeforeEmail: Bool {
         didSet { defaults.set(reviewBeforeEmail, forKey: Keys.reviewBeforeEmail) }
     }
+
+    var sendEmailAfterTranscription: Bool {
+        didSet { defaults.set(sendEmailAfterTranscription, forKey: Keys.sendEmailAfterTranscription) }
+    }
     
     func transcriptionPrompt() -> String? {
         VocabularyFormatter.prompt(from: customVocabulary)
@@ -114,11 +119,11 @@ final class SettingsService {
     func addVocabularyTerm(_ term: String) {
         let trimmed = term.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !customVocabulary.contains(trimmed) else { return }
-        customVocabulary.append(trimmed)
+        customVocabulary = customVocabulary + [trimmed]
     }
     
     func removeVocabularyTerm(_ term: String) {
-        customVocabulary.removeAll { $0 == term }
+        customVocabulary = customVocabulary.filter { $0 != term }
     }
     
     init(keychain: KeychainService, defaults: UserDefaults = .standard) {
@@ -146,6 +151,12 @@ final class SettingsService {
         self.consentedProviders = Set(defaults.stringArray(forKey: Keys.consentedProviders) ?? [])
         self.customVocabulary = defaults.stringArray(forKey: Keys.customVocabulary) ?? []
         self.reviewBeforeEmail = defaults.object(forKey: Keys.reviewBeforeEmail) as? Bool ?? true
+        if defaults.object(forKey: Keys.sendEmailAfterTranscription) != nil {
+            self.sendEmailAfterTranscription = defaults.bool(forKey: Keys.sendEmailAfterTranscription)
+        } else {
+            let legacyPolicy = EmailPolicy(rawValue: defaults.string(forKey: Keys.emailPolicy) ?? "") ?? .ask
+            self.sendEmailAfterTranscription = legacyPolicy == .always
+        }
     }
     
     func providerPreferences() -> [AppLanguage: [ProviderID]] {
@@ -177,11 +188,11 @@ final class SettingsService {
     }
     
     func consentProvider(_ provider: ProviderID) {
-        consentedProviders.insert(provider.rawValue)
+        consentedProviders = consentedProviders.union([provider.rawValue])
     }
     
     func revokeProviderConsent(_ provider: ProviderID) {
-        consentedProviders.remove(provider.rawValue)
+        consentedProviders = consentedProviders.subtracting([provider.rawValue])
     }
     
     // MARK: - API Keys
@@ -234,5 +245,6 @@ final class SettingsService {
         consentedProviders = []
         customVocabulary = []
         reviewBeforeEmail = true
+        sendEmailAfterTranscription = false
     }
 }

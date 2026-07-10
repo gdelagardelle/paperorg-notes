@@ -14,15 +14,15 @@ final class SummaryService {
         transcript: String,
         outputType: OutputType,
         language: AppLanguage
-    ) async throws -> StructuredOutput {
+    ) async throws -> SummaryGeneration {
         if outputType == .rawTranscript {
-            return StructuredOutput.empty(for: outputType)
+            return .notRequested
         }
         
         guard settings.isProviderConsented(.openai),
               let apiKey = settings.openAIAPIKey,
               !apiKey.isEmpty else {
-            return fallbackSummary(transcript: transcript, outputType: outputType)
+            return .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
         }
         
         let prompt = buildPrompt(transcript: transcript, outputType: outputType, language: language)
@@ -47,19 +47,19 @@ final class SummaryService {
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            return fallbackSummary(transcript: transcript, outputType: outputType)
+            return .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
         }
         
         let chatResponse = try JSONDecoder().decode(OpenAIChatResponse.self, from: data)
         guard let content = chatResponse.choices.first?.message.content,
               let jsonData = content.data(using: .utf8) else {
-            return fallbackSummary(transcript: transcript, outputType: outputType)
+            return .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
         }
         
         var output = try JSONDecoder().decode(StructuredOutputDTO.self, from: jsonData)
         output = sanitize(output, transcript: transcript)
         
-        return StructuredOutput(
+        return .generated(StructuredOutput(
             outputType: outputType,
             title: output.title,
             shortSummary: output.shortSummary,
@@ -75,7 +75,7 @@ final class SummaryService {
             importantNumbers: output.importantNumbers,
             followUpEmailDraft: output.followUpEmailDraft,
             generatedAt: .now
-        )
+        ))
     }
     
     private var systemPrompt: String {

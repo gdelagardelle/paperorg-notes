@@ -30,16 +30,7 @@ final class AppleSpeechProvider: TranscriptionProvider, @unchecked Sendable {
         let recognitionRequest = SFSpeechURLRecognitionRequest(url: url)
         recognitionRequest.shouldReportPartialResults = false
         
-        let result: SFSpeechRecognitionResult = try await withCheckedThrowingContinuation { continuation in
-            recognizer.recognitionTask(with: recognitionRequest) { result, error in
-                if let error {
-                    continuation.resume(throwing: TranscriptionError.providerError(error.localizedDescription))
-                    return
-                }
-                guard let result, result.isFinal else { return }
-                continuation.resume(returning: result)
-            }
-        }
+        let result = try await recognize(recognizer: recognizer, request: recognitionRequest)
         
         let text = result.bestTranscription.formattedString
         let segments = result.bestTranscription.segments.enumerated().map { index, seg in
@@ -65,6 +56,35 @@ final class AppleSpeechProvider: TranscriptionProvider, @unchecked Sendable {
             processingTimeMs: Int(Date().timeIntervalSince(start) * 1000),
             metadata: ["on_device": "true"]
         )
+    }
+
+    private func recognize(
+        recognizer: SFSpeechRecognizer,
+        request: SFSpeechURLRecognitionRequest
+    ) async throws -> SFSpeechRecognitionResult {
+        let operation = RecognitionOperation()
+        return try await withTaskCancellationHandler(operation: {
+            try await withCheckedThrowingContinuation { continuation in
+                operation.install(continuation: continuation)
+                let task = recognizer.recognitionTask(with: request) { result, error in
+                if let error {
+                        operation.finish(
+                            .failure(TranscriptionError.providerError("Apple Speech could not transcribe this recording."))
+                        )
+                    return
+                }
+                guard let result, result.isFinal else { return }
+                    operation.finish(.success(result))
+                }
+                operation.install(task: task)
+                Task {
+                    try? await Task.sleep(for: .seconds(120))
+                    operation.timeout()
+                }
+            }
+        }, onCancel: {
+            operation.cancel()
+        })
     }
     
     private func requestSpeechAuthorization() async -> Bool {
@@ -112,5 +132,54 @@ final class AppleSpeechProvider: TranscriptionProvider, @unchecked Sendable {
         }
         
         return grouped
+    }
+}
+
+private final class RecognitionOperation: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<SFSpeechRecognitionResult, Error>?
+    private var task: SFSpeechRecognitionTask?
+    private var finished = false
+
+    func install(continuation: CheckedContinuation<SFSpeechRecognitionResult, Error>) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !finished else {
+            continuation.resume(throwing: CancellationError())
+            return
+        }
+        self.continuation = continuation
+    }
+
+    func install(task: SFSpeechRecognitionTask) {
+        lock.lock()
+        defer { lock.unlock() }
+        if finished {
+            task.cancel()
+        } else {
+            self.task = task
+        }
+    }
+
+    func finish(_ result: Result<SFSpeechRecognitionResult, Error>) {
+        lock.lock()
+        guard !finished else {
+            lock.unlock()
+            return
+        }
+        finished = true
+        task?.cancel()
+        let continuation = continuation
+        self.continuation = nil
+        lock.unlock()
+        continuation?.resume(with: result)
+    }
+
+    func timeout() {
+        finish(.failure(TranscriptionError.providerError("Apple Speech timed out. Please try again.")))
+    }
+
+    func cancel() {
+        finish(.failure(CancellationError()))
     }
 }

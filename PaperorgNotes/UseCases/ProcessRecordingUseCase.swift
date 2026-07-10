@@ -50,9 +50,9 @@ final class ProcessRecordingUseCase {
             "Audio bytes: \((try? Data(contentsOf: audioURL).count) ?? 0)",
             "Diarization: disabled"
         ]
-        clearTranscriptionResults(note)
         note.status = NoteStatus.processing.rawValue
         note.errorMessage = nil
+        try save(note)
         func advance(_ stage: ProcessingStage) {
             note.processingStage = stage.rawValue
             debugEvents.append("Stage: \(stage.displayName) at +\(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s")
@@ -91,8 +91,13 @@ final class ProcessRecordingUseCase {
             debugEvents.append("Overall confidence: \(String(format: "%.2f", finalTranscript.qualityReport.overallConfidence))")
             debugEvents.append("Low-confidence segments: \(finalTranscript.qualityReport.lowConfidenceSegmentIds.count)")
 
-            applyTranscript(finalTranscript, to: note)
-            try await generateSummary(for: note, transcript: finalTranscript.fullText, onStageChange: advance)
+            let summary = try await generateSummary(
+                for: note,
+                transcript: finalTranscript.fullText,
+                onStageChange: advance
+            )
+            debugEvents.append(summary.usedFallback ? "Summary: fallback" : "Summary: generated")
+            replaceResults(on: note, transcript: finalTranscript, summary: summary)
 
             if settingsService.deleteAudioAfterTranscription || !settingsService.keepAudioFiles {
                 storageService.deleteAudio(for: note.id)
@@ -105,10 +110,16 @@ final class ProcessRecordingUseCase {
             advance(.ready)
             debugEvents.append("Completed in \(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s")
             note.processingDebug = debugEvents.joined(separator: "\n")
+            try save(note)
         } catch {
             debugEvents.append("Failed at +\(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s")
             debugEvents.append("Error: \(error.localizedDescription)")
+            note.status = NoteStatus.failed.rawValue
+            note.processingStage = nil
+            note.errorMessage = safeErrorMessage(for: error)
+            note.updatedAt = .now
             note.processingDebug = debugEvents.joined(separator: "\n")
+            try? save(note)
             throw error
         }
     }
@@ -124,6 +135,7 @@ final class ProcessRecordingUseCase {
         
         note.processingStage = ProcessingStage.savingAudio.rawValue
         onStageChange(.savingAudio)
+        try save(note)
         try await execute(note: note, audioURL: audioURL, onStageChange: onStageChange)
     }
     
@@ -138,19 +150,36 @@ final class ProcessRecordingUseCase {
         
         note.status = NoteStatus.processing.rawValue
         note.errorMessage = nil
-        clearSummaryResults(note)
         note.processingStage = ProcessingStage.summarizing.rawValue
-        try await generateSummary(for: note, transcript: transcript) { stage in
-            note.processingStage = stage.rawValue
-            onStageChange(stage)
+        try save(note)
+
+        do {
+            let summary = try await generateSummary(for: note, transcript: transcript) { stage in
+                note.processingStage = stage.rawValue
+                onStageChange(stage)
+            }
+            replaceSummary(on: note, summary: summary)
+            note.status = NoteStatus.ready.rawValue
+            note.processingStage = ProcessingStage.ready.rawValue
+            note.updatedAt = .now
+            onStageChange(.ready)
+            try save(note)
+        } catch {
+            note.status = NoteStatus.failed.rawValue
+            note.processingStage = nil
+            note.errorMessage = safeErrorMessage(for: error)
+            note.updatedAt = .now
+            try? save(note)
+            throw error
         }
-        
-        note.status = NoteStatus.ready.rawValue
-        note.processingStage = ProcessingStage.ready.rawValue
-        note.updatedAt = .now
-        onStageChange(.ready)
     }
     
+    private func replaceResults(on note: Note, transcript: FinalTranscript, summary: SummaryGeneration) {
+        clearTranscriptionResults(note)
+        applyTranscript(transcript, to: note)
+        replaceSummary(on: note, summary: summary)
+    }
+
     private func applyTranscript(_ finalTranscript: FinalTranscript, to note: Note) {
         note.rawTranscript = finalTranscript.fullText
         note.primaryProvider = finalTranscript.primaryProvider
@@ -163,22 +192,22 @@ final class ProcessRecordingUseCase {
         for note: Note,
         transcript: String,
         onStageChange: @escaping (ProcessingStage) -> Void
-    ) async throws {
+    ) async throws -> SummaryGeneration {
         if note.noteOutputType == .rawTranscript {
-            note.summaryShort = nil
-            note.summaryDetailed = nil
-            note.structuredOutputJSON = nil
-            note.structuredSections = []
-            return
+            return .notRequested
         }
         
         onStageChange(.summarizing)
-        let structured = try await summaryService.generate(
+        return try await summaryService.generate(
             transcript: transcript,
             outputType: note.noteOutputType,
             language: note.appLanguage
         )
-        
+    }
+
+    private func replaceSummary(on note: Note, summary: SummaryGeneration) {
+        clearSummaryResults(note)
+        guard let structured = summary.output else { return }
         note.summaryShort = structured.shortSummary
         note.summaryDetailed = structured.detailedSummary
         note.structuredOutputJSON = try? JSONEncoder().encode(structured)
@@ -186,13 +215,12 @@ final class ProcessRecordingUseCase {
         if note.title == "Untitled Recording", let title = structured.title, !title.isEmpty {
             note.title = title
         }
-        
         note.structuredSections = buildSections(from: structured, note: note)
     }
     
     private func clearTranscriptionResults(_ note: Note) {
+        deleteChildren(of: note)
         note.segments.removeAll()
-        note.structuredSections.removeAll()
         note.rawTranscript = nil
         note.correctedTranscript = nil
         note.primaryProvider = nil
@@ -202,10 +230,45 @@ final class ProcessRecordingUseCase {
     }
     
     private func clearSummaryResults(_ note: Note) {
+        deleteSections(of: note)
         note.summaryShort = nil
         note.summaryDetailed = nil
         note.structuredOutputJSON = nil
+    }
+
+    private func deleteChildren(of note: Note) {
+        guard let context = note.modelContext else { return }
+        for segment in note.segments {
+            context.delete(segment)
+        }
+        deleteSections(of: note)
+    }
+
+    private func deleteSections(of note: Note) {
+        guard let context = note.modelContext else { return }
+        for section in note.structuredSections {
+            context.delete(section)
+        }
         note.structuredSections.removeAll()
+    }
+
+    private func save(_ note: Note) throws {
+        guard let context = note.modelContext else { return }
+        do {
+            try context.save()
+        } catch {
+            throw RecordingError.saveFailed("Could not update the recording. Please try again.")
+        }
+    }
+
+    private func safeErrorMessage(for error: Error) -> String {
+        if let error = error as? ReprocessError {
+            return error.localizedDescription
+        }
+        if error is CancellationError {
+            return "Processing was cancelled. Your previous transcript and summary were kept."
+        }
+        return "Processing failed. Your previous transcript and summary were kept."
     }
     
     private func buildSections(from output: StructuredOutput, note: Note) -> [StructuredSectionModel] {

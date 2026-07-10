@@ -124,6 +124,28 @@ struct StructuredOutput: Codable, Sendable {
     }
 }
 
+enum SummaryGeneration: Sendable {
+    case generated(StructuredOutput)
+    case fallback(StructuredOutput)
+    case notRequested
+
+    var output: StructuredOutput? {
+        switch self {
+        case .generated(let output), .fallback(let output):
+            return output
+        case .notRequested:
+            return nil
+        }
+    }
+
+    var usedFallback: Bool {
+        if case .fallback = self {
+            return true
+        }
+        return false
+    }
+}
+
 struct SuspiciousPhrase: Codable, Sendable, Hashable {
     let segmentIndex: Int
     let reason: String

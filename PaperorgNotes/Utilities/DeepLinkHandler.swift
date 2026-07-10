@@ -12,7 +12,7 @@ final class DeepLinkHandler {
         
         switch url.host {
         case "record":
-            triggerQuickRecord()
+            triggerQuickRecord(clearingPreferences: true)
         default:
             break
         }
@@ -25,10 +25,14 @@ final class DeepLinkHandler {
         }
     }
     
-    private func triggerQuickRecord() {
+    private func triggerQuickRecord(clearingPreferences: Bool = false) {
         pendingQuickRecord = true
         selectedTab = 0
         let defaults = UserDefaults(suiteName: AppConstants.appGroupID) ?? .standard
+        if clearingPreferences {
+            defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordLanguage)
+            defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordOutputType)
+        }
         defaults.set(true, forKey: AppConstants.UserDefaultsKeys.pendingQuickRecord)
     }
     
@@ -36,6 +40,8 @@ final class DeepLinkHandler {
         pendingQuickRecord = false
         let defaults = UserDefaults(suiteName: AppConstants.appGroupID) ?? .standard
         defaults.set(false, forKey: AppConstants.UserDefaultsKeys.pendingQuickRecord)
+        defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordLanguage)
+        defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordOutputType)
     }
     
     func quickRecordPreferences() -> (language: AppLanguage?, outputType: OutputType?) {

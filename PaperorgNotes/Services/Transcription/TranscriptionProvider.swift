@@ -139,6 +139,10 @@ final class TranscriptionOrchestrator {
         let credentials = TranscriptionCredentials.from(registry.settings)
         
         for provider in providers {
+            guard let providerId = ProviderID(rawValue: provider.identifier) else { continue }
+            guard !provider.sendsAudioOffDevice || registry.settings.isProviderConsented(providerId) else {
+                continue
+            }
             guard provider.isConfigured(credentials: credentials) else { continue }
             do {
                 return try await provider.transcribe(request, credentials: credentials)

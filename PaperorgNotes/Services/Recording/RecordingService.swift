@@ -114,6 +114,32 @@ final class RecordingService: NSObject {
         storage.deleteCheckpoint(sessionId: sessionId)
         resetState()
     }
+
+    /// Finalizes recordings left behind by an interrupted app session.
+    /// Callers can use the returned note IDs to reconcile the corresponding SwiftData notes.
+    func recoverInterruptedRecordings() -> [RecoveredRecording] {
+        storage.loadPendingCheckpoints().compactMap { checkpoint in
+            let temporaryURL = URL(fileURLWithPath: checkpoint.tempAudioPath)
+            let expectedPrefix = storage.recordingsDirectory.path + "/temp-"
+            guard temporaryURL.path.hasPrefix(expectedPrefix),
+                  FileManager.default.fileExists(atPath: temporaryURL.path) else {
+                storage.deleteCheckpoint(sessionId: checkpoint.sessionId)
+                return nil
+            }
+
+            do {
+                let audioURL = try storage.finalizeRecording(from: temporaryURL, noteId: checkpoint.noteId)
+                storage.deleteCheckpoint(sessionId: checkpoint.sessionId)
+                return RecoveredRecording(
+                    noteId: checkpoint.noteId,
+                    audioURL: audioURL,
+                    duration: checkpoint.duration
+                )
+            } catch {
+                return nil
+            }
+        }
+    }
     
     private func resetState() {
         state = .idle
@@ -178,6 +204,12 @@ final class RecordingService: NSObject {
             duration: duration
         )
     }
+}
+
+struct RecoveredRecording: Sendable, Equatable {
+    let noteId: UUID
+    let audioURL: URL
+    let duration: TimeInterval
 }
 
 extension RecordingService: AVAudioRecorderDelegate {

@@ -3,7 +3,6 @@ import SwiftUI
 struct PrivacyConsentView: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var agreed = false
-    @State private var providerConsent = false
     
     var body: some View {
         @Bindable var settings = environment.settingsService
@@ -34,23 +33,18 @@ struct PrivacyConsentView: View {
                 }
                 .tint(AppTheme.primary)
 
-                Toggle(isOn: $providerConsent) {
-                    Text("I allow Paperorg Notes to send audio and transcript text to my configured transcription and summary providers.")
-                        .font(.subheadline)
-                }
-                .tint(AppTheme.primary)
+                Text("Provider consent is requested separately for each transcription provider in Settings before audio is sent off-device.")
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
                 
                 Link("View Privacy Policy", destination: URL(string: "https://gdelagardelle.github.io/paperorg-notes/privacy.html")!)
                     .font(.subheadline)
                 
                 Button("Continue") {
                     settings.hasAcceptedPrivacyPolicy = true
-                    for provider in ProviderID.allCases {
-                        settings.consentProvider(provider)
-                    }
                 }
                 .buttonStyle(PrimaryButtonStyle())
-                .disabled(!agreed || !providerConsent)
+                .disabled(!agreed)
             }
             .padding(24)
         }

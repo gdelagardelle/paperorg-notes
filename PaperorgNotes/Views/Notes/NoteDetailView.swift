@@ -17,6 +17,9 @@ struct NoteDetailView: View {
     @State private var editText = ""
     @State private var showDeleteAudioConfirm = false
     @State private var showDeleteNoteConfirm = false
+    @State private var exportURLs: [URL] = []
+    @State private var showExportShare = false
+    @State private var exportError: String?
     @StateObject private var playback = AudioPlaybackService()
     
     private var audioAvailable: Bool {
@@ -103,6 +106,17 @@ struct NoteDetailView: View {
                 error: processingError,
                 language: selectedLanguage
             )
+        }
+        .sheet(isPresented: $showExportShare) {
+            ActivityShareSheet(items: exportURLs)
+        }
+        .alert("Export Failed", isPresented: Binding(
+            get: { exportError != nil },
+            set: { if !$0 { exportError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(exportError ?? "")
         }
     }
     
@@ -297,15 +311,13 @@ struct NoteDetailView: View {
                 EmailButton(note: note)
             }
             
-            if let exportURL = try? environment.exportService.exportPlainText(note: note) {
-                ShareLink(item: exportURL) {
-                    Label("Share Text", systemImage: "square.and.arrow.up")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(AppTheme.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
+            Button("Share Text") {
+                sharePlainText()
             }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(AppTheme.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
 
             if let debug = note.processingDebug, !debug.isEmpty {
                 ShareLink(item: debug) {
@@ -340,9 +352,24 @@ struct NoteDetailView: View {
     }
     
     private func exportNote() {
-        Task {
-            _ = try? environment.exportService.exportPDF(note: note)
-            _ = try? environment.exportService.exportMarkdown(note: note)
+        do {
+            exportURLs = [
+                try environment.exportService.exportPlainText(note: note),
+                try environment.exportService.exportMarkdown(note: note),
+                try environment.exportService.exportPDF(note: note)
+            ]
+            showExportShare = true
+        } catch {
+            exportError = error.localizedDescription
+        }
+    }
+
+    private func sharePlainText() {
+        do {
+            exportURLs = [try environment.exportService.exportPlainText(note: note)]
+            showExportShare = true
+        } catch {
+            exportError = error.localizedDescription
         }
     }
     

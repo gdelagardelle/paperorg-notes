@@ -17,9 +17,13 @@ struct StartRecordingIntent: AppIntent {
         defaults.set(true, forKey: AppConstants.UserDefaultsKeys.pendingQuickRecord)
         if let language {
             defaults.set(language.id, forKey: AppConstants.UserDefaultsKeys.quickRecordLanguage)
+        } else {
+            defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordLanguage)
         }
         if let noteStyle {
             defaults.set(noteStyle.id, forKey: AppConstants.UserDefaultsKeys.quickRecordOutputType)
+        } else {
+            defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordOutputType)
         }
         return .result()
     }
