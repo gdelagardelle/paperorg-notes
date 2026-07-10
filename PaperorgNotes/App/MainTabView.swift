@@ -1,7 +1,11 @@
 import SwiftUI
+import SwiftData
 
 struct RootView: View {
     @Environment(AppEnvironment.self) private var environment
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
+    @Query(sort: \Note.createdAt, order: .reverse) private var notes: [Note]
     @State private var isUnlocked = true
     
     var body: some View {
@@ -17,6 +21,22 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(nil)
+        .onAppear(perform: recoverInterruptedProcessing)
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active && settings.faceIDEnabled {
+                isUnlocked = false
+            }
+        }
+    }
+
+    private func recoverInterruptedProcessing() {
+        for note in notes where note.noteStatus == .processing {
+            note.status = NoteStatus.failed.rawValue
+            note.processingStage = nil
+            note.errorMessage = "Processing was interrupted. You can transcribe again or re-summarize."
+            note.updatedAt = .now
+        }
+        try? modelContext.save()
     }
 }
 

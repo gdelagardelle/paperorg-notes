@@ -27,7 +27,6 @@ struct SettingsView: View {
                             Text("\(lang.flag) \(lang.displayName)").tag(lang)
                         }
                     }
-                    Toggle("Auto-detect Language", isOn: $settings.autoDetectLanguage)
                 }
                 
                 Section("Transcription") {
@@ -60,8 +59,11 @@ struct SettingsView: View {
                             }
                             Spacer()
                             if settings.isProviderConsented(provider) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(AppTheme.primary)
+                                Button("Revoke") {
+                                    settings.revokeProviderConsent(provider)
+                                }
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.error)
                             } else {
                                 Button("Consent") {
                                     showProviderConsent = provider
@@ -167,6 +169,15 @@ struct SettingsView: View {
                 Section("Privacy & GDPR") {
                     Toggle("Keep Audio Files", isOn: $settings.keepAudioFiles)
                     Toggle("Delete Audio After Transcription", isOn: $settings.deleteAudioAfterTranscription)
+                    Picker("Delete Audio After", selection: Binding(
+                        get: { settings.deleteAudioAfterDays ?? 0 },
+                        set: { settings.deleteAudioAfterDays = $0 == 0 ? nil : $0 }
+                    )) {
+                        Text("Never").tag(0)
+                        Text("7 days").tag(7)
+                        Text("30 days").tag(30)
+                        Text("90 days").tag(90)
+                    }
                     
                     Button("Export All Data") {
                         exportAllData()
@@ -202,11 +213,18 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .onAppear { loadKeys() }
+            .onAppear {
+                loadKeys()
+                environment.storageService.purgeExpiredAudio(
+                    notes: notes,
+                    retentionDays: environment.settingsService.deleteAudioAfterDays
+                )
+                try? modelContext.save()
+            }
             .alert("Delete All Data?", isPresented: $showDeleteConfirmation) {
                 Button("Delete Everything", role: .destructive) {
                     environment.deleteNoteUseCase.deleteAllNotes(notes, context: modelContext)
-                    environment.storageService.deleteAllAudio()
+                    environment.storageService.deleteAllLocalData()
                     environment.settingsService.resetAllData()
                 }
                 Button("Cancel", role: .cancel) {}

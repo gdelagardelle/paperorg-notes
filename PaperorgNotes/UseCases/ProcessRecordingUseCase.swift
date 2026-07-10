@@ -45,8 +45,12 @@ final class ProcessRecordingUseCase {
         clearTranscriptionResults(note)
         note.status = NoteStatus.processing.rawValue
         note.errorMessage = nil
-        
-        onStageChange(.transcribing)
+        func advance(_ stage: ProcessingStage) {
+            note.processingStage = stage.rawValue
+            onStageChange(stage)
+        }
+
+        advance(.transcribing)
         storageService.prepareAudioForReading(noteId: note.id)
         let request = TranscriptionRequest(
             audioURL: audioURL,
@@ -56,7 +60,7 @@ final class ProcessRecordingUseCase {
         )
         let initialResult = try await transcriptionService.transcribe(request)
         
-        onStageChange(.checkingQuality)
+        advance(.checkingQuality)
         let finalTranscript = try await qualityPipeline.process(
             initialResult: initialResult,
             audioURL: audioURL,
@@ -66,9 +70,9 @@ final class ProcessRecordingUseCase {
         
         applyTranscript(finalTranscript, to: note)
         
-        try await generateSummary(for: note, transcript: finalTranscript.fullText, onStageChange: onStageChange)
+        try await generateSummary(for: note, transcript: finalTranscript.fullText, onStageChange: advance)
         
-        if settingsService.deleteAudioAfterTranscription {
+        if settingsService.deleteAudioAfterTranscription || !settingsService.keepAudioFiles {
             storageService.deleteAudio(for: note.id)
             note.audioDeletedAt = .now
         }
@@ -76,7 +80,7 @@ final class ProcessRecordingUseCase {
         note.status = NoteStatus.ready.rawValue
         note.processingStage = ProcessingStage.ready.rawValue
         note.updatedAt = .now
-        onStageChange(.ready)
+        advance(.ready)
     }
     
     func transcribeAgain(
@@ -88,6 +92,7 @@ final class ProcessRecordingUseCase {
             throw ReprocessError.audioMissing
         }
         
+        note.processingStage = ProcessingStage.savingAudio.rawValue
         onStageChange(.savingAudio)
         try await execute(note: note, audioURL: audioURL, onStageChange: onStageChange)
     }
@@ -104,8 +109,11 @@ final class ProcessRecordingUseCase {
         note.status = NoteStatus.processing.rawValue
         note.errorMessage = nil
         clearSummaryResults(note)
-        
-        try await generateSummary(for: note, transcript: transcript, onStageChange: onStageChange)
+        note.processingStage = ProcessingStage.summarizing.rawValue
+        try await generateSummary(for: note, transcript: transcript) { stage in
+            note.processingStage = stage.rawValue
+            onStageChange(stage)
+        }
         
         note.status = NoteStatus.ready.rawValue
         note.processingStage = ProcessingStage.ready.rawValue

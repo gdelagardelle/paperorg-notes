@@ -98,6 +98,26 @@ final class StorageService {
         guard let files = try? fileManager.contentsOfDirectory(at: recordingsDirectory, includingPropertiesForKeys: nil) else { return }
         for file in files { try? fileManager.removeItem(at: file) }
     }
+
+    func deleteAllLocalData() {
+        for directory in [recordingsDirectory, checkpointsDirectory, exportsDirectory, gdprDirectory] {
+            guard let files = try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) else { continue }
+            for file in files {
+                try? fileManager.removeItem(at: file)
+            }
+        }
+        encryption.deleteKey()
+    }
+
+    func purgeExpiredAudio(notes: [Note], retentionDays: Int?) {
+        guard let retentionDays, retentionDays > 0 else { return }
+        let cutoff = Calendar.current.date(byAdding: .day, value: -retentionDays, to: .now) ?? .distantPast
+        for note in notes where note.createdAt < cutoff && note.audioDeletedAt == nil {
+            deleteAudio(for: note.id)
+            note.audioDeletedAt = .now
+            note.updatedAt = .now
+        }
+    }
     
     func exportGDPRArchive(notes: [Note]) throws -> URL {
         let exportId = UUID()
@@ -109,10 +129,29 @@ final class StorageService {
                 "id": note.id.uuidString,
                 "title": note.title,
                 "createdAt": ISO8601DateFormatter().string(from: note.createdAt),
+                "updatedAt": ISO8601DateFormatter().string(from: note.updatedAt),
+                "durationSeconds": note.durationSeconds,
                 "language": note.language,
+                "outputType": note.outputType,
+                "status": note.status,
+                "projectName": note.projectName ?? "",
+                "primaryProvider": note.primaryProvider ?? "",
                 "rawTranscript": note.rawTranscript ?? "",
                 "correctedTranscript": note.correctedTranscript ?? "",
                 "summaryShort": note.summaryShort ?? "",
+                "summaryDetailed": note.summaryDetailed ?? "",
+                "structuredOutput": note.structuredOutputJSON.flatMap { String(data: $0, encoding: .utf8) } ?? "",
+                "qualityReport": note.qualityReportJSON.flatMap { String(data: $0, encoding: .utf8) } ?? "",
+                "segments": note.segments.sorted { $0.segmentIndex < $1.segmentIndex }.map {
+                    [
+                        "index": $0.segmentIndex,
+                        "text": $0.text,
+                        "startTime": $0.startTime,
+                        "endTime": $0.endTime,
+                        "confidence": $0.confidence,
+                        "speaker": $0.speakerLabel ?? ""
+                    ]
+                },
                 "tags": note.tags
             ]
         }
@@ -143,11 +182,100 @@ struct RecordingCheckpoint: Codable {
 
 enum ZipUtility {
     static func zip(directory: URL, to destination: URL) throws {
-        // Minimal zip: copy directory contents as folder export for MVP
-        // Production: use Compression framework or third-party zip
-        if FileManager.default.fileExists(atPath: destination.path) {
-            try FileManager.default.removeItem(at: destination)
+        let fileManager = FileManager.default
+        if fileManager.fileExists(atPath: destination.path) {
+            try fileManager.removeItem(at: destination)
         }
-        try FileManager.default.copyItem(at: directory, to: destination.deletingPathExtension())
+
+        let files = try fileManager.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ).filter {
+            (try? $0.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+        }
+
+        var archive = Data()
+        var centralDirectory = Data()
+
+        for file in files {
+            let fileData = try Data(contentsOf: file)
+            let name = file.lastPathComponent
+            let nameData = Data(name.utf8)
+            let crc = CRC32.checksum(fileData)
+            let localOffset = UInt32(archive.count)
+
+            archive.appendLE(UInt32(0x04034B50))
+            archive.appendLE(UInt16(20))
+            archive.appendLE(UInt16(0))
+            archive.appendLE(UInt16(0))
+            archive.appendLE(UInt16(0))
+            archive.appendLE(UInt16(0))
+            archive.appendLE(crc)
+            archive.appendLE(UInt32(fileData.count))
+            archive.appendLE(UInt32(fileData.count))
+            archive.appendLE(UInt16(nameData.count))
+            archive.appendLE(UInt16(0))
+            archive.append(nameData)
+            archive.append(fileData)
+
+            centralDirectory.appendLE(UInt32(0x02014B50))
+            centralDirectory.appendLE(UInt16(20))
+            centralDirectory.appendLE(UInt16(20))
+            centralDirectory.appendLE(UInt16(0))
+            centralDirectory.appendLE(UInt16(0))
+            centralDirectory.appendLE(UInt16(0))
+            centralDirectory.appendLE(UInt16(0))
+            centralDirectory.appendLE(crc)
+            centralDirectory.appendLE(UInt32(fileData.count))
+            centralDirectory.appendLE(UInt32(fileData.count))
+            centralDirectory.appendLE(UInt16(nameData.count))
+            centralDirectory.appendLE(UInt16(0))
+            centralDirectory.appendLE(UInt16(0))
+            centralDirectory.appendLE(UInt16(0))
+            centralDirectory.appendLE(UInt16(0))
+            centralDirectory.appendLE(UInt32(0))
+            centralDirectory.appendLE(localOffset)
+            centralDirectory.append(nameData)
+        }
+
+        let centralOffset = UInt32(archive.count)
+        archive.append(centralDirectory)
+        archive.appendLE(UInt32(0x06054B50))
+        archive.appendLE(UInt16(0))
+        archive.appendLE(UInt16(0))
+        archive.appendLE(UInt16(files.count))
+        archive.appendLE(UInt16(files.count))
+        archive.appendLE(UInt32(centralDirectory.count))
+        archive.appendLE(centralOffset)
+        archive.appendLE(UInt16(0))
+        try archive.write(to: destination, options: .atomic)
+    }
+}
+
+private extension Data {
+    mutating func appendLE(_ value: UInt16) {
+        append(UInt8(value & 0xff))
+        append(UInt8((value >> 8) & 0xff))
+    }
+
+    mutating func appendLE(_ value: UInt32) {
+        append(UInt8(value & 0xff))
+        append(UInt8((value >> 8) & 0xff))
+        append(UInt8((value >> 16) & 0xff))
+        append(UInt8((value >> 24) & 0xff))
+    }
+}
+
+private enum CRC32 {
+    static func checksum(_ data: Data) -> UInt32 {
+        var value: UInt32 = 0xffff_ffff
+        for byte in data {
+            value ^= UInt32(byte)
+            for _ in 0..<8 {
+                value = value & 1 == 1 ? (value >> 1) ^ 0xedb8_8320 : value >> 1
+            }
+        }
+        return value ^ 0xffff_ffff
     }
 }

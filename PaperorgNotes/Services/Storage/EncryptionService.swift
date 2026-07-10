@@ -55,6 +55,14 @@ final class EncryptionService: Sendable {
             throw EncryptionError.keyStorageFailed
         }
     }
+
+    func deleteKey() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: keyTag
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
 }
 
 enum EncryptionError: Error {

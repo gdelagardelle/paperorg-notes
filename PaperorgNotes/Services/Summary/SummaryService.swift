@@ -19,7 +19,9 @@ final class SummaryService {
             return StructuredOutput.empty(for: outputType)
         }
         
-        guard let apiKey = settings.openAIAPIKey, !apiKey.isEmpty else {
+        guard settings.isProviderConsented(.openai),
+              let apiKey = settings.openAIAPIKey,
+              !apiKey.isEmpty else {
             return fallbackSummary(transcript: transcript, outputType: outputType)
         }
         

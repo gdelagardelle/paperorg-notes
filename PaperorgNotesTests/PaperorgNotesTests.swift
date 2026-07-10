@@ -118,6 +118,8 @@ final class TranscriptTextFormatterTests: XCTestCase {
         let text = TranscriptTextFormatter.readableText(from: "Hello world")
         XCTAssertEqual(text, "Hello world")
     }
+}
+
 final class KeychainServiceTests: XCTestCase {
     func testSaveAndRetrieveAPIKey() throws {
         let keychain = KeychainService()

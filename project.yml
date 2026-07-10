@@ -80,6 +80,10 @@ targets:
     platform: iOS
     sources:
       - path: PaperorgNotesTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.notes.tests
     dependencies:
       - target: PaperorgNotes
 

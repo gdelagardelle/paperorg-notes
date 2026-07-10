@@ -72,6 +72,14 @@ struct RecordView: View {
             } message: {
                 Text("Send this recording to your configured email recipients?")
             }
+            .alert("Recording Failed", isPresented: Binding(
+                get: { processingError != nil && !showProcessing },
+                set: { if !$0 { processingError = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(processingError ?? "")
+            }
         }
     }
     
@@ -210,19 +218,20 @@ struct RecordView: View {
     
     private func startRecording() {
         let noteId = UUID()
-        let note = Note(
-            id: noteId,
-            audioFileName: "\(noteId.uuidString).m4a",
-            language: selectedLanguage,
-            outputType: selectedOutputType,
-            status: .draft
-        )
-        modelContext.insert(note)
-        activeNote = note
         
         Task {
             do {
                 try await environment.recordingService.start(noteId: noteId)
+                let note = Note(
+                    id: noteId,
+                    audioFileName: "\(noteId.uuidString).m4a",
+                    language: selectedLanguage,
+                    outputType: selectedOutputType,
+                    status: .draft
+                )
+                modelContext.insert(note)
+                activeNote = note
+                try? modelContext.save()
                 pulseAnimation = true
             } catch {
                 processingError = error.localizedDescription
@@ -271,6 +280,7 @@ struct RecordView: View {
                 activeNote?.status = NoteStatus.failed.rawValue
                 activeNote?.errorMessage = error.localizedDescription
                 try? modelContext.save()
+                showProcessing = false
             }
         }
     }

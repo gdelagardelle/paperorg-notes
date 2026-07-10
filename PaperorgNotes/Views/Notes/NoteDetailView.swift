@@ -27,6 +27,12 @@ struct NoteDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 metadataHeader
+                if note.noteStatus == .failed, let error = note.errorMessage, !error.isEmpty {
+                    Label(error, systemImage: "exclamationmark.triangle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.error)
+                        .cardStyle()
+                }
                 NoteOrganizerSection(note: note)
                 reprocessSection
                 tabPicker

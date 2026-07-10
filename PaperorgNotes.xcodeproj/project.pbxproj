@@ -21,6 +21,7 @@
 		3AB2E53851565A8E0772D71F /* Transcript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3405E9F6563295A3256E4763 /* Transcript.swift */; };
 		43D03C3A017A47CA5DE86303 /* PaperorgNotesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D682905B816444B9E87CD2FC /* PaperorgNotesApp.swift */; };
 		47EE42893ACF727B1C51C409 /* EncryptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA483298C7DA2060170BD821 /* EncryptionService.swift */; };
+		4F50EF1F0AFE4ED640D08435 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */; };
 		517509262D50F3108147C612 /* AppleSpeechProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAB3995B0D7080BE3AFC20C7 /* AppleSpeechProvider.swift */; };
 		51E2E8EC0F74C349152E75BF /* ProcessRecordingUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5243CB5415532B47C9904D /* ProcessRecordingUseCase.swift */; };
 		525E797077F692277186F223 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A47C931C30D4142808038E /* SettingsView.swift */; };
@@ -87,6 +88,7 @@
 
 /* Begin PBXFileReference section */
 		015CA9C9BF4BA1A913E6E87E /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
+		073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0A2776891AC1FF283C722736 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		0C9BD304B8AD3F3CF47BD303 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		10F451B9CE45F448ED5357EA /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
@@ -409,6 +411,7 @@
 				A11A5FEB0631867ABFC14D54 /* Info.plist */,
 				769C64C50D036C001E300F1F /* LaunchScreen.storyboard */,
 				923CEA82446856AA18906690 /* PaperorgNotes.entitlements */,
+				073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -522,6 +525,7 @@
 			files = (
 				FF98B44D485C5AE881B077BE /* Assets.xcassets in Resources */,
 				7A9394B7E842956AA8C74F9A /* LaunchScreen.storyboard in Resources */,
+				4F50EF1F0AFE4ED640D08435 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -804,12 +808,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.PaperorgNotesTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PaperorgNotes.app/PaperorgNotes";
@@ -820,12 +825,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.PaperorgNotesTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PaperorgNotes.app/PaperorgNotes";

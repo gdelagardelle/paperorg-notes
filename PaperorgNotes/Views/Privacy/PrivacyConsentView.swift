@@ -3,6 +3,7 @@ import SwiftUI
 struct PrivacyConsentView: View {
     @Environment(AppEnvironment.self) private var environment
     @State private var agreed = false
+    @State private var providerConsent = false
     
     var body: some View {
         @Bindable var settings = environment.settingsService
@@ -23,12 +24,18 @@ struct PrivacyConsentView: View {
                     privacyRow(icon: "mic.fill", title: "Local Recording", detail: "Audio is saved on your device first.")
                     privacyRow(icon: "lock.fill", title: "Your Control", detail: "You choose providers and can delete all data anytime.")
                     privacyRow(icon: "doc.text.fill", title: "GDPR", detail: "Export or delete all your data from Settings.")
-                    privacyRow(icon: "brain.head.profile", title: "No Training", detail: "Your data is not used to train models unless you explicitly opt in.")
+                    privacyRow(icon: "brain.head.profile", title: "Provider Terms", detail: "Your data is handled according to each provider's terms and your configured account settings.")
                 }
                 .cardStyle()
                 
                 Toggle(isOn: $agreed) {
                     Text("I understand and agree to the Privacy Policy")
+                        .font(.subheadline)
+                }
+                .tint(AppTheme.primary)
+
+                Toggle(isOn: $providerConsent) {
+                    Text("I allow Paperorg Notes to send audio and transcript text to my configured transcription and summary providers.")
                         .font(.subheadline)
                 }
                 .tint(AppTheme.primary)
@@ -38,9 +45,12 @@ struct PrivacyConsentView: View {
                 
                 Button("Continue") {
                     settings.hasAcceptedPrivacyPolicy = true
+                    for provider in ProviderID.allCases {
+                        settings.consentProvider(provider)
+                    }
                 }
                 .buttonStyle(PrimaryButtonStyle())
-                .disabled(!agreed)
+                .disabled(!agreed || !providerConsent)
             }
             .padding(24)
         }
@@ -107,11 +117,11 @@ enum LAContextWrapper {
     static func evaluate(completion: @escaping (Bool, String?) -> Void) {
         let context = LAContext()
         var error: NSError?
-        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
-            completion(false, "Biometrics not available")
+        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
+            completion(false, error?.localizedDescription ?? "Device authentication is not available")
             return
         }
-        context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Unlock Paperorg Notes") { success, err in
+        context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Unlock Paperorg Notes") { success, err in
             DispatchQueue.main.async {
                 completion(success, err?.localizedDescription)
             }
