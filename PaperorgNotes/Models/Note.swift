@@ -27,6 +27,7 @@ final class Note {
     var primaryProvider: String?
     var tags: [String]
     var errorMessage: String?
+    var processingDebug: String?
     
     @Relationship(deleteRule: .cascade, inverse: \TranscriptSegmentModel.note)
     var segments: [TranscriptSegmentModel] = []

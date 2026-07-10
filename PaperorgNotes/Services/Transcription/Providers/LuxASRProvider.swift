@@ -9,7 +9,9 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
     
     private let baseURL = URL(string: "https://luxasr.uni.lu")!
     private let pollInterval: TimeInterval = 2.0
-    private let maxPollAttempts = 120
+    // A free/academic LuxASR queue can stall for a long time. Fail over promptly
+    // instead of holding the processing UI for several minutes.
+    private let maxPollAttempts = 30
     
     func isConfigured(credentials: TranscriptionCredentials) -> Bool {
         // LuxASR may work without key for limited access; key optional until required by server
@@ -63,14 +65,19 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
         
         let job = try JSONDecoder().decode(LuxASRJobResponse.self, from: submitData)
         
-        let jobStatus = try await pollUntilComplete(jobId: job.job_id)
+        let jobStatus = try await pollUntilComplete(jobId: job.job_id, apiKey: credentials.luxASRAPIKey)
         
         guard jobStatus.status == "completed" else {
             throw TranscriptionError.providerError(jobStatus.error ?? "LuxASR job failed")
         }
         
         let resultURL = baseURL.appendingPathComponent("v3/asr/jobs/\(job.job_id)/result")
-        let (resultData, resultResponse) = try await URLSession.shared.data(from: resultURL)
+        var resultRequest = URLRequest(url: resultURL)
+        resultRequest.timeoutInterval = 20
+        if let apiKey = credentials.luxASRAPIKey, !apiKey.isEmpty {
+            resultRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        }
+        let (resultData, resultResponse) = try await URLSession.shared.data(for: resultRequest)
         
         if let http = resultResponse as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
             let msg = String(data: resultData, encoding: .utf8) ?? "Result fetch failed (HTTP \(http.statusCode))"
@@ -80,7 +87,7 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
         return try parseLuxASRResult(resultData, language: request.language, start: start)
     }
     
-    private func pollUntilComplete(jobId: String) async throws -> LuxASRStatusResponse {
+    private func pollUntilComplete(jobId: String, apiKey: String?) async throws -> LuxASRStatusResponse {
         let statusURL = baseURL.appendingPathComponent("v3/asr/jobs/\(jobId)")
         
         for attempt in 0..<maxPollAttempts {
@@ -88,7 +95,12 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
                 try await Task.sleep(nanoseconds: UInt64(pollInterval * 1_000_000_000))
             }
             
-            let (statusData, response) = try await URLSession.shared.data(from: statusURL)
+            var statusRequest = URLRequest(url: statusURL)
+            statusRequest.timeoutInterval = 20
+            if let apiKey, !apiKey.isEmpty {
+                statusRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            }
+            let (statusData, response) = try await URLSession.shared.data(for: statusRequest)
             
             if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
                 let msg = String(data: statusData, encoding: .utf8) ?? "Status poll failed (HTTP \(http.statusCode))"
@@ -107,7 +119,7 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
             }
         }
         
-        throw TranscriptionError.providerError("LuxASR job timed out")
+        throw TranscriptionError.providerError("LuxASR is taking too long. Trying the next configured provider.")
     }
     
     private func mimeType(for url: URL) -> String {

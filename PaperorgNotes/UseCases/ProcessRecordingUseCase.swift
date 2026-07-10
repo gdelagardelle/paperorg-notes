@@ -42,45 +42,66 @@ final class ProcessRecordingUseCase {
         audioURL: URL,
         onStageChange: @escaping (ProcessingStage) -> Void
     ) async throws {
+        let startedAt = Date()
+        var debugEvents = [
+            "Started: \(ISO8601DateFormatter().string(from: startedAt))",
+            "Language: \(note.appLanguage.displayName)",
+            "Audio duration: \(String(format: "%.1f", note.durationSeconds)) seconds",
+            "Audio bytes: \((try? Data(contentsOf: audioURL).count) ?? 0)",
+            "Diarization: disabled"
+        ]
         clearTranscriptionResults(note)
         note.status = NoteStatus.processing.rawValue
         note.errorMessage = nil
         func advance(_ stage: ProcessingStage) {
             note.processingStage = stage.rawValue
+            debugEvents.append("Stage: \(stage.displayName) at +\(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s")
             onStageChange(stage)
         }
 
-        advance(.transcribing)
-        storageService.prepareAudioForReading(noteId: note.id)
-        let request = TranscriptionRequest(
-            audioURL: audioURL,
-            language: note.appLanguage,
-            enableDiarization: true,
-            prompt: settingsService.transcriptionPrompt()
-        )
-        let initialResult = try await transcriptionService.transcribe(request)
-        
-        advance(.checkingQuality)
-        let finalTranscript = try await qualityPipeline.process(
-            initialResult: initialResult,
-            audioURL: audioURL,
-            expectedLanguage: note.appLanguage,
-            prompt: settingsService.transcriptionPrompt()
-        )
-        
-        applyTranscript(finalTranscript, to: note)
-        
-        try await generateSummary(for: note, transcript: finalTranscript.fullText, onStageChange: advance)
-        
-        if settingsService.deleteAudioAfterTranscription || !settingsService.keepAudioFiles {
-            storageService.deleteAudio(for: note.id)
-            note.audioDeletedAt = .now
+        do {
+            advance(.transcribing)
+            storageService.prepareAudioForReading(noteId: note.id)
+            let request = TranscriptionRequest(
+                audioURL: audioURL,
+                language: note.appLanguage,
+                enableDiarization: false,
+                prompt: settingsService.transcriptionPrompt()
+            )
+            let initialResult = try await transcriptionService.transcribe(request)
+            debugEvents.append("Transcription provider: \(initialResult.providerId)")
+            debugEvents.append("Transcription time: \(initialResult.processingTimeMs) ms")
+
+            advance(.checkingQuality)
+            let finalTranscript = try await qualityPipeline.process(
+                initialResult: initialResult,
+                audioURL: audioURL,
+                expectedLanguage: note.appLanguage,
+                prompt: settingsService.transcriptionPrompt()
+            )
+            debugEvents.append("Overall confidence: \(String(format: "%.2f", finalTranscript.qualityReport.overallConfidence))")
+            debugEvents.append("Low-confidence segments: \(finalTranscript.qualityReport.lowConfidenceSegmentIds.count)")
+
+            applyTranscript(finalTranscript, to: note)
+            try await generateSummary(for: note, transcript: finalTranscript.fullText, onStageChange: advance)
+
+            if settingsService.deleteAudioAfterTranscription || !settingsService.keepAudioFiles {
+                storageService.deleteAudio(for: note.id)
+                note.audioDeletedAt = .now
+            }
+
+            note.status = NoteStatus.ready.rawValue
+            note.processingStage = ProcessingStage.ready.rawValue
+            note.updatedAt = .now
+            advance(.ready)
+            debugEvents.append("Completed in \(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s")
+            note.processingDebug = debugEvents.joined(separator: "\n")
+        } catch {
+            debugEvents.append("Failed at +\(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s")
+            debugEvents.append("Error: \(error.localizedDescription)")
+            note.processingDebug = debugEvents.joined(separator: "\n")
+            throw error
         }
-        
-        note.status = NoteStatus.ready.rawValue
-        note.processingStage = ProcessingStage.ready.rawValue
-        note.updatedAt = .now
-        advance(.ready)
     }
     
     func transcribeAgain(

@@ -306,6 +306,16 @@ struct NoteDetailView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             }
+
+            if let debug = note.processingDebug, !debug.isEmpty {
+                ShareLink(item: debug) {
+                    Label("Share Transcription Debug Report", systemImage: "ladybug")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(AppTheme.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
         }
     }
     
