@@ -22,8 +22,8 @@ struct RootView: View {
         }
         .preferredColorScheme(nil)
         .onAppear(perform: recoverInterruptedProcessing)
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active && settings.faceIDEnabled {
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if settings.faceIDEnabled, oldPhase == .active, newPhase != .active {
                 isUnlocked = false
             }
         }

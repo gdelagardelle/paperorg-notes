@@ -65,8 +65,12 @@ struct PrivacyConsentView: View {
 }
 
 struct FaceIDLockView: View {
+    @Environment(AppEnvironment.self) private var environment
+    @Environment(\.scenePhase) private var scenePhase
     @Binding var isUnlocked: Bool
     @State private var errorMessage: String?
+    @State private var showDisableLockOption = false
+    @State private var isAuthenticating = false
     
     var body: some View {
         VStack(spacing: 24) {
@@ -79,27 +83,58 @@ struct FaceIDLockView: View {
             
             if let errorMessage {
                 Text(errorMessage)
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundStyle(AppTheme.error)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
             }
             
             Button("Unlock") {
-                authenticate()
+                requestAuthentication(force: true)
             }
             .buttonStyle(PrimaryButtonStyle())
             .padding(.horizontal, 40)
+            .disabled(isAuthenticating)
+
+            if showDisableLockOption {
+                Button("Turn Off Face ID Lock") {
+                    environment.settingsService.faceIDEnabled = false
+                    isUnlocked = true
+                }
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.textSecondary)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppTheme.background)
-        .onAppear { authenticate() }
+        .onAppear { requestAuthentication(force: false) }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                requestAuthentication(force: false)
+            }
+        }
+    }
+    
+    private func requestAuthentication(force: Bool) {
+        guard !isUnlocked, scenePhase == .active else { return }
+        guard force || !isAuthenticating else { return }
+        authenticate()
     }
     
     private func authenticate() {
-        LAContextWrapper.evaluate { success, error in
+        guard !isAuthenticating else { return }
+        isAuthenticating = true
+        errorMessage = nil
+
+        LAContextWrapper.evaluate { success, error, canDisableLock in
+            isAuthenticating = false
             if success {
                 isUnlocked = true
+                errorMessage = nil
+                showDisableLockOption = false
             } else {
-                errorMessage = error ?? "Authentication failed"
+                errorMessage = error
+                showDisableLockOption = canDisableLock
             }
         }
     }
@@ -108,17 +143,92 @@ struct FaceIDLockView: View {
 import LocalAuthentication
 
 enum LAContextWrapper {
-    static func evaluate(completion: @escaping (Bool, String?) -> Void) {
+    static func evaluate(completion: @escaping (Bool, String?, Bool) -> Void) {
         let context = LAContext()
-        var error: NSError?
-        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
-            completion(false, error?.localizedDescription ?? "Device authentication is not available")
-            return
-        }
-        context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "Unlock Paperorg Notes") { success, err in
-            DispatchQueue.main.async {
-                completion(success, err?.localizedDescription)
+        context.localizedFallbackTitle = "Use Passcode"
+        var policyError: NSError?
+        let policy: LAPolicy
+
+        switch context.biometryType {
+        case .faceID, .touchID, .opticID:
+            if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &policyError) {
+                policy = .deviceOwnerAuthenticationWithBiometrics
+            } else if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &policyError) {
+                policy = .deviceOwnerAuthentication
+            } else {
+                let message = friendlyMessage(for: policyError)
+                completion(false, message, true)
+                return
+            }
+        default:
+            if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &policyError) {
+                policy = .deviceOwnerAuthentication
+            } else {
+                let message = friendlyMessage(for: policyError)
+                completion(false, message, true)
+                return
             }
         }
+
+        context.evaluatePolicy(policy, localizedReason: "Unlock Paperorg Notes") { success, error in
+            DispatchQueue.main.async {
+                if success {
+                    completion(true, nil, false)
+                } else {
+                    let nsError = error as NSError?
+                    let message = friendlyMessage(for: nsError)
+                    completion(false, message, shouldOfferDisableLock(for: nsError))
+                }
+            }
+        }
+    }
+
+    private static func friendlyMessage(for error: NSError?) -> String {
+        guard let error else { return "Authentication failed. Try again." }
+
+        switch laErrorCode(from: error) {
+        case .biometryNotAvailable:
+            return "Face ID is not available on this device. Use your device passcode, or turn off Face ID lock."
+        case .biometryNotEnrolled:
+            return "Face ID is not set up on this device. Enroll Face ID in iOS Settings, or turn off Face ID lock."
+        case .passcodeNotSet:
+            return "Set a device passcode in iOS Settings to use app lock, or turn off Face ID lock."
+        case .userCancel, .systemCancel, .appCancel:
+            return "Unlock cancelled. Tap Unlock to try again."
+        case .notInteractive:
+            return "Face ID will appear when the app is active. Tap Unlock to try again."
+        case .authenticationFailed:
+            return "Authentication failed. Try again."
+        default:
+            return "Could not unlock Paperorg Notes. Try again or turn off Face ID lock."
+        }
+    }
+
+    private static func shouldOfferDisableLock(for error: NSError?) -> Bool {
+        guard let error else { return false }
+        switch laErrorCode(from: error) {
+        case .biometryNotAvailable, .biometryNotEnrolled, .passcodeNotSet, .biometryLockout:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private static func laErrorCode(from error: NSError) -> LAError.Code? {
+        if error.domain == LAError.errorDomain {
+            if let code = LAError.Code(rawValue: error.code) {
+                return code
+            }
+            if let code = LAError.Code(rawValue: -error.code) {
+                return code
+            }
+            switch error.code {
+            case 6: return .biometryNotAvailable
+            case 7: return .biometryNotEnrolled
+            case 5: return .passcodeNotSet
+            default: break
+            }
+        }
+        return nil
     }
 }
