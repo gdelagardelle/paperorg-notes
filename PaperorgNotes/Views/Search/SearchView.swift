@@ -32,34 +32,36 @@ struct SearchView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                searchBar
-                filterBar
-                
-                if query.isEmpty && filterLanguage == nil && filterTag.isEmpty && filterProject == nil {
-                    ContentUnavailableView(
-                        "Search Transcripts",
-                        systemImage: "magnifyingglass",
-                        description: Text("Find notes by keyword, language, or tag.")
-                    )
-                } else if results.isEmpty {
-                    ContentUnavailableView.search(text: query)
-                } else {
-                    List(results) { note in
-                        NavigationLink(destination: NoteDetailView(note: note)) {
-                            SearchResultRow(note: note, query: query)
+            ScrollView {
+                VStack(spacing: 16) {
+                    searchBar
+                    filterBar
+                    
+                    if query.isEmpty && filterLanguage == nil && filterTag.isEmpty && filterProject == nil {
+                        searchPrompt
+                    } else if results.isEmpty {
+                        noResultsPrompt
+                    } else {
+                        LazyVStack(spacing: 10) {
+                            ForEach(results) { note in
+                                NavigationLink(destination: NoteDetailView(note: note)) {
+                                    SearchResultRow(note: note, query: query)
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
                     }
-                    .listStyle(.plain)
                 }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
             }
-            .background(AppTheme.background)
+            .background(AppScreenBackground())
             .navigationTitle("Search")
         }
     }
     
     private var searchBar: some View {
-        HStack {
+        HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(AppTheme.textSecondary)
             TextField("Search transcripts…", text: $query)
@@ -71,14 +73,23 @@ struct SearchView: View {
                 }
             }
         }
-        .padding(12)
-        .background(AppTheme.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .padding()
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(AppTheme.surfaceElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppTheme.border, lineWidth: 1)
+        }
     }
     
     private var filterBar: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Refine")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textSecondary)
+                .textCase(.uppercase)
+            
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(AppLanguage.allCases) { lang in
@@ -90,30 +101,71 @@ struct SearchView: View {
                         }
                     }
                 }
-                .padding(.horizontal)
             }
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(projectNames, id: \.self) { project in
-                        FilterChip(
-                            title: project,
-                            isSelected: filterProject == project
-                        ) {
-                            filterProject = filterProject == project ? nil : project
+            if !projectNames.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(projectNames, id: \.self) { project in
+                            FilterChip(
+                                title: project,
+                                isSelected: filterProject == project
+                            ) {
+                                filterProject = filterProject == project ? nil : project
+                            }
                         }
                     }
                 }
-                .padding(.horizontal)
             }
             
-            HStack {
+            HStack(spacing: 10) {
+                Image(systemName: "tag")
+                    .foregroundStyle(AppTheme.textSecondary)
                 TextField("Filter by tag", text: $filterTag)
-                    .textFieldStyle(.roundedBorder)
-                    .padding(.horizontal)
+                    .textFieldStyle(.plain)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(AppTheme.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(AppTheme.border, lineWidth: 1)
             }
         }
-        .padding(.bottom, 8)
+        .surfaceCard(padding: 16, cornerRadius: 18)
+    }
+    
+    private var searchPrompt: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "text.magnifyingglass")
+                .font(.system(size: 40))
+                .foregroundStyle(AppTheme.accent.opacity(0.75))
+            Text("Search your library")
+                .font(.headline)
+            Text("Find notes by keyword, language, project, or tag.")
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .surfaceCard(padding: 36)
+    }
+    
+    private var noResultsPrompt: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "doc.text.magnifyingglass")
+                .font(.system(size: 36))
+                .foregroundStyle(AppTheme.textSecondary.opacity(0.6))
+            Text("No results")
+                .font(.headline)
+            Text("Try a different keyword or clear your filters.")
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .surfaceCard(padding: 32)
     }
 }
 
@@ -122,22 +174,28 @@ struct SearchResultRow: View {
     let query: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(note.title)
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(note.title)
+                    .font(.headline)
+                    .foregroundStyle(AppTheme.textPrimary)
+                    .lineLimit(1)
+                Spacer()
+                NoteStatusBadge(status: note.noteStatus, compact: true)
+            }
             
             if let snippet = matchingSnippet {
                 Text(snippet)
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.textSecondary)
-                    .lineLimit(2)
+                    .lineLimit(3)
             }
             
             Text(formattedDate)
                 .font(.caption)
                 .foregroundStyle(AppTheme.textSecondary)
         }
-        .padding(.vertical, 4)
+        .surfaceCard(padding: 16)
     }
     
     private var matchingSnippet: String? {
@@ -154,23 +212,5 @@ struct SearchResultRow: View {
         let f = DateFormatter()
         f.dateStyle = .medium
         return f.string(from: note.createdAt)
-    }
-}
-
-struct FilterChip: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(isSelected ? AppTheme.primary : AppTheme.surface)
-                .foregroundStyle(isSelected ? .white : AppTheme.textPrimary)
-                .clipShape(Capsule())
-        }
     }
 }

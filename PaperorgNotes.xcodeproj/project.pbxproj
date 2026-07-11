@@ -25,6 +25,7 @@
 		517509262D50F3108147C612 /* AppleSpeechProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAB3995B0D7080BE3AFC20C7 /* AppleSpeechProvider.swift */; };
 		51E2E8EC0F74C349152E75BF /* ProcessRecordingUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5243CB5415532B47C9904D /* ProcessRecordingUseCase.swift */; };
 		525E797077F692277186F223 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A47C931C30D4142808038E /* SettingsView.swift */; };
+		530DB2E781C62C66C6952C17 /* AppDesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A7A286993897E5DE6FB106C /* AppDesignSystem.swift */; };
 		53A84583C3B43D6875DCA00C /* DeleteNoteUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */; };
 		53DC4B6EAD4747272CC3EB7B /* PaperorgNotesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C47221B81917C0FD802E52 /* PaperorgNotesWidget.swift */; };
 		5659B8363936129D5E6448BA /* QualityPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CB1C8B9F80F34734755D2C /* QualityPipeline.swift */; };
@@ -96,6 +97,7 @@
 		111EBE0439A2EDDB89A24C20 /* SummaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryService.swift; sourceTree = "<group>"; };
 		182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionProvider.swift; sourceTree = "<group>"; };
 		1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteNoteUseCase.swift; sourceTree = "<group>"; };
+		2A7A286993897E5DE6FB106C /* AppDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDesignSystem.swift; sourceTree = "<group>"; };
 		2BF5DBF0A62BECF4981A7BE7 /* ReviewBeforeSendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewBeforeSendView.swift; sourceTree = "<group>"; };
 		2C4CCE7823C18246EF50175B /* PrivacyConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyConsentView.swift; sourceTree = "<group>"; };
 		2D726C5822C87F122AA6765A /* PaperorgNotesTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PaperorgNotesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -227,6 +229,7 @@
 		36598FC936411D3B85F40BF9 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				2A7A286993897E5DE6FB106C /* AppDesignSystem.swift */,
 				65181023F293D9C4ACE28EEB /* MailComposeView.swift */,
 				68BDFF716C1EC2A56F0A160E /* OutputTypePicker.swift */,
 				C1D2EF76ECA8152BE338CF0F /* StoreRecoveryView.swift */,
@@ -540,6 +543,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5D9B4272A0E335AADB6CDDFB /* AppConstants.swift in Sources */,
+				530DB2E781C62C66C6952C17 /* AppDesignSystem.swift in Sources */,
 				129CE3D23578AA4B51A0B063 /* AppEnvironment.swift in Sources */,
 				3A9C435B67B50413336FBEA5 /* AppTheme.swift in Sources */,
 				517509262D50F3108147C612 /* AppleSpeechProvider.swift in Sources */,

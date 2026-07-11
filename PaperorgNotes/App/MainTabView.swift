@@ -102,7 +102,7 @@ struct MainTabView: View {
                 }
                 .tag(3)
         }
-        .tint(AppTheme.primary)
+        .tint(AppTheme.accent)
         .onAppear {
             // Defer consuming the request until the record tab exists so a
             // cold-launch deep link cannot be lost behind privacy or Face ID.

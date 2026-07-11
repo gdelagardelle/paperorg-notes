@@ -6,6 +6,11 @@ enum AppTheme {
     static let accent = Color(red: 0.961, green: 0.416, blue: 0.039)
     static let background = Color(red: 0.961, green: 0.969, blue: 0.984)
     static let surface = Color.white
+    static let surfaceElevated = Color.white
+    static let border = Color(red: 0.878, green: 0.898, blue: 0.925)
+    static let accentSoft = accent.opacity(0.14)
+    static let primarySoft = primary.opacity(0.10)
+    static let heroGradientBottom = Color(red: 0.949, green: 0.965, blue: 0.988)
     static let textPrimary = primary
     static let textSecondary = Color(red: 0.302, green: 0.376, blue: 0.482)
     static let warning = accent
@@ -29,9 +34,13 @@ struct CardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding()
-            .background(AppTheme.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+            .background(AppTheme.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(AppTheme.border, lineWidth: 1)
+            }
+            .shadow(color: AppTheme.primary.opacity(0.05), radius: 10, y: 4)
     }
 }
 

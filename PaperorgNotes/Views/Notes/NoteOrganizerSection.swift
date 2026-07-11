@@ -7,24 +7,32 @@ struct NoteOrganizerSection: View {
     @State private var projectName: String = ""
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Organize")
-                .font(.headline)
-            
+        VStack(alignment: .leading, spacing: 14) {
+            AppSectionHeader(title: "Organize", subtitle: "Project and tags for this note")
+
             VStack(alignment: .leading, spacing: 6) {
                 Text("Project")
-                    .font(.caption)
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(AppTheme.textSecondary)
+                    .textCase(.uppercase)
                 TextField("Client, team, folder…", text: $projectName)
-                    .textFieldStyle(.roundedBorder)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(AppTheme.background)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(AppTheme.border, lineWidth: 1)
+                    }
                     .onSubmit { saveProject() }
             }
-            
+
             VStack(alignment: .leading, spacing: 8) {
                 Text("Tags")
-                    .font(.caption)
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(AppTheme.textSecondary)
-                
+                    .textCase(.uppercase)
+
                 FlowLayout(spacing: 8) {
                     ForEach(note.tags, id: \.self) { tag in
                         HStack(spacing: 4) {
@@ -37,24 +45,37 @@ struct NoteOrganizerSection: View {
                                     .font(.caption2)
                             }
                         }
-                        .font(.caption)
+                        .font(.caption.weight(.medium))
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(AppTheme.primary.opacity(0.12))
+                        .background(AppTheme.primarySoft)
                         .foregroundStyle(AppTheme.primary)
                         .clipShape(Capsule())
                     }
                 }
-                
-                HStack {
+
+                HStack(spacing: 10) {
                     TextField("Add tag", text: $newTag)
-                        .textFieldStyle(.roundedBorder)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(AppTheme.background)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(AppTheme.border, lineWidth: 1)
+                        }
                     Button("Add") { addTag() }
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppTheme.primary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(AppTheme.primarySoft)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .disabled(newTag.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
         }
-        .cardStyle()
+        .surfaceCard()
         .onAppear {
             projectName = note.projectName ?? ""
         }

@@ -125,9 +125,7 @@ struct SettingsView: View {
                 Section("Email") {
                     Toggle("Send email after transcription", isOn: $settings.sendEmailAfterTranscription)
                     if settings.sendEmailAfterTranscription {
-                        Text("Opens the email composer automatically when a recording finishes processing.")
-                            .font(.caption)
-                            .foregroundStyle(AppTheme.textSecondary)
+                        SettingsSectionHint(text: "Opens the email composer automatically when a recording finishes processing.")
                     }
 
                     Picker("Content", selection: $settings.emailContent) {
@@ -175,9 +173,7 @@ struct SettingsView: View {
                     if settings.keepAudioFiles {
                         Toggle("Delete Audio After Transcription", isOn: $settings.deleteAudioAfterTranscription)
                         if settings.deleteAudioAfterTranscription {
-                            Text("Audio is removed as soon as transcription completes.")
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.textSecondary)
+                            SettingsSectionHint(text: "Audio is removed as soon as transcription completes.")
                         } else {
                             Picker("Delete Audio After", selection: Binding(
                                 get: { settings.deleteAudioAfterDays ?? 0 },
@@ -190,9 +186,7 @@ struct SettingsView: View {
                             }
                         }
                     } else {
-                        Text("Audio is removed after transcription. Retention options are unavailable.")
-                            .font(.caption)
-                            .foregroundStyle(AppTheme.textSecondary)
+                        SettingsSectionHint(text: "Audio is removed after transcription. Retention options are unavailable.")
                     }
                     
                     Button("Export All Data") {
@@ -228,6 +222,8 @@ struct SettingsView: View {
                     }
                 }
             }
+            .listStyle(.insetGrouped)
+            .settingsScreenStyle()
             .navigationTitle("Settings")
             .onAppear {
                 loadKeys()
@@ -321,31 +317,40 @@ struct ProviderConsentView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text(provider.displayName)
-                        .font(.title2.bold())
-                    
-                    Label("Hosted in: \(provider.country)", systemImage: "globe")
-                        .font(.subheadline)
-                    
-                    if provider.sendsAudioOffDevice {
-                        Text("When you transcribe, your audio will be sent to \(provider.displayName) for processing. Review their privacy policy before continuing.")
-                            .foregroundStyle(AppTheme.textSecondary)
-                    } else {
-                        Text("This provider processes audio on your device. No audio leaves your iPhone.")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(provider.displayName)
+                            .font(.title2.bold())
+                            .foregroundStyle(AppTheme.textPrimary)
+                        Label("Hosted in: \(provider.country)", systemImage: "globe.europe.africa.fill")
+                            .font(.subheadline)
                             .foregroundStyle(AppTheme.textSecondary)
                     }
-                    
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        if provider.sendsAudioOffDevice {
+                            Text("When you transcribe, your audio will be sent to \(provider.displayName) for processing. Review their privacy policy before continuing.")
+                        } else {
+                            Text("This provider processes audio on your device. No audio leaves your iPhone.")
+                        }
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .surfaceCard()
+
                     Toggle("I allow sending audio to \(provider.displayName)", isOn: $agreed)
-                    
+                        .tint(AppTheme.accent)
+                        .surfaceCard(padding: 14)
+
                     Button("Confirm") {
                         environment.settingsService.consentProvider(provider)
                         dismiss()
                     }
-                    .buttonStyle(PrimaryButtonStyle())
+                    .buttonStyle(AccentButtonStyle())
                     .disabled(!agreed && provider.sendsAudioOffDevice)
                 }
-                .padding()
+                .padding(20)
             }
+            .background(AppScreenBackground())
             .navigationTitle("Provider Consent")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

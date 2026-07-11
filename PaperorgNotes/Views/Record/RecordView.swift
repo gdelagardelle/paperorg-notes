@@ -17,36 +17,39 @@ struct RecordView: View {
     @State private var postRecordingEmailPresentation: EmailPresentation?
     @State private var showQuickRecordQueued = false
     
+    private var isRecordingSession: Bool {
+        environment.recordingService.state == .recording || environment.recordingService.state == .paused
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 28) {
-                    languagePicker
-                    recordButton
-                    outputTypePicker
+                VStack(spacing: 24) {
+                    AppBrandHeader()
+                    
+                    setupCard
+                    recordHeroCard
                     
                     if let warning = environment.recordingService.qualityWarning {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(AppTheme.warning)
-                            Text(warning)
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.textSecondary)
-                        }
-                        .padding(.horizontal)
+                        qualityWarningBanner(warning)
                     }
                     
                     recentSection
                 }
-                .padding()
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 32)
             }
-            .background(AppTheme.background)
-            .navigationTitle("Paperorg Notes")
+            .background(AppScreenBackground())
+            .navigationBarHidden(true)
             .onAppear {
                 selectedLanguage = environment.settingsService.defaultLanguage
                 selectedOutputType = environment.settingsService.defaultOutputType
                 environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
                 handleQuickRecordRequestIfNeeded()
+            }
+            .onChange(of: environment.recordingService.state) { _, newState in
+                pulseAnimation = newState == .recording
             }
             .onChange(of: environment.deepLinkHandler.pendingQuickRecord) { _, pending in
                 if pending {
@@ -88,125 +91,151 @@ struct RecordView: View {
         }
     }
     
-    private var languagePicker: some View {
-        Menu {
-            ForEach(AppLanguage.allCases) { lang in
-                Button("\(lang.flag) \(lang.displayName)") {
-                    selectedLanguage = lang
+    private var setupCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Language")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .textCase(.uppercase)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(AppLanguage.allCases) { language in
+                            SelectionChip(
+                                title: "\(language.flag) \(language.displayName)",
+                                isSelected: selectedLanguage == language,
+                                action: { selectedLanguage = language }
+                            )
+                            .disabled(isRecordingSession)
+                        }
+                    }
                 }
             }
-        } label: {
-            HStack {
-                Text(selectedLanguage.flag)
-                Text(selectedLanguage.displayName)
-                    .font(.subheadline.bold())
-                Image(systemName: "chevron.down")
-                    .font(.caption)
+            
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Note style")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .textCase(.uppercase)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(OutputType.allCases) { type in
+                            SelectionChip(
+                                title: type.displayName,
+                                icon: type.icon,
+                                isSelected: selectedOutputType == type,
+                                action: { selectedOutputType = type }
+                            )
+                            .disabled(isRecordingSession)
+                        }
+                    }
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(AppTheme.surface)
-            .clipShape(Capsule())
         }
+        .surfaceCard()
+        .opacity(isRecordingSession ? 0.72 : 1)
+        .animation(.easeInOut(duration: 0.2), value: isRecordingSession)
     }
     
-    private var recordButton: some View {
-        VStack(spacing: 12) {
-            Button(action: toggleRecording) {
-                ZStack {
-                    Circle()
-                        .fill(recordButtonColor.opacity(0.15))
-                        .frame(width: 120, height: 120)
-                        .scaleEffect(pulseAnimation ? 1.08 : 1.0)
-                        .animation(
-                            environment.recordingService.state == .recording
-                                ? .easeInOut(duration: 1).repeatForever(autoreverses: true)
-                                : .default,
-                            value: pulseAnimation
-                        )
-                    
-                    Circle()
-                        .fill(recordButtonColor)
-                        .frame(width: 88, height: 88)
-                    
-                    Image(systemName: recordIcon)
-                        .font(.system(size: 32))
-                        .foregroundStyle(.white)
-                }
-            }
-            .onAppear { pulseAnimation = environment.recordingService.state == .recording }
+    private var recordHeroCard: some View {
+        VStack(spacing: 20) {
+            RecordHeroButton(
+                state: environment.recordingService.state,
+                pulseAnimation: pulseAnimation,
+                audioLevel: environment.recordingService.audioLevel,
+                action: toggleRecording
+            )
             
             Text(DurationFormatter.format(environment.recordingService.duration))
-                .font(.system(size: 28, weight: .light, design: .monospaced))
+                .font(.system(size: 36, weight: .light, design: .rounded))
                 .foregroundStyle(AppTheme.textPrimary)
+                .monospacedDigit()
+            
+            AudioLevelMeter(
+                level: environment.recordingService.audioLevel,
+                isActive: environment.recordingService.state == .recording
+            )
             
             Text(recordStatusText)
-                .font(.subheadline)
+                .font(.subheadline.weight(.medium))
                 .foregroundStyle(AppTheme.textSecondary)
             
-            if environment.recordingService.state == .recording || environment.recordingService.state == .paused {
-                HStack(spacing: 20) {
+            if isRecordingSession {
+                HStack(spacing: 12) {
                     Button(action: togglePause) {
-                        Label(
-                            environment.recordingService.state == .paused ? "Resume" : "Pause",
+                        RecordControlButton(
+                            title: environment.recordingService.state == .paused ? "Resume" : "Pause",
                             systemImage: environment.recordingService.state == .paused ? "play.fill" : "pause.fill"
                         )
                     }
+                    .buttonStyle(.plain)
                     
-                    Button(role: .destructive, action: stopRecording) {
-                        Label("Stop", systemImage: "stop.fill")
-                    }
-                }
-                .font(.subheadline.bold())
-            }
-        }
-    }
-    
-    private var outputTypePicker: some View {
-        OutputTypePicker(selection: $selectedOutputType, label: "Note style")
-    }
-    
-    private var recentSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Recent")
-                .font(.headline)
-            
-            if recentNotes.prefix(5).isEmpty {
-                Text("No recordings yet")
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 24)
-            } else {
-                ForEach(recentNotes.prefix(5)) { note in
-                    NavigationLink(destination: NoteDetailView(note: note)) {
-                        RecentNoteRow(note: note)
+                    Button(action: stopRecording) {
+                        RecordControlButton(
+                            title: "Stop",
+                            systemImage: "stop.fill",
+                            role: .destructive
+                        )
                     }
                     .buttonStyle(.plain)
                 }
             }
         }
+        .frame(maxWidth: .infinity)
+        .surfaceCard(padding: 28)
     }
     
-    private var recordButtonColor: Color {
-        switch environment.recordingService.state {
-        case .recording, .paused, .idle: return AppTheme.accent
+    private func qualityWarningBanner(_ warning: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(AppTheme.accent)
+            Text(warning)
+                .font(.caption)
+                .foregroundStyle(AppTheme.textSecondary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .surfaceCard(padding: 14, cornerRadius: 14)
     }
     
-    private var recordIcon: String {
-        switch environment.recordingService.state {
-        case .idle: return "mic.fill"
-        case .recording: return "waveform"
-        case .paused: return "pause.fill"
+    private var recentSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            AppSectionHeader(title: "Recent notes", subtitle: "Pick up where you left off")
+            
+            if recentNotes.prefix(5).isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "waveform.badge.mic")
+                        .font(.system(size: 36))
+                        .foregroundStyle(AppTheme.accent.opacity(0.7))
+                    Text("No recordings yet")
+                        .font(.headline)
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Text("Tap the microphone to capture your first note.")
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .surfaceCard(padding: 28)
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(recentNotes.prefix(5)) { note in
+                        NavigationLink(destination: NoteDetailView(note: note)) {
+                            NoteCardRow(note: note, style: .compact)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
         }
     }
     
     private var recordStatusText: String {
         switch environment.recordingService.state {
-        case .idle: return "Tap to record"
-        case .recording: return "Recording…"
-        case .paused: return "Paused"
+        case .idle: return "Tap to start recording"
+        case .recording: return "Listening… tap to finish"
+        case .paused: return "Paused — resume or stop"
         }
     }
     
@@ -354,47 +383,6 @@ struct RecordView: View {
     }
 }
 
-struct RecentNoteRow: View {
-    let note: Note
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(note.title)
-                    .font(.subheadline.bold())
-                    .lineLimit(1)
-                HStack(spacing: 8) {
-                    Text(note.appLanguage.flag)
-                    Text(DurationFormatter.format(note.durationSeconds))
-                    Text(note.noteOutputType.displayName)
-                        .foregroundStyle(AppTheme.textSecondary)
-                }
-                .font(.caption)
-            }
-            Spacer()
-            statusBadge
-        }
-        .cardStyle()
-    }
-    
-    @ViewBuilder
-    private var statusBadge: some View {
-        switch note.noteStatus {
-        case .ready:
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(AppTheme.primary)
-        case .processing:
-            ProgressView()
-        case .failed:
-            Image(systemName: "exclamationmark.circle.fill")
-                .foregroundStyle(AppTheme.error)
-        case .draft:
-            Image(systemName: "circle")
-                .foregroundStyle(AppTheme.textSecondary)
-        }
-    }
-}
-
 struct ProcessingView: View {
     let stage: ProcessingStage
     let error: String?
@@ -402,76 +390,131 @@ struct ProcessingView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
+            Capsule()
+                .fill(AppTheme.border)
+                .frame(width: 36, height: 5)
+                .padding(.top, 10)
+                .padding(.bottom, 24)
+            
             if error != nil {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.largeTitle)
-                    .foregroundStyle(AppTheme.error)
-                Text("Processing Failed")
+                errorContent
+            } else {
+                progressContent
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 32)
+        .background(AppScreenBackground())
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.hidden)
+    }
+    
+    private var errorContent: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 44))
+                .foregroundStyle(AppTheme.error)
+            
+            AppSectionHeader(
+                title: "Processing failed",
+                subtitle: error ?? "Something went wrong while finishing your note."
+            )
+            
+            Button("Done") { dismiss() }
+                .buttonStyle(AccentButtonStyle())
+        }
+    }
+    
+    private var progressContent: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.title2)
+                    .foregroundStyle(AppTheme.accent)
+                Text("Finishing your note")
                     .font(.title2.bold())
-                Text(error ?? "")
+                    .foregroundStyle(AppTheme.textPrimary)
+                Text("This usually takes under a minute.")
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.textSecondary)
+            }
+            
+            VStack(spacing: 14) {
+                ForEach(ProcessingStage.allCases.filter { $0 != .ready }, id: \.self) { step in
+                    stageRow(step)
+                }
+            }
+            .surfaceCard()
+            
+            if stage == .transcribing && language == .luxembourgish {
+                Label("Using LuxASR for Lëtzebuergesch", systemImage: "globe.europe.africa.fill")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
+            
+            if let detail = stage.detailMessage(for: language) {
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
                     .multilineTextAlignment(.center)
-                Button("Done") {
-                    dismiss()
-                }
-                .buttonStyle(PrimaryButtonStyle())
-            } else {
-                Text("Processing your recording")
-                    .font(.title2.bold())
-                
-                VStack(alignment: .leading, spacing: 16) {
-                    stageRow(.savingAudio)
-                    stageRow(.transcribing)
-                    stageRow(.checkingQuality)
-                    stageRow(.summarizing)
-                    stageRow(.ready)
-                }
-                .cardStyle()
-                
-                if stage == .transcribing && language == .luxembourgish {
-                    Text("Using LuxASR for Lëtzebuergesch")
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.textSecondary)
-                }
-                
-                if let detail = stage.detailMessage(for: language) {
+            }
+        }
+    }
+    
+    private func stageRow(_ step: ProcessingStage) -> some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(stepBackground(for: step))
+                    .frame(width: 32, height: 32)
+                stepIcon(for: step)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(step.displayName)
+                    .font(.subheadline.weight(step == stage ? .semibold : .regular))
+                    .foregroundStyle(step == stage ? AppTheme.textPrimary : AppTheme.textSecondary)
+                if step == stage, let detail = step.detailMessage(for: language) {
                     Text(detail)
-                        .font(.caption)
+                        .font(.caption2)
                         .foregroundStyle(AppTheme.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                }
-                
-                if stage != .ready {
-                    ProgressView()
+                        .lineLimit(2)
                 }
             }
-        }
-        .padding(32)
-        .presentationDetents([.medium])
-    }
-    
-    private func stageRow(_ s: ProcessingStage) -> some View {
-        HStack {
-            if stageOrder(s) < stageOrder(stage) || stage == .ready && s == .ready {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(AppTheme.primary)
-            } else if s == stage {
-                ProgressView()
-                    .scaleEffect(0.8)
-            } else {
-                Image(systemName: "circle")
-                    .foregroundStyle(AppTheme.textSecondary.opacity(0.4))
-            }
-            Text(s.displayName)
-                .font(.subheadline)
-                .foregroundStyle(s == stage ? AppTheme.textPrimary : AppTheme.textSecondary)
+            
+            Spacer()
         }
     }
     
-    private func stageOrder(_ s: ProcessingStage) -> Int {
-        ProcessingStage.allCases.firstIndex(of: s) ?? 0
+    @ViewBuilder
+    private func stepIcon(for step: ProcessingStage) -> some View {
+        if stageOrder(step) < stageOrder(stage) {
+            Image(systemName: "checkmark")
+                .font(.caption.bold())
+                .foregroundStyle(.white)
+        } else if step == stage {
+            ProgressView()
+                .tint(AppTheme.accent)
+                .scaleEffect(0.7)
+        } else {
+            Circle()
+                .fill(AppTheme.border)
+                .frame(width: 8, height: 8)
+        }
+    }
+    
+    private func stepBackground(for step: ProcessingStage) -> Color {
+        if stageOrder(step) < stageOrder(stage) {
+            return AppTheme.primary
+        }
+        if step == stage {
+            return AppTheme.accentSoft
+        }
+        return AppTheme.background
+    }
+    
+    private func stageOrder(_ step: ProcessingStage) -> Int {
+        ProcessingStage.allCases.firstIndex(of: step) ?? 0
     }
 }

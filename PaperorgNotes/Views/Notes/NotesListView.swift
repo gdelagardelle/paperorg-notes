@@ -25,29 +25,39 @@ struct NotesListView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if filteredNotes.isEmpty {
-                    ContentUnavailableView(
-                        "No Notes",
-                        systemImage: "doc.text",
-                        description: Text("Record something to get started.")
-                    )
+                if notes.isEmpty {
+                    emptyLibraryView
                 } else {
-                    List(filteredNotes) { note in
-                        NavigationLink(destination: NoteDetailView(note: note)) {
-                            NoteListRow(note: note)
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                try? environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            filterBar
+                            
+                            if filteredNotes.isEmpty {
+                                noResultsView
+                            } else {
+                                LazyVStack(spacing: 10) {
+                                    ForEach(filteredNotes) { note in
+                                        NavigationLink(destination: NoteDetailView(note: note)) {
+                                            NoteCardRow(note: note)
+                                        }
+                                        .buttonStyle(.plain)
+                                        .contextMenu {
+                                            Button(role: .destructive) {
+                                                try? environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
                     }
-                    .listStyle(.plain)
                 }
             }
-            .background(AppTheme.background)
+            .background(AppScreenBackground())
             .navigationTitle("Notes")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -66,11 +76,73 @@ struct NotesListView: View {
                             }
                         }
                     } label: {
-                        Image(systemName: "line.3.horizontal.decrease.circle")
+                        Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(AppTheme.primary)
                     }
                 }
             }
         }
+    }
+    
+    @ViewBuilder
+    private var filterBar: some View {
+        if showFavoritesOnly || filterLanguage != nil || filterProject != nil {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Filters")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .textCase(.uppercase)
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        if showFavoritesOnly {
+                            FilterChip(title: "Favorites", isSelected: true) {
+                                showFavoritesOnly = false
+                            }
+                        }
+                        if let filterLanguage {
+                            FilterChip(
+                                title: "\(filterLanguage.flag) \(filterLanguage.displayName)",
+                                isSelected: true
+                            ) {
+                                self.filterLanguage = nil
+                            }
+                        }
+                        if let filterProject {
+                            FilterChip(title: filterProject, isSelected: true) {
+                                self.filterProject = nil
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private var emptyLibraryView: some View {
+        ContentUnavailableView {
+            Label("No notes yet", systemImage: "doc.text")
+        } description: {
+            Text("Record something from the Record tab to build your library.")
+        }
+        .foregroundStyle(AppTheme.textSecondary)
+    }
+    
+    private var noResultsView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "line.3.horizontal.decrease.circle")
+                .font(.system(size: 36))
+                .foregroundStyle(AppTheme.textSecondary.opacity(0.6))
+            Text("No matching notes")
+                .font(.headline)
+            Text("Try clearing a filter or recording something new.")
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .surfaceCard(padding: 32)
     }
 }
 
@@ -78,59 +150,6 @@ struct NoteListRow: View {
     let note: Note
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(note.title)
-                    .font(.headline)
-                    .lineLimit(1)
-                if note.isFavorite {
-                    Image(systemName: "star.fill")
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.warning)
-                }
-            }
-            
-            HStack(spacing: 8) {
-                Text(note.appLanguage.flag)
-                Text(formattedDate)
-                Text(DurationFormatter.format(note.durationSeconds))
-                if let project = note.projectName, !project.isEmpty {
-                    Text(project)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(AppTheme.primary.opacity(0.12))
-                        .clipShape(Capsule())
-                }
-            }
-            .font(.caption)
-            .foregroundStyle(AppTheme.textSecondary)
-            
-            if !note.tags.isEmpty {
-                HStack(spacing: 6) {
-                    ForEach(note.tags.prefix(3), id: \.self) { tag in
-                        Text(tag)
-                            .font(.caption2)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(AppTheme.surface)
-                            .clipShape(Capsule())
-                    }
-                }
-            }
-            
-            if let summary = note.summaryShort, !summary.isEmpty {
-                Text(summary)
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .lineLimit(2)
-            }
-        }
-        .padding(.vertical, 4)
-    }
-    
-    private var formattedDate: String {
-        let f = DateFormatter()
-        f.dateStyle = .medium
-        return f.string(from: note.createdAt)
+        NoteCardRow(note: note)
     }
 }

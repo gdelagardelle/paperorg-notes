@@ -31,10 +31,14 @@ struct NoteDetailView: View {
             VStack(alignment: .leading, spacing: 20) {
                 metadataHeader
                 if note.noteStatus == .failed, let error = note.errorMessage, !error.isEmpty {
-                    Label(error, systemImage: "exclamationmark.triangle.fill")
-                        .font(.subheadline)
-                        .foregroundStyle(AppTheme.error)
-                        .cardStyle()
+                    HStack(spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(AppTheme.error)
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
+                    .surfaceCard(padding: 14, cornerRadius: 14)
                 }
                 NoteOrganizerSection(note: note)
                 reprocessSection
@@ -42,9 +46,10 @@ struct NoteDetailView: View {
                 tabContent
                 actionButtons
             }
-            .padding()
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
         }
-        .background(AppTheme.background)
+        .background(AppScreenBackground())
         .navigationTitle(note.title)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -56,7 +61,7 @@ struct NoteDetailView: View {
                 HStack(spacing: 16) {
                     Button(action: toggleFavorite) {
                         Image(systemName: note.isFavorite ? "star.fill" : "star")
-                            .foregroundStyle(note.isFavorite ? AppTheme.warning : AppTheme.textSecondary)
+                            .foregroundStyle(note.isFavorite ? AppTheme.accent : AppTheme.textSecondary)
                     }
                     
                     Menu {
@@ -121,74 +126,74 @@ struct NoteDetailView: View {
     }
     
     private var reprocessSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Reprocess")
-                .font(.headline)
-            
+        VStack(alignment: .leading, spacing: 14) {
+            AppSectionHeader(title: "Reprocess", subtitle: "Change style or run transcription again")
+
             OutputTypePicker(selection: $selectedOutputType, label: "Note style")
-            
+
             if note.noteStatus == .ready || note.noteStatus == .failed {
                 LanguagePicker(selection: $selectedLanguage)
             }
-            
+
             HStack(spacing: 12) {
                 Button {
                     transcribeAgain()
                 } label: {
                     Label("Transcribe again", systemImage: "arrow.clockwise")
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(PrimaryButtonStyle())
+                .buttonStyle(AccentButtonStyle())
                 .disabled(isProcessing || !audioAvailable)
-                
+
                 Button {
                     resummarizeOnly()
                 } label: {
                     Label("Re-summarize", systemImage: "sparkles")
-                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
-                .tint(AppTheme.primary)
+                .buttonStyle(SecondaryButtonStyle())
                 .disabled(isProcessing || note.displayTranscript.isEmpty)
             }
-            
+
             if !audioAvailable {
-                Label("Audio deleted — re-summarize only", systemImage: "info.circle")
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.textSecondary)
+                SettingsSectionHint(text: "Audio deleted — re-summarize only")
             }
         }
-        .cardStyle()
+        .surfaceCard()
     }
-    
+
     private var metadataHeader: some View {
-        HStack(spacing: 12) {
-            Text(note.appLanguage.flag)
-            Text(DurationFormatter.format(note.durationSeconds))
-            if let provider = note.primaryProvider {
-                Text(provider)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(note.title)
+                        .font(.title3.bold())
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Text(formattedDate)
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+                Spacer()
+                NoteStatusBadge(status: note.noteStatus)
             }
-            Spacer()
-            statusLabel
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    MetaPill(text: note.appLanguage.displayName, icon: "globe")
+                    MetaPill(text: DurationFormatter.format(note.durationSeconds), icon: "clock")
+                    MetaPill(text: note.noteOutputType.displayName, icon: note.noteOutputType.icon)
+                    if let provider = note.primaryProvider, !provider.isEmpty {
+                        MetaPill(text: provider, icon: "waveform")
+                    }
+                }
+            }
         }
-        .font(.caption)
-        .foregroundStyle(AppTheme.textSecondary)
+        .surfaceCard()
     }
-    
-    @ViewBuilder
-    private var statusLabel: some View {
-        switch note.noteStatus {
-        case .ready:
-            Label("Ready", systemImage: "checkmark.circle")
-                .foregroundStyle(AppTheme.primary)
-        case .processing:
-            Label("Processing", systemImage: "hourglass")
-        case .failed:
-            Label("Failed", systemImage: "exclamationmark.circle")
-                .foregroundStyle(AppTheme.error)
-        case .draft:
-            EmptyView()
-        }
+
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .short
+        return formatter.string(from: note.createdAt)
     }
     
     private var tabPicker: some View {
@@ -198,6 +203,13 @@ struct NoteDetailView: View {
             Text("Actions").tag(2)
         }
         .pickerStyle(.segmented)
+        .padding(4)
+        .background(AppTheme.surfaceElevated)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(AppTheme.border, lineWidth: 1)
+        }
     }
     
     @ViewBuilder
@@ -228,7 +240,7 @@ struct NoteDetailView: View {
                 }
             }
         }
-        .cardStyle()
+        .surfaceCard()
     }
     
     private var summaryTab: some View {
@@ -265,7 +277,7 @@ struct NoteDetailView: View {
                 }
             }
         }
-        .cardStyle()
+        .surfaceCard()
     }
     
     private var actionsTab: some View {
@@ -299,34 +311,29 @@ struct NoteDetailView: View {
                     .foregroundStyle(AppTheme.textSecondary)
             }
         }
-        .cardStyle()
+        .surfaceCard()
     }
     
     private var actionButtons: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
                 Button("Export") { exportNote() }
-                    .buttonStyle(PrimaryButtonStyle())
-                
+                    .buttonStyle(AccentButtonStyle())
+
                 EmailButton(note: note)
             }
-            
+
             Button("Share Text") {
                 sharePlainText()
             }
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(AppTheme.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .buttonStyle(SecondaryButtonStyle())
 
             if let debug = note.processingDebug, !debug.isEmpty {
                 ShareLink(item: debug) {
                     Label("Share Transcription Debug Report", systemImage: "ladybug")
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(AppTheme.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
+                .buttonStyle(SecondaryButtonStyle())
             }
         }
     }
@@ -467,10 +474,15 @@ struct SegmentRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Button(action: onPlay) {
-                Image(systemName: isPlaying ? "speaker.wave.2.fill" : "play.circle")
-                    .foregroundStyle(AppTheme.primary)
+                Image(systemName: isPlaying ? "speaker.wave.2.fill" : "play.fill")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 32, height: 32)
+                    .background(isPlaying ? AppTheme.accent : AppTheme.primary)
+                    .clipShape(Circle())
             }
-            
+            .buttonStyle(.plain)
+
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
                     if let speaker = SpeakerLabelFormatter.displayName(for: segment.speakerLabel) {
@@ -482,27 +494,32 @@ struct SegmentRow: View {
                         .font(.caption2)
                         .foregroundStyle(AppTheme.textSecondary)
                 }
-                
+
                 Text(segment.text)
                     .font(.body)
-                    .padding(8)
+                    .padding(10)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(segment.isUnclear ? AppTheme.unclearHighlight : Color.clear)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                
+                    .background(segment.isUnclear ? AppTheme.unclearHighlight : AppTheme.background)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
                 if segment.isUnclear {
                     Label("Unclear (\(Int(segment.confidence * 100))% confidence)", systemImage: "exclamationmark.triangle")
                         .font(.caption2)
-                        .foregroundStyle(AppTheme.warning)
+                        .foregroundStyle(AppTheme.accent)
                 }
             }
-            
+
             Button(action: onEdit) {
                 Image(systemName: "pencil")
-                    .font(.caption)
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(AppTheme.textSecondary)
+                    .frame(width: 28, height: 28)
+                    .background(AppTheme.primarySoft)
+                    .clipShape(Circle())
             }
+            .buttonStyle(.plain)
         }
+        .padding(.vertical, 4)
     }
     
     private var timeLabel: String {
