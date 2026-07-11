@@ -190,9 +190,7 @@ struct RecordView: View {
     
     private var recordButtonColor: Color {
         switch environment.recordingService.state {
-        case .recording: return AppTheme.recordRed
-        case .paused: return AppTheme.warning
-        case .idle: return AppTheme.primary
+        case .recording, .paused, .idle: return AppTheme.accent
         }
     }
     
