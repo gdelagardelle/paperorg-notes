@@ -161,6 +161,22 @@ struct PaywallView: View {
                             .foregroundStyle(AppTheme.error)
                     }
 
+                    #if DEBUG
+                    Button {
+                        Task {
+                            await environment.subscriptionService.activateDevPro()
+                            if environment.subscriptionService.isProActive {
+                                onCompleted?()
+                                dismiss()
+                            }
+                        }
+                    } label: {
+                        Text("Try Pro Free (Simulator)")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(AccentButtonStyle())
+                    #endif
+
                     Button {
                         Task {
                             let success = await environment.subscriptionService.purchasePro()
@@ -185,25 +201,13 @@ struct PaywallView: View {
                     }
                     .buttonStyle(SecondaryButtonStyle())
 
-                    if !environment.subscriptionService.isProActive {
+                    if environment.settingsService.usePlatformAuth,
+                       !environment.subscriptionService.isProActive {
                         Button("Refresh Status") {
                             Task { await environment.subscriptionService.refreshEntitlements() }
                         }
                         .buttonStyle(SecondaryButtonStyle())
                     }
-
-                    #if DEBUG
-                    Button("Activate Dev Pro (Simulator)") {
-                        Task {
-                            await environment.subscriptionService.activateDevPro()
-                            if environment.subscriptionService.isProActive {
-                                onCompleted?()
-                                dismiss()
-                            }
-                        }
-                    }
-                    .buttonStyle(SecondaryButtonStyle())
-                    #endif
 
                     Text("Subscription renews monthly. Cancel anytime in App Store settings.")
                         .font(.caption)

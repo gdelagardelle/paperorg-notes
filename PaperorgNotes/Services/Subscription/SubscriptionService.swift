@@ -107,9 +107,23 @@ final class SubscriptionService {
         do {
             let usage = try await proBackend.devActivatePro()
             applyUsageEntitlements(usage)
+            lastError = nil
         } catch {
-            lastError = error.localizedDescription
+            lastError = Self.friendlyErrorMessage(for: error)
         }
+    }
+
+    private static func friendlyErrorMessage(for error: Error) -> String {
+        if let urlError = error as? URLError,
+           urlError.code == .cannotConnectToHost || urlError.code == .networkConnectionLost {
+            return "Backend not running. In Terminal run: ./Scripts/start-dev.sh"
+        }
+        if let backend = error as? ProBackendError,
+           case .serverError(let message) = backend,
+           message.localizedCaseInsensitiveContains("dev activation is disabled") {
+            return "Dev Pro is off on this server. Use a local backend (./Scripts/start-dev.sh) or grant Pro in Console."
+        }
+        return error.localizedDescription
     }
     #endif
 

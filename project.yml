@@ -21,11 +21,10 @@ settings:
     INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
   configs:
     Debug:
-      # Phase B: Debug builds authenticate against the live Platform;
-      # transcription still goes to the Notes backend (PRO_BACKEND_URL).
+      # Local notes-api for auth, dev Pro, and transcription — no live Platform needed.
       PAPERORG_PRO_BACKEND_URL: "http://127.0.0.1:8080"
-      PAPERORG_PLATFORM_API_URL: "https://poplatform.paperorg.com"
-      PAPERORG_USE_PLATFORM_AUTH: "YES"
+      PAPERORG_PLATFORM_API_URL: "http://127.0.0.1:8000"
+      PAPERORG_USE_PLATFORM_AUTH: "NO"
     Release:
       # Release stays on the legacy backend until the Phase C/D cutover.
       PAPERORG_PRO_BACKEND_URL: "https://notes-api.paperorg.com"
@@ -121,6 +120,9 @@ schemes:
       targets:
         PaperorgNotes: all
         PaperorgNotesWidgetExtension: all
+    run:
+      config: Debug
+      storeKitConfiguration: PaperorgNotes/Resources/PaperorgPro.storekit
     test:
       targets:
         - PaperorgNotesTests

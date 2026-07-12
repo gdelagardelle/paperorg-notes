@@ -93,6 +93,8 @@ final class ProBackendClient {
             )
         }
 
+        // Fresh notes-api token (avoids stale Platform JWT after switching Debug config).
+        keychain.delete(for: .proAccessToken)
         try await ensureRegistered()
         var request = URLRequest(url: baseURL.appending(path: "/v1/subscription/dev-activate"))
         request.httpMethod = "POST"
