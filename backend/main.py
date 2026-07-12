@@ -14,6 +14,7 @@ from auth_utils import create_access_token, get_current_user
 from config import settings
 from database import (
     add_usage_minutes,
+    check_connection,
     get_or_create_user,
     get_usage_minutes,
     init_db,
@@ -21,6 +22,7 @@ from database import (
     log_subscription_event,
     period_key,
     set_user_pro,
+    uses_postgres,
 )
 from rate_limit import enforce_rate_limit
 
@@ -113,7 +115,15 @@ def record_usage(user_id: str, audio_minutes: float) -> float:
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "paperorg-pro"}
+    backend = "postgresql" if uses_postgres() else "sqlite"
+    return {"status": "ok", "service": "paperorg-pro", "database": backend}
+
+
+@app.get("/ready")
+def ready() -> dict[str, str]:
+    if not check_connection():
+        raise HTTPException(status_code=503, detail="Database unavailable.")
+    return {"status": "ready", "database": "connected"}
 
 
 @app.post("/v1/auth/register", response_model=RegisterResponse)

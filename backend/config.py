@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     paperorg_jwt_secret: str = "dev-secret-change-in-production"
     paperorg_dev_mode: bool = True
 
+    # Empty = local SQLite file. Production: postgresql://user:pass@host:5432/dbname
+    database_url: str = ""
+
     openai_api_key: str = ""
     elevenlabs_api_key: str = ""
     luxasr_api_key: str = ""

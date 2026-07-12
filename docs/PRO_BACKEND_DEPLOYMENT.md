@@ -12,6 +12,7 @@ Copy `backend/.env.example` → production secrets:
 |----------|------------------|
 | `PAPERORG_JWT_SECRET` | Long random string (32+ bytes) |
 | `PAPERORG_DEV_MODE` | `false` |
+| `DATABASE_URL` | `postgresql://user:pass@host:5432/dbname` |
 | `OPENAI_API_KEY` | Server-side key |
 | `ELEVENLABS_API_KEY` | Server-side key |
 | `PRO_MINUTES_PER_MONTH` | `600` |
@@ -34,16 +35,45 @@ Use a process manager (Fly, Railway, Docker) with HTTPS termination.
 
 ---
 
-## 3. Health check
+## 3. Health checks
 
 ```
 GET https://YOUR-HOST/health
-→ {"status":"ok","service":"paperorg-pro"}
+→ {"status":"ok","service":"paperorg-pro","database":"postgresql"}
+
+GET https://YOUR-HOST/ready
+→ {"status":"ready","database":"connected"}
+```
+
+Use `/ready` for load balancer readiness probes (returns 503 if the database is down).
+
+---
+
+## 4. PostgreSQL (recommended for production)
+
+SQLite is fine for local dev. In production, attach a managed Postgres and set:
+
+```
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/paperorg_pro
+```
+
+Local Postgres via Docker (port **5444** avoids conflict with a system Postgres on 5432):
+
+```bash
+cd backend && docker compose up -d
+export DATABASE_URL=postgresql://paperorg:paperorg@127.0.0.1:5444/paperorg_pro
+```
+
+One-time migration from an existing SQLite file:
+
+```bash
+export DATABASE_URL=postgresql://...
+python backend/scripts/migrate_sqlite_to_postgres.py
 ```
 
 ---
 
-## 4. Point iOS Release build at your URL
+## 5. Point iOS Release build at your URL
 
 In `project.yml`:
 
@@ -64,7 +94,7 @@ Archive with **Release** configuration for TestFlight.
 
 ---
 
-## 5. Verify subscription flow
+## 6. Verify subscription flow
 
 1. iOS purchase (StoreKit sandbox or production)
 2. App sends `POST /v1/subscription/verify` with `transaction_id`
@@ -92,7 +122,7 @@ Users must complete at least one in-app purchase verify so their `originalTransa
 
 ---
 
-## 6. Staging tip
+## 8. Staging tip
 
 Deploy a second instance with `APPLE_USE_SANDBOX=true` and use a **Staging** Xcode configuration before production.
 

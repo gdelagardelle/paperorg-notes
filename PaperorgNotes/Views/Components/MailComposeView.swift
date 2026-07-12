@@ -80,15 +80,15 @@ struct EmailComposeSheet: View {
                             .font(.system(size: 48))
                             .foregroundStyle(AppTheme.warning)
                         
-                        Text("Mail Not Configured")
+                        Text(L10n.Email.mailNotConfigured)
                             .font(.title3.bold())
                         
-                        Text("No Mail account is set up on this device. You can share the note by email or another app instead.")
+                        Text(L10n.Email.mailNotConfiguredHint)
                             .font(.subheadline)
                             .foregroundStyle(AppTheme.textSecondary)
                             .multilineTextAlignment(.center)
                         
-                        Button("Share Note") {
+                        Button(L10n.Email.shareNote) {
                             shareItems = buildShareItems()
                             showShareFallback = true
                         }
@@ -96,11 +96,11 @@ struct EmailComposeSheet: View {
                         .padding(.horizontal)
                     }
                     .padding()
-                    .navigationTitle("Send Email")
+                    .navigationTitle(L10n.Email.sendTitle)
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("Close") { dismiss() }
+                            Button(L10n.Email.close) { dismiss() }
                         }
                     }
                 }
@@ -131,7 +131,7 @@ struct EmailButton: View {
     let note: Note
     @Environment(AppEnvironment.self) private var environment
     @State private var presentation: EmailPresentation?
-    @State private var alertMessage: String?
+    @State private var emailError: EmailError?
     
     private var shouldReviewFirst: Bool {
         environment.settingsService.reviewBeforeEmail
@@ -139,7 +139,7 @@ struct EmailButton: View {
     }
     
     var body: some View {
-        Button("Email") {
+        Button(L10n.Email.button) {
             sendEmail()
         }
         .buttonStyle(PrimaryButtonStyle())
@@ -153,19 +153,19 @@ struct EmailButton: View {
                 EmailComposeSheet(payload: payload)
             }
         }
-        .alert("Email", isPresented: Binding(
-            get: { alertMessage != nil },
-            set: { if !$0 { alertMessage = nil } }
+        .alert(L10n.Email.alertTitle, isPresented: Binding(
+            get: { emailError != nil },
+            set: { if !$0 { emailError = nil } }
         )) {
-            Button("OK", role: .cancel) {}
-            if alertMessage == EmailError.noRecipients.localizedDescription {
-                Button("Open Settings") {
-                    alertMessage = nil
+            Button(L10n.Common.ok, role: .cancel) {}
+            if emailError == .noRecipients {
+                Button(L10n.Email.openSettings) {
+                    emailError = nil
                     environment.deepLinkHandler.selectedTab = 3
                 }
             }
         } message: {
-            Text(alertMessage ?? "")
+            Text(emailError?.localizedDescription ?? "")
         }
     }
     
@@ -181,7 +181,9 @@ struct EmailButton: View {
                 presentation = .compose(payload, UUID())
             }
         } catch {
-            alertMessage = error.localizedDescription
+            if let error = error as? EmailError {
+                emailError = error
+            }
         }
     }
 }

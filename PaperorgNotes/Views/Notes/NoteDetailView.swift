@@ -69,14 +69,14 @@ struct NoteDetailView: View {
                             Button(role: .destructive) {
                                 showDeleteAudioConfirm = true
                             } label: {
-                                Label("Delete Recording", systemImage: "waveform.slash")
+                                Label(L10n.NoteDetail.deleteRecording, systemImage: "waveform.slash")
                             }
                         }
                         
                         Button(role: .destructive) {
                             showDeleteNoteConfirm = true
                         } label: {
-                            Label("Delete Note", systemImage: "trash")
+                            Label(L10n.NoteDetail.deleteNote, systemImage: "trash")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -85,22 +85,22 @@ struct NoteDetailView: View {
                 }
             }
         }
-        .alert("Delete Recording?", isPresented: $showDeleteAudioConfirm) {
-            Button("Delete Audio", role: .destructive) {
+        .alert(L10n.NoteDetail.deleteRecordingTitle, isPresented: $showDeleteAudioConfirm) {
+            Button(L10n.NoteDetail.deleteAudio, role: .destructive) {
                 try? environment.deleteNoteUseCase.deleteAudio(for: note, context: modelContext)
             }
-            Button("Cancel", role: .cancel) {}
+            Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
-            Text("Removes the audio file but keeps the transcript and summary.")
+            Text(L10n.NoteDetail.deleteRecordingMessage)
         }
-        .alert("Delete Note?", isPresented: $showDeleteNoteConfirm) {
-            Button("Delete", role: .destructive) {
+        .alert(L10n.NoteDetail.deleteNoteTitle, isPresented: $showDeleteNoteConfirm) {
+            Button(L10n.NoteDetail.delete, role: .destructive) {
                 try? environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
                 dismiss()
             }
-            Button("Cancel", role: .cancel) {}
+            Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
-            Text("Permanently deletes this note, transcript, summary, and recording.")
+            Text(L10n.NoteDetail.deleteNoteMessage)
         }
         .sheet(item: $editingSegment) { segment in
             segmentEditSheet(segment)
@@ -115,11 +115,11 @@ struct NoteDetailView: View {
         .sheet(isPresented: $showExportShare) {
             ActivityShareSheet(items: exportURLs)
         }
-        .alert("Export Failed", isPresented: Binding(
+        .alert(L10n.NoteDetail.exportFailed, isPresented: Binding(
             get: { exportError != nil },
             set: { if !$0 { exportError = nil } }
         )) {
-            Button("OK", role: .cancel) {}
+            Button(L10n.Common.ok, role: .cancel) {}
         } message: {
             Text(exportError ?? "")
         }
@@ -127,9 +127,9 @@ struct NoteDetailView: View {
     
     private var reprocessSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            AppSectionHeader(title: "Reprocess", subtitle: "Change style or run transcription again")
+            AppSectionHeader(title: L10n.NoteDetail.reprocessTitle, subtitle: L10n.NoteDetail.reprocessSubtitle)
 
-            OutputTypePicker(selection: $selectedOutputType, label: "Note style")
+            OutputTypePicker(selection: $selectedOutputType, label: L10n.NoteDetail.noteStyle)
 
             if note.noteStatus == .ready || note.noteStatus == .failed {
                 LanguagePicker(selection: $selectedLanguage)
@@ -139,7 +139,7 @@ struct NoteDetailView: View {
                 Button {
                     transcribeAgain()
                 } label: {
-                    Label("Transcribe again", systemImage: "arrow.clockwise")
+                    Label(L10n.NoteDetail.transcribeAgain, systemImage: "arrow.clockwise")
                 }
                 .buttonStyle(AccentButtonStyle())
                 .disabled(isProcessing || !audioAvailable)
@@ -147,14 +147,14 @@ struct NoteDetailView: View {
                 Button {
                     resummarizeOnly()
                 } label: {
-                    Label("Re-summarize", systemImage: "sparkles")
+                    Label(L10n.NoteDetail.resummarize, systemImage: "sparkles")
                 }
                 .buttonStyle(SecondaryButtonStyle())
                 .disabled(isProcessing || note.displayTranscript.isEmpty)
             }
 
             if !audioAvailable {
-                SettingsSectionHint(text: "Audio deleted — re-summarize only")
+                SettingsSectionHint(text: L10n.NoteDetail.audioDeletedHint)
             }
         }
         .surfaceCard()
@@ -198,9 +198,9 @@ struct NoteDetailView: View {
     
     private var tabPicker: some View {
         Picker("Tab", selection: $selectedTab) {
-            Text("Transcript").tag(0)
-            Text("Summary").tag(1)
-            Text("Actions").tag(2)
+            Text(L10n.NoteDetail.tabTranscript).tag(0)
+            Text(L10n.NoteDetail.tabSummary).tag(1)
+            Text(L10n.NoteDetail.tabActions).tag(2)
         }
         .pickerStyle(.segmented)
         .padding(4)
@@ -224,7 +224,7 @@ struct NoteDetailView: View {
     private var transcriptTab: some View {
         VStack(alignment: .leading, spacing: 12) {
             if note.segments.isEmpty {
-                Text(note.displayTranscript.isEmpty ? "No transcript yet." : note.displayTranscript)
+                Text(note.displayTranscript.isEmpty ? L10n.NoteDetail.noTranscript : note.displayTranscript)
                     .font(.body)
             } else {
                 ForEach(note.segments.sorted(by: { $0.segmentIndex < $1.segmentIndex }), id: \.id) { segment in
@@ -246,19 +246,19 @@ struct NoteDetailView: View {
     private var summaryTab: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let short = note.summaryShort, !short.isEmpty, !TranscriptTextFormatter.isRawJSON(short) {
-                Text("Summary")
+                Text(L10n.NoteDetail.summaryHeader)
                     .font(.headline)
                 Text(note.displaySummaryShort)
                     .font(.body)
             } else if !note.displaySummaryShort.isEmpty {
-                Text("Summary")
+                Text(L10n.NoteDetail.summaryHeader)
                     .font(.headline)
                 Text(note.displaySummaryShort)
                     .font(.body)
             }
             
             if let detailed = note.summaryDetailed, !detailed.isEmpty, detailed != note.summaryShort {
-                Text("Detailed")
+                Text(L10n.NoteDetail.detailed)
                     .font(.headline)
                 Text(detailed)
                     .font(.body)
@@ -267,13 +267,13 @@ struct NoteDetailView: View {
             
             if let output = note.structuredOutput {
                 if !output.keyIdeas.isEmpty {
-                    sectionList(title: "Key Ideas", items: output.keyIdeas)
+                    sectionList(title: L10n.NoteDetail.keyIdeas, items: output.keyIdeas)
                 }
                 if !output.decisions.isEmpty {
-                    sectionList(title: "Decisions", items: output.decisions)
+                    sectionList(title: L10n.NoteDetail.decisions, items: output.decisions)
                 }
                 if !output.openQuestions.isEmpty {
-                    sectionList(title: "Open Questions", items: output.openQuestions)
+                    sectionList(title: L10n.NoteDetail.openQuestions, items: output.openQuestions)
                 }
             }
         }
@@ -290,7 +290,7 @@ struct NoteDetailView: View {
                         VStack(alignment: .leading) {
                             Text(item.text)
                             if let assignee = item.assignee {
-                                Text("Assignee: \(assignee)")
+                                Text(L10n.NoteDetail.assignee(assignee))
                                     .font(.caption)
                                     .foregroundStyle(AppTheme.textSecondary)
                             }
@@ -298,13 +298,13 @@ struct NoteDetailView: View {
                     }
                 }
             } else {
-                Text("No action items extracted.")
+                Text(L10n.NoteDetail.noActionItems)
                     .foregroundStyle(AppTheme.textSecondary)
             }
             
             if let draft = note.structuredOutput?.followUpEmailDraft, !draft.isEmpty {
                 Divider()
-                Text("Follow-up Email Draft")
+                Text(L10n.NoteDetail.followUpEmail)
                     .font(.headline)
                 Text(draft)
                     .font(.subheadline)
@@ -317,20 +317,20 @@ struct NoteDetailView: View {
     private var actionButtons: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
-                Button("Export") { exportNote() }
+                Button(L10n.NoteDetail.export) { exportNote() }
                     .buttonStyle(AccentButtonStyle())
 
                 EmailButton(note: note)
             }
 
-            Button("Share Text") {
+            Button(L10n.NoteDetail.shareText) {
                 sharePlainText()
             }
             .buttonStyle(SecondaryButtonStyle())
 
             if let debug = note.processingDebug, !debug.isEmpty {
                 ShareLink(item: debug) {
-                    Label("Share Transcription Debug Report", systemImage: "ladybug")
+                    Label(L10n.NoteDetail.shareDebug, systemImage: "ladybug")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(SecondaryButtonStyle())
@@ -445,14 +445,14 @@ struct NoteDetailView: View {
                     .padding()
                 Spacer()
             }
-            .navigationTitle("Edit Segment")
+            .navigationTitle(L10n.NoteDetail.editSegment)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { editingSegment = nil }
+                    Button(L10n.Common.cancel) { editingSegment = nil }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(L10n.NoteDetail.save) {
                         segment.originalText = segment.text
                         segment.text = editText
                         segment.isUserCorrected = true
@@ -509,7 +509,7 @@ struct SegmentRow: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                 if segment.isUnclear {
-                    Label("Unclear (\(Int(segment.confidence * 100))% confidence)", systemImage: "exclamationmark.triangle")
+                    Label(L10n.NoteDetail.segmentUnclear(confidence: Int(segment.confidence * 100)), systemImage: "exclamationmark.triangle")
                         .font(.caption2)
                         .foregroundStyle(AppTheme.accent)
                 }

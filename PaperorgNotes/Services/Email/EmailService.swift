@@ -1,6 +1,6 @@
 import Foundation
 
-enum EmailError: LocalizedError {
+enum EmailError: LocalizedError, Equatable {
     case noRecipients
     case disabled
     case emptyContent
@@ -9,13 +9,13 @@ enum EmailError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noRecipients:
-            return "Add at least one email address in Settings → Email."
+            return String(localized: "email.error.no_recipients")
         case .disabled:
-            return "Email sending is disabled in Settings → Email."
+            return String(localized: "email.error.disabled")
         case .emptyContent:
-            return "Nothing to send yet — wait for transcription to finish."
+            return String(localized: "email.error.empty_content")
         case .mailNotAvailable:
-            return "Mail is not configured on this device. Use the share option instead."
+            return String(localized: "email.error.mail_not_available")
         }
     }
 }

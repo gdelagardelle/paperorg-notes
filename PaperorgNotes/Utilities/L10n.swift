@@ -101,4 +101,76 @@ enum L10n {
         static let unlock = String(localized: "lock.unlock")
         static let disable = String(localized: "lock.disable")
     }
+
+    enum NoteDetail {
+        static let deleteRecording = String(localized: "note.detail.delete_recording")
+        static let deleteNote = String(localized: "note.detail.delete_note")
+        static let deleteAudio = String(localized: "note.detail.delete_audio")
+        static let delete = String(localized: "note.detail.delete")
+        static let deleteRecordingTitle = String(localized: "note.detail.delete_recording.title")
+        static let deleteRecordingMessage = String(localized: "note.detail.delete_recording.message")
+        static let deleteNoteTitle = String(localized: "note.detail.delete_note.title")
+        static let deleteNoteMessage = String(localized: "note.detail.delete_note.message")
+        static let exportFailed = String(localized: "note.detail.export_failed")
+        static let reprocessTitle = String(localized: "note.detail.reprocess.title")
+        static let reprocessSubtitle = String(localized: "note.detail.reprocess.subtitle")
+        static let noteStyle = String(localized: "note.detail.note_style")
+        static let transcribeAgain = String(localized: "note.detail.transcribe_again")
+        static let resummarize = String(localized: "note.detail.resummarize")
+        static let audioDeletedHint = String(localized: "note.detail.audio_deleted_hint")
+        static let tabTranscript = String(localized: "note.detail.tab.transcript")
+        static let tabSummary = String(localized: "note.detail.tab.summary")
+        static let tabActions = String(localized: "note.detail.tab.actions")
+        static let noTranscript = String(localized: "note.detail.no_transcript")
+        static let summaryHeader = String(localized: "note.detail.summary_header")
+        static let detailed = String(localized: "note.detail.detailed")
+        static let keyIdeas = String(localized: "note.detail.key_ideas")
+        static let decisions = String(localized: "note.detail.decisions")
+        static let openQuestions = String(localized: "note.detail.open_questions")
+        static let noActionItems = String(localized: "note.detail.no_action_items")
+        static let followUpEmail = String(localized: "note.detail.follow_up_email")
+        static let export = String(localized: "note.detail.export")
+        static let shareText = String(localized: "note.detail.share_text")
+        static let shareDebug = String(localized: "note.detail.share_debug")
+        static let editSegment = String(localized: "note.detail.edit_segment")
+        static let save = String(localized: "note.detail.save")
+
+        static func assignee(_ name: String) -> String {
+            String(localized: "note.detail.assignee \(name)")
+        }
+
+        static func segmentUnclear(confidence: Int) -> String {
+            String(localized: "note.detail.segment.unclear \(confidence)")
+        }
+
+        static func segmentConfidence(_ percent: Int) -> String {
+            String(localized: "note.detail.segment.confidence \(percent)")
+        }
+    }
+
+    enum Email {
+        static let reviewTitle = String(localized: "email.review.title")
+        static let subject = String(localized: "email.subject")
+        static let message = String(localized: "email.message")
+        static let send = String(localized: "email.send")
+        static let reviewRecommended = String(localized: "email.review.recommended")
+        static let attachments = String(localized: "email.attachments")
+        static let attachmentAudio = String(localized: "email.attachment.audio")
+        static let attachmentPDF = String(localized: "email.attachment.pdf")
+        static let attachmentMarkdown = String(localized: "email.attachment.markdown")
+        static let attachmentNone = String(localized: "email.attachment.none")
+        static let to = String(localized: "email.to")
+        static let mailNotConfigured = String(localized: "email.mail_not_configured")
+        static let mailNotConfiguredHint = String(localized: "email.mail_not_configured.hint")
+        static let sendTitle = String(localized: "email.send_title")
+        static let close = String(localized: "email.close")
+        static let shareNote = String(localized: "email.share_note")
+        static let button = String(localized: "email.button")
+        static let alertTitle = String(localized: "email.alert.title")
+        static let openSettings = String(localized: "email.open_settings")
+
+        static func reviewWarning(segmentCount: Int) -> String {
+            String(localized: "email.review.warning \(segmentCount)")
+        }
+    }
 }

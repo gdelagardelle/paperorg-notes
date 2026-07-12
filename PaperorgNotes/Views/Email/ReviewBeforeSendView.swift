@@ -34,14 +34,14 @@ struct ReviewBeforeSendView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Subject")
+                        Text(L10n.Email.subject)
                             .font(.headline)
-                        TextField("Subject", text: $editedSubject)
+                        TextField(L10n.Email.subject, text: $editedSubject)
                             .textFieldStyle(.roundedBorder)
                     }
                     
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Message")
+                        Text(L10n.Email.message)
                             .font(.headline)
                         TextEditor(text: $editedBody)
                             .frame(minHeight: 180)
@@ -57,14 +57,14 @@ struct ReviewBeforeSendView: View {
                 .padding()
             }
             .background(AppTheme.background)
-            .navigationTitle("Review before send")
+            .navigationTitle(L10n.Email.reviewTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(L10n.Common.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Send") {
+                    Button(L10n.Email.send) {
                         onSend(reviewedPayload)
                     }
                     .fontWeight(.semibold)
@@ -75,11 +75,11 @@ struct ReviewBeforeSendView: View {
     
     private var reviewWarnings: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Review recommended", systemImage: "exclamationmark.triangle.fill")
+            Label(L10n.Email.reviewRecommended, systemImage: "exclamationmark.triangle.fill")
                 .font(.headline)
                 .foregroundStyle(AppTheme.warning)
             
-            Text("\(unclearSegments.count) segment(s) have low confidence. Check the transcript before sending.")
+            Text(L10n.Email.reviewWarning(segmentCount: unclearSegments.count))
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
             
@@ -92,7 +92,7 @@ struct ReviewBeforeSendView: View {
                     }
                     Text(segment.text)
                         .font(.subheadline)
-                    Text("\(Int(segment.confidence * 100))% confidence")
+                    Text(L10n.NoteDetail.segmentConfidence(Int(segment.confidence * 100)))
                         .font(.caption2)
                         .foregroundStyle(AppTheme.warning)
                 }
@@ -107,20 +107,20 @@ struct ReviewBeforeSendView: View {
     
     private var attachmentSummary: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Attachments")
+            Text(L10n.Email.attachments)
                 .font(.headline)
             
             if payload.audioURL != nil {
-                Label("Audio file", systemImage: "waveform")
+                Label(L10n.Email.attachmentAudio, systemImage: "waveform")
             }
             if payload.pdfURL != nil {
-                Label("PDF", systemImage: "doc.fill")
+                Label(L10n.Email.attachmentPDF, systemImage: "doc.fill")
             }
             if payload.markdownURL != nil {
-                Label("Markdown", systemImage: "doc.text")
+                Label(L10n.Email.attachmentMarkdown, systemImage: "doc.text")
             }
             if payload.audioURL == nil && payload.pdfURL == nil && payload.markdownURL == nil {
-                Text("None")
+                Text(L10n.Email.attachmentNone)
                     .foregroundStyle(AppTheme.textSecondary)
             }
         }
@@ -130,7 +130,7 @@ struct ReviewBeforeSendView: View {
     
     private var recipientsSummary: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("To")
+            Text(L10n.Email.to)
                 .font(.headline)
             Text(payload.recipients.joined(separator: ", "))
                 .font(.subheadline)

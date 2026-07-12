@@ -14,7 +14,37 @@ cp .env.example .env
 uvicorn main:app --reload --host 0.0.0.0 --port 8080
 ```
 
-Health check: `GET http://localhost:8080/health`
+Health check: `GET http://localhost:8080/health`  
+Readiness (DB): `GET http://localhost:8080/ready`
+
+## Database
+
+**Local development** uses SQLite (`backend/paperorg_pro.db`) when `DATABASE_URL` is unset.
+
+**Production** should use PostgreSQL — set `DATABASE_URL` in `.env`:
+
+```
+DATABASE_URL=postgresql://paperorg:paperorg@127.0.0.1:5444/paperorg_pro
+```
+
+Start Postgres locally with Docker:
+
+```bash
+cd backend
+docker compose up -d
+export DATABASE_URL=postgresql://paperorg:paperorg@127.0.0.1:5444/paperorg_pro
+uvicorn main:app --reload --host 0.0.0.0 --port 8080
+```
+
+### Migrate SQLite → PostgreSQL
+
+After pointing `DATABASE_URL` at Postgres:
+
+```bash
+python scripts/migrate_sqlite_to_postgres.py
+```
+
+Copies users, usage, subscription events, and transaction links from the local SQLite file.
 
 ## Auth flow
 
@@ -68,6 +98,7 @@ Default **600 minutes/month** per Pro user (`PRO_MINUTES_PER_MONTH`).
 
 - Set `PAPERORG_DEV_MODE=false`
 - Use a strong `PAPERORG_JWT_SECRET`
+- Set `DATABASE_URL` to a managed PostgreSQL instance (Railway, Fly Postgres, Supabase, etc.)
 - Configure App Store Server API credentials (see above)
 - Set `APPLE_USE_SANDBOX=false` for App Store builds
 - Deploy behind HTTPS (Fly.io, Railway, Render, etc.)
