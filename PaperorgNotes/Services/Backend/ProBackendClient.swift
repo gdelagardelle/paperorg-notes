@@ -47,7 +47,7 @@ final class ProBackendClient {
 
     func refreshUsage() async throws -> ProUsageInfo {
         try await ensureRegistered()
-        var request = URLRequest(url: subscriptionBaseURL.appending(path: "/v1/usage"))
+        var request = URLRequest(url: usageURL())
         try authorize(&request)
 
         let (data, response) = try await session.data(for: request)
@@ -244,6 +244,17 @@ final class ProBackendClient {
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
         return data
+    }
+
+    private func usageURL() -> URL {
+        var components = URLComponents(
+            url: subscriptionBaseURL.appending(path: "/v1/usage"),
+            resolvingAgainstBaseURL: false
+        )!
+        if settings.usePlatformAuth {
+            components.queryItems = [URLQueryItem(name: "app_id", value: "notes")]
+        }
+        return components.url!
     }
 
     private func authorize(_ request: inout URLRequest) throws {
