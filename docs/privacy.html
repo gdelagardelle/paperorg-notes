@@ -42,7 +42,7 @@
 <body>
   <main>
     <h1>Privacy Policy</h1>
-    <p class="muted"><strong>Paperorg Notes</strong> · Last updated: 9 July 2026</p>
+    <p class="muted"><strong>Paperorg Notes</strong> · Last updated: 12 July 2026</p>
 
     <p>
       Paperorg Notes (&ldquo;the App&rdquo;) is a voice recording and transcription app for iOS,
@@ -54,8 +54,9 @@
     <h2>1. Summary</h2>
     <ul>
       <li>Audio and transcripts are stored <strong>on your device</strong> by default.</li>
-      <li>Transcription may send audio to <strong>third-party services you configure</strong> (OpenAI, ElevenLabs, LuxASR).</li>
-      <li>We do <strong>not</strong> operate user accounts or cloud backends in the current version.</li>
+      <li><strong>Free plan:</strong> transcription may send audio to third-party services you configure (OpenAI, ElevenLabs, LuxASR) using your own API keys.</li>
+      <li><strong>Paperorg Pro:</strong> transcription is processed via our secure backend; audio is sent to our server and then to AI providers — you do not need to supply API keys.</li>
+      <li>Pro subscriptions are managed through Apple; we store a device identifier and usage minutes on our backend to enforce plan limits.</li>
       <li>We do <strong>not</strong> sell your data or use it for advertising.</li>
       <li>We do <strong>not</strong> use your content to train AI models unless a provider&apos;s terms state otherwise and you have consented.</li>
     </ul>
@@ -86,14 +87,36 @@
           <td>Language, email preferences, privacy choices</td>
           <td>On your iPhone (UserDefaults)</td>
         </tr>
+        <tr>
+          <td>Pro subscription status</td>
+          <td>Verify Paperorg Pro; enforce monthly transcription limits</td>
+          <td>Paperorg backend (device ID, usage minutes, subscription expiry)</td>
+        </tr>
       </tbody>
     </table>
 
-    <h2>3. Third-Party Transcription Services</h2>
+    <h2>3. Paperorg Pro (subscription)</h2>
     <p>
-      When you transcribe audio, the App may send audio files to external providers
+      If you subscribe to <strong>Paperorg Pro</strong>, audio for transcription and text for summarisation
+      are sent to our backend over HTTPS. Our server holds provider API keys and forwards requests to
+      OpenAI, ElevenLabs, or LuxASR on your behalf. We record how many transcription minutes you use
+      per month to enforce plan limits (currently 600 minutes/month).
+    </p>
+    <ul>
+      <li>We link your subscription to a random <strong>device identifier</strong> generated on your iPhone.</li>
+      <li>We receive subscription events from Apple (purchase, renewal, cancellation).</li>
+      <li>We do <strong>not</strong> store your transcripts or summaries on our servers — they remain on your device.</li>
+      <li>Pro audio retention (90 days on device) is configurable in the App.</li>
+    </ul>
+
+    <h2>4. Third-Party Transcription Services</h2>
+    <p>
+      On the <strong>Free plan</strong>, when you transcribe audio, the App may send audio files to external providers
       <strong>only after you have given explicit consent</strong> for that provider in Settings.
       You supply your own API keys (bring-your-own-key model).
+    </p>
+    <p>
+      On <strong>Paperorg Pro</strong>, you consent to our backend processing audio as described in section 3.
     </p>
     <table>
       <thead>
@@ -127,14 +150,14 @@
       Review those policies before enabling a provider.
     </p>
 
-    <h2>4. Legal Basis (GDPR)</h2>
+    <h2>5. Legal Basis (GDPR)</h2>
     <p>For users in the European Economic Area and Luxembourg:</p>
     <ul>
       <li><strong>Consent</strong> — processing audio via third-party APIs, after you opt in per provider.</li>
       <li><strong>Contract / legitimate use</strong> — local recording, storage, and features you request on your device.</li>
     </ul>
 
-    <h2>5. Your Rights</h2>
+    <h2>6. Your Rights</h2>
     <p>You can exercise the following rights directly in the App (Settings → Privacy &amp; GDPR):</p>
     <ul>
       <li><strong>Access</strong> — export all notes, transcripts, and audio (GDPR export).</li>
@@ -149,14 +172,14 @@
       to exercise your rights or ask questions about this policy.
     </p>
 
-    <h2>6. Data Retention</h2>
+    <h2>7. Data Retention</h2>
     <ul>
       <li>Data remains on your device until you delete it or uninstall the App.</li>
       <li>You may enable &ldquo;Delete audio after transcription&rdquo; or automatic deletion after a set number of days.</li>
       <li>Third-party providers may retain data according to their own policies for the duration of API processing.</li>
     </ul>
 
-    <h2>7. Security</h2>
+    <h2>8. Security</h2>
     <ul>
       <li>API keys are stored in the iOS Keychain.</li>
       <li>Audio files use iOS Data Protection.</li>
@@ -164,16 +187,16 @@
       <li>Optional Face ID lock protects access to the App.</li>
     </ul>
 
-    <h2>8. Children</h2>
+    <h2>9. Children</h2>
     <p>The App is not directed at children under 16. We do not knowingly collect data from children.</p>
 
-    <h2>9. Changes</h2>
+    <h2>10. Changes</h2>
     <p>
       We may update this policy from time to time. The &ldquo;Last updated&rdquo; date at the top will change.
       Continued use of the App after changes constitutes acceptance of the updated policy.
     </p>
 
-    <h2>10. Contact</h2>
+    <h2>11. Contact</h2>
     <p>
       <strong>Data controller:</strong> Germain Delagardelle<br>
       <strong>Email:</strong> <a href="mailto:germain@delagardelle.lu">germain@delagardelle.lu</a><br>

@@ -9,7 +9,8 @@ Use this before submitting build **1.0.0** to TestFlight.
 - [ ] App record created with bundle ID `com.paperorg.notes`
 - [ ] Subscription product: `com.paperorg.notes.pro.monthly` (auto-renewable)
 - [ ] Pricing and localizations (EN, FR, DE minimum for LU market)
-- [ ] Privacy policy URL live (see `docs/privacy.html` or hosted copy)
+- [ ] Privacy policy URL live (see `docs/privacy.html` — publish to GitHub Pages)
+- [ ] Complete App Store privacy labels using [`docs/APP_STORE_PRIVACY.md`](APP_STORE_PRIVACY.md)
 - [ ] App category: **Productivity**
 - [ ] Age rating questionnaire completed
 - [ ] Export compliance: **ITSAppUsesNonExemptEncryption = NO** (already in Info.plist)

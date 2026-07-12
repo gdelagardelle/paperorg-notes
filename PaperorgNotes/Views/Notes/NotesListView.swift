@@ -75,7 +75,7 @@ struct NotesListView: View {
                 }
             }
             .background(AppScreenBackground())
-            .navigationTitle("Notes")
+            .navigationTitle(L10n.Notes.title)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
@@ -110,7 +110,7 @@ struct NotesListView: View {
     private var filterBar: some View {
         if showFavoritesOnly || filterLanguage != nil || filterProject != nil {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Filters")
+                Text(L10n.Notes.filters)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppTheme.textSecondary)
                     .textCase(.uppercase)
@@ -143,9 +143,9 @@ struct NotesListView: View {
     
     private var emptyLibraryView: some View {
         ContentUnavailableView {
-            Label("No notes yet", systemImage: "doc.text")
+            Label(L10n.Notes.emptyTitle, systemImage: "doc.text")
         } description: {
-            Text("Record something from the Record tab to build your library.")
+            Text(L10n.Notes.emptySubtitle)
         }
         .foregroundStyle(AppTheme.textSecondary)
     }
@@ -155,9 +155,9 @@ struct NotesListView: View {
             Image(systemName: "line.3.horizontal.decrease.circle")
                 .font(.system(size: 36))
                 .foregroundStyle(AppTheme.textSecondary.opacity(0.6))
-            Text("No matching notes")
+            Text(L10n.Notes.noMatchTitle)
                 .font(.headline)
-            Text("Try clearing a filter or recording something new.")
+            Text(L10n.Notes.noMatchSubtitle)
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)

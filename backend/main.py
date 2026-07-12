@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 import httpx
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, status
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile, status
 from pydantic import BaseModel, Field
 
 from app_store import AppStoreVerificationError, verify_pro_subscription
@@ -22,6 +22,7 @@ from database import (
     period_key,
     set_user_pro,
 )
+from rate_limit import enforce_rate_limit
 
 app = FastAPI(title="Paperorg Notes Pro API", version="1.0.0")
 
@@ -116,7 +117,8 @@ def health() -> dict[str, str]:
 
 
 @app.post("/v1/auth/register", response_model=RegisterResponse)
-def register(body: RegisterRequest) -> RegisterResponse:
+def register(body: RegisterRequest, request: Request) -> RegisterResponse:
+    enforce_rate_limit(request, key_prefix="register", max_requests=20, window_seconds=3600)
     user = get_or_create_user(body.device_id)
     token = create_access_token(user["id"], user["device_id"])
     minutes_used = get_usage_minutes(user["id"])
@@ -152,8 +154,10 @@ def build_usage_response(user) -> UsageResponse:
 @app.post("/v1/subscription/verify", response_model=UsageResponse)
 def verify_subscription(
     body: VerifySubscriptionRequest,
+    request: Request,
     token: dict[str, Any] = Depends(get_current_user),
 ) -> UsageResponse:
+    enforce_rate_limit(request, key_prefix="verify", max_requests=30, window_seconds=3600)
     user = get_or_create_user(token["device_id"])
 
     if body.product_id != settings.apple_pro_product_id:
@@ -199,7 +203,8 @@ def verify_subscription(
 
 
 @app.post("/v1/webhooks/app-store")
-def app_store_webhook(body: AppStoreNotificationRequest) -> dict[str, str]:
+def app_store_webhook(body: AppStoreNotificationRequest, request: Request) -> dict[str, str]:
+    enforce_rate_limit(request, key_prefix="webhook", max_requests=120, window_seconds=60)
     try:
         return handle_signed_notification(body.signedPayload)
     except AppStoreVerificationError as exc:

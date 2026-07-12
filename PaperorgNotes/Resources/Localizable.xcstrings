@@ -1,342 +1,1920 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "common.cancel" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Abbrechen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Annuler" } }
+  "sourceLanguage": "en",
+  "strings": {
+    "common.cancel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        }
       }
     },
-    "common.ok" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "OK" } }
+    "common.ok": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
       }
     },
-    "plan.choose.subtitle" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Starten Sie kostenlos mit eigenen API-Schlüsseln oder upgraden Sie auf Pro mit allem inklusive." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start free with your own API keys, or upgrade to Pro for everything included." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Commencez gratuitement avec vos propres clés API, ou passez à Pro pour tout inclure." } }
+    "plan.choose.subtitle": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starten Sie kostenlos mit eigenen API-Schlüsseln oder upgraden Sie auf Pro mit allem inklusive."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start free with your own API keys, or upgrade to Pro for everything included."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commencez gratuitement avec vos propres clés API, ou passez à Pro pour tout inclure."
+          }
+        }
       }
     },
-    "plan.choose.title" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Plan wählen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose your plan" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisissez votre offre" } }
+    "plan.choose.title": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan wählen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose your plan"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez votre offre"
+          }
+        }
       }
     },
-    "plan.free.continue" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Mit Free fortfahren" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue with Free" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Continuer avec Free" } }
+    "plan.free.continue": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit Free fortfahren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue with Free"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer avec Free"
+          }
+        }
       }
     },
-    "plan.free.price" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kostenlos" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Free" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Gratuit" } }
+    "plan.free.price": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kostenlos"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gratuit"
+          }
+        }
       }
     },
-    "plan.pro.fallback_price" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Pro-Abo" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pro subscription" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Abonnement Pro" } }
+    "plan.pro.fallback_price": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro-Abo"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro subscription"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abonnement Pro"
+          }
+        }
       }
     },
-    "plan.pro.get" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Paperorg Pro holen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Get Paperorg Pro" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Obtenir Paperorg Pro" } }
+    "plan.pro.get": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Pro holen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get Paperorg Pro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtenir Paperorg Pro"
+          }
+        }
       }
     },
-    "pro.usage.included" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Transkription inklusive" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Included transcription" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Transcription incluse" } }
+    "pro.usage.included": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkription inklusive"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Included transcription"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription incluse"
+          }
+        }
       }
     },
-    "pro.usage.left" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "übrig" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "left" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "restants" } }
+    "pro.usage.left": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "übrig"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "left"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "restants"
+          }
+        }
       }
     },
-    "pro.usage.quota" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Min/Monat" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "min/month" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "min/mois" } }
+    "pro.usage.quota": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Min/Monat"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "min/month"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "min/mois"
+          }
+        }
       }
     },
-    "pro.usage.renews" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Verlängert am" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Renews" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Renouvellement" } }
+    "pro.usage.renews": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlängert am"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renews"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renouvellement"
+          }
+        }
       }
     },
-    "pro.usage.used" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "verwendet" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "used" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "utilisés" } }
+    "pro.usage.used": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "verwendet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "used"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "utilisés"
+          }
+        }
       }
     },
-    "pro.usage.warning" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Sie haben über 85 % Ihres monatlichen Kontingents verbraucht." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "You've used over 85% of your monthly included minutes." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vous avez utilisé plus de 85 % de vos minutes mensuelles incluses." } }
+    "pro.usage.warning": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sie haben über 85 % Ihres monatlichen Kontingents verbraucht."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've used over 85% of your monthly included minutes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous avez utilisé plus de 85 % de vos minutes mensuelles incluses."
+          }
+        }
       }
     },
-    "record.failed.title" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufnahme fehlgeschlagen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recording Failed" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Échec de l'enregistrement" } }
+    "record.failed.title": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme fehlgeschlagen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording Failed"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec de l'enregistrement"
+          }
+        }
       }
     },
-    "record.quick_queued.message" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Aufnahme startet, sobald die aktuelle Verarbeitung abgeschlossen ist." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your recording will start after the current recording finishes processing." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "L'enregistrement démarrera une fois le traitement en cours terminé." } }
+    "record.quick_queued.message": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Aufnahme startet, sobald die aktuelle Verarbeitung abgeschlossen ist."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your recording will start after the current recording finishes processing."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'enregistrement démarrera une fois le traitement en cours terminé."
+          }
+        }
       }
     },
-    "record.quick_queued.title" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Schnellaufnahme eingeplant" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quick Record Queued" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Enregistrement rapide en attente" } }
+    "record.quick_queued.title": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schnellaufnahme eingeplant"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quick Record Queued"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrement rapide en attente"
+          }
+        }
       }
     },
-    "settings.language.default" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Standardsprache" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Default Language" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Langue par défaut" } }
+    "settings.language.default": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardsprache"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default Language"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langue par défaut"
+          }
+        }
       }
     },
-    "settings.language.section" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Sprache" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Language" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Langue" } }
+    "settings.language.section": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langue"
+          }
+        }
       }
     },
-    "settings.pdf.brand_name" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Markenname" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Brand name" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nom de marque" } }
+    "settings.pdf.brand_name": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markenname"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brand name"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom de marque"
+          }
+        }
       }
     },
-    "settings.pdf.brand_subtitle" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Untertitel (optional)" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subtitle (optional)" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sous-titre (optionnel)" } }
+    "settings.pdf.brand_subtitle": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untertitel (optional)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subtitle (optional)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sous-titre (optionnel)"
+          }
+        }
       }
     },
-    "settings.pdf.hint" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Passen Sie Pro-PDF-Exporte an. Laden Sie Ihr Logo hoch, um das Paperorg-Standardlogo zu ersetzen." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Customize Pro PDF exports. Upload your logo to replace the Paperorg default." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Personnalisez les exports PDF Pro. Téléversez votre logo pour remplacer celui de Paperorg." } }
+    "settings.pdf.hint": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passen Sie Pro-PDF-Exporte an. Laden Sie Ihr Logo hoch, um das Paperorg-Standardlogo zu ersetzen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize Pro PDF exports. Upload your logo to replace the Paperorg default."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personnalisez les exports PDF Pro. Téléversez votre logo pour remplacer celui de Paperorg."
+          }
+        }
       }
     },
-    "settings.pdf.replace_logo" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Logo ersetzen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Replace logo" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Remplacer le logo" } }
+    "settings.pdf.replace_logo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logo ersetzen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace logo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplacer le logo"
+          }
+        }
       }
     },
-    "settings.pdf.section" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "PDF-Export Branding" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "PDF Export Branding" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Branding export PDF" } }
+    "settings.pdf.section": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF-Export Branding"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PDF Export Branding"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Branding export PDF"
+          }
+        }
       }
     },
-    "settings.pdf.upload_logo" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Logo hochladen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Upload logo" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Téléverser un logo" } }
+    "settings.pdf.upload_logo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logo hochladen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload logo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléverser un logo"
+          }
+        }
       }
     },
-    "settings.pdf.use_default_logo" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Paperorg-Logo verwenden" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Use Paperorg logo" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Utiliser le logo Paperorg" } }
+    "settings.pdf.use_default_logo": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg-Logo verwenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Paperorg logo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser le logo Paperorg"
+          }
+        }
       }
     },
-    "settings.pro.active" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Pro-Abo aktiv" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pro subscription active" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Abonnement Pro actif" } }
+    "settings.pro.active": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro-Abo aktiv"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro subscription active"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abonnement Pro actif"
+          }
+        }
       }
     },
-    "settings.pro.hint" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Transkription und Zusammenfassungen sind inklusive. Keine API-Schlüssel nötig." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Transcription and summaries are included. No API keys required." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Transcription et résumés inclus. Aucune clé API requise." } }
+    "settings.pro.hint": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkription und Zusammenfassungen sind inklusive. Keine API-Schlüssel nötig."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription and summaries are included. No API keys required."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription et résumés inclus. Aucune clé API requise."
+          }
+        }
       }
     },
-    "settings.pro.section" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Paperorg Pro" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Paperorg Pro" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Paperorg Pro" } }
+    "settings.pro.section": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Pro"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Pro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Pro"
+          }
+        }
       }
     },
-    "settings.pro.selected" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Pro gewählt — schließen Sie das Abo ab, um die inklusive Transkription freizuschalten." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pro selected — finish subscription to unlock included transcription." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Pro sélectionné — finalisez l'abonnement pour débloquer la transcription incluse." } }
+    "settings.pro.selected": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro gewählt — schließen Sie das Abo ab, um die inklusive Transkription freizuschalten."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro selected — finish subscription to unlock included transcription."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro sélectionné — finalisez l'abonnement pour débloquer la transcription incluse."
+          }
+        }
       }
     },
-    "settings.pro.subscribe" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Pro abonnieren" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscribe to Pro" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "S'abonner à Pro" } }
+    "settings.pro.subscribe": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro abonnieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscribe to Pro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "S'abonner à Pro"
+          }
+        }
       }
     },
-    "settings.pro.upgrade" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Auf Pro upgraden" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Upgrade to Pro" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Passer à Pro" } }
+    "settings.pro.upgrade": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf Pro upgraden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upgrade to Pro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passer à Pro"
+          }
+        }
       }
     },
-    "settings.free.hint" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Im Free-Plan verwenden Sie Ihre eigenen OpenAI- und ElevenLabs-API-Schlüssel." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Free plan uses your own OpenAI and ElevenLabs API keys." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "L'offre gratuite utilise vos propres clés API OpenAI et ElevenLabs." } }
+    "settings.free.hint": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Free-Plan verwenden Sie Ihre eigenen OpenAI- und ElevenLabs-API-Schlüssel."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free plan uses your own OpenAI and ElevenLabs API keys."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'offre gratuite utilise vos propres clés API OpenAI et ElevenLabs."
+          }
+        }
       }
     },
-    "settings.pdf.logo_load_error" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Das ausgewählte Bild konnte nicht geladen werden." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Could not load the selected image." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible de charger l'image sélectionnée." } }
+    "settings.pdf.logo_load_error": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das ausgewählte Bild konnte nicht geladen werden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load the selected image."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de charger l'image sélectionnée."
+          }
+        }
       }
     },
-    "plan.free.feature.record" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufnehmen, transkribieren und zusammenfassen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Record, transcribe, and summarize" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Enregistrer, transcrire et résumer" } }
+    "plan.free.feature.record": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnehmen, transkribieren und zusammenfassen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record, transcribe, and summarize"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer, transcrire et résumer"
+          }
+        }
       }
     },
-    "plan.free.feature.openai" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Erfordert Ihren OpenAI-API-Schlüssel" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Requires your OpenAI API key" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nécessite votre clé API OpenAI" } }
+    "plan.free.feature.openai": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erfordert Ihren OpenAI-API-Schlüssel"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requires your OpenAI API key"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nécessite votre clé API OpenAI"
+          }
+        }
       }
     },
-    "plan.free.feature.elevenlabs" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "ElevenLabs empfohlen für Lëtzebuergesch" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "ElevenLabs recommended for Lëtzebuergesch" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "ElevenLabs recommandé pour le lëtzebuergesch" } }
+    "plan.free.feature.elevenlabs": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ElevenLabs empfohlen für Lëtzebuergesch"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ElevenLabs recommended for Lëtzebuergesch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ElevenLabs recommandé pour le lëtzebuergesch"
+          }
+        }
       }
     },
-    "plan.free.feature.vocabulary" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bis zu 20 eigene Vokabelbegriffe" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Up to 20 custom vocabulary terms" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Jusqu'à 20 termes de vocabulaire personnalisés" } }
+    "plan.free.feature.vocabulary": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bis zu 20 eigene Vokabelbegriffe"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 20 custom vocabulary terms"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jusqu'à 20 termes de vocabulaire personnalisés"
+          }
+        }
       }
     },
-    "plan.pro.feature.minutes" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "600 Minuten/Monat inklusive" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "600 minutes/month included" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "600 minutes/mois incluses" } }
+    "plan.pro.feature.minutes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "600 Minuten/Monat inklusive"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "600 minutes/month included"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "600 minutes/mois incluses"
+          }
+        }
       }
     },
-    "plan.pro.feature.no_keys" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Keine API-Schlüssel nötig" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "No API keys to configure" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucune clé API à configurer" } }
+    "plan.pro.feature.no_keys": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine API-Schlüssel nötig"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No API keys to configure"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune clé API à configurer"
+          }
+        }
       }
     },
-    "plan.pro.feature.luxembourgish" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Priorisierte Lëtzebuergesch-Pipeline" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Priority Lëtzebuergesch pipeline" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Pipeline lëtzebuergesch prioritaire" } }
+    "plan.pro.feature.luxembourgish": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Priorisierte Lëtzebuergesch-Pipeline"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Priority Lëtzebuergesch pipeline"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pipeline lëtzebuergesch prioritaire"
+          }
+        }
       }
     },
-    "plan.pro.feature.retention" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unbegrenztes Vokabular und 90 Tage Audio-Aufbewahrung" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unlimited vocabulary & 90-day audio retention" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vocabulaire illimité et conservation audio 90 jours" } }
+    "plan.pro.feature.retention": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbegrenztes Vokabular und 90 Tage Audio-Aufbewahrung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlimited vocabulary & 90-day audio retention"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vocabulaire illimité et conservation audio 90 jours"
+          }
+        }
       }
     },
-    "settings.title" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Einstellungen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages" } }
+    "settings.title": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
+          }
+        }
       }
     },
-    "settings.transcription.section" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Transkription" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Transcription" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Transcription" } }
+    "settings.transcription.section": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkription"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription"
+          }
+        }
       }
     },
-    "tab.notes" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Notizen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Notes" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Notes" } }
+    "tab.notes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notizen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes"
+          }
+        }
       }
     },
-    "tab.record" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufnahme" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Record" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Enregistrer" } }
+    "tab.record": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer"
+          }
+        }
       }
     },
-    "tab.search" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Suche" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Recherche" } }
+    "tab.search": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recherche"
+          }
+        }
       }
     },
-    "tab.settings" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Einstellungen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages" } }
+    "tab.settings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
+          }
+        }
+      }
+    },
+    "privacy.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Privacy Matters"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre vie privée compte"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihre Privatsphäre ist wichtig"
+          }
+        }
+      }
+    },
+    "privacy.intro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Notes records audio on your device. On the Free plan, transcription uses your own OpenAI and ElevenLabs keys. Paperorg Pro includes cloud transcription with no keys required."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Notes enregistre l'audio sur votre appareil. Avec l'offre gratuite, la transcription utilise vos propres clés OpenAI et ElevenLabs. Paperorg Pro inclut la transcription cloud sans clés."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Notes zeichnet Audio auf Ihrem Gerät auf. Im Free-Plan nutzt die Transkription Ihre eigenen OpenAI- und ElevenLabs-Schlüssel. Paperorg Pro enthält Cloud-Transkription ohne Schlüssel."
+          }
+        }
+      }
+    },
+    "privacy.agree": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I understand and agree to the Privacy Policy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J'accepte la politique de confidentialité"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich stimme der Datenschutzerklärung zu"
+          }
+        }
+      }
+    },
+    "privacy.provider_hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider consent is requested separately for each transcription provider in Settings before audio is sent off-device."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le consentement par fournisseur est demandé séparément dans Réglages avant l'envoi de l'audio."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Anbieter-Zustimmung wird in den Einstellungen separat abgefragt, bevor Audio das Gerät verlässt."
+          }
+        }
+      }
+    },
+    "privacy.view_policy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Privacy Policy"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voir la politique de confidentialité"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datenschutzerklärung anzeigen"
+          }
+        }
+      }
+    },
+    "privacy.continue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        }
+      }
+    },
+    "privacy.row.local.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local Recording"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrement local"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokale Aufnahme"
+          }
+        }
+      }
+    },
+    "privacy.row.local.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio is saved on your device first."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'audio est d'abord enregistré sur votre appareil."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio wird zuerst auf Ihrem Gerät gespeichert."
+          }
+        }
+      }
+    },
+    "privacy.row.control.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Control"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre contrôle"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihre Kontrolle"
+          }
+        }
+      }
+    },
+    "privacy.row.control.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You choose providers and can delete all data anytime."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous choisissez les fournisseurs et pouvez tout supprimer."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sie wählen Anbieter und können alle Daten jederzeit löschen."
+          }
+        }
+      }
+    },
+    "privacy.row.gdpr.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GDPR"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RGPD"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DSGVO"
+          }
+        }
+      }
+    },
+    "privacy.row.gdpr.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export or delete all your data from Settings."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportez ou supprimez toutes vos données dans Réglages."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportieren oder löschen Sie alle Daten in den Einstellungen."
+          }
+        }
+      }
+    },
+    "privacy.row.providers.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider Terms"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditions des fournisseurs"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anbieterbedingungen"
+          }
+        }
+      }
+    },
+    "privacy.row.providers.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your data is handled according to each provider's terms and your configured account settings."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vos données sont traitées selon les conditions de chaque fournisseur."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihre Daten werden gemäß den Bedingungen jedes Anbieters verarbeitet."
+          }
+        }
+      }
+    },
+    "notes.filters": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filters"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtres"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter"
+          }
+        }
+      }
+    },
+    "notes.empty.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record something from the Record tab to build your library."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrez depuis l'onglet Enregistrer pour créer votre bibliothèque."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nehmen Sie etwas im Tab Aufnahme auf, um Ihre Bibliothek aufzubauen."
+          }
+        }
+      }
+    },
+    "notes.no_match.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching notes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune note correspondante"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine passenden Notizen"
+          }
+        }
+      }
+    },
+    "notes.no_match.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try clearing a filter or recording something new."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Effacez un filtre ou enregistrez une nouvelle note."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter löschen oder neu aufnehmen."
+          }
+        }
+      }
+    },
+    "search.refine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refine"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Affiner"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verfeinern"
+          }
+        }
+      }
+    },
+    "search.empty.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search your library"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher dans votre bibliothèque"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bibliothek durchsuchen"
+          }
+        }
+      }
+    },
+    "search.empty.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find notes by keyword, language, project, or tag."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trouvez des notes par mot-clé, langue, projet ou tag."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notizen nach Stichwort, Sprache, Projekt oder Tag finden."
+          }
+        }
+      }
+    },
+    "search.no_results.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No results"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun résultat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Ergebnisse"
+          }
+        }
+      }
+    },
+    "search.no_results.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a different keyword or clear your filters."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essayez un autre mot-clé ou effacez les filtres."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anderes Stichwort versuchen oder Filter löschen."
+          }
+        }
+      }
+    },
+    "record.language": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Langue"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprache"
+          }
+        }
+      }
+    },
+    "record.note_style": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note style"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type de note"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notizstil"
+          }
+        }
+      }
+    },
+    "record.empty.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recordings yet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun enregistrement"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Aufnahmen"
+          }
+        }
+      }
+    },
+    "record.empty.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the microphone to capture your first note."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appuyez sur le micro pour votre première note."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippen Sie auf das Mikrofon für Ihre erste Notiz."
+          }
+        }
+      }
+    },
+    "lock.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Notes is Locked"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Notes est verrouillé"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Notes ist gesperrt"
+          }
+        }
+      }
+    },
+    "lock.unlock": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déverrouiller"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entsperren"
+          }
+        }
+      }
+    },
+    "lock.disable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn Off Face ID Lock"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactiver le verrouillage Face ID"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face-ID-Sperre deaktivieren"
+          }
+        }
+      }
+    },
+    "lock.error.generic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not unlock Paperorg Notes. Try again or turn off Face ID lock."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de déverrouiller. Réessayez ou désactivez Face ID."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entsperren fehlgeschlagen. Erneut versuchen oder Face ID deaktivieren."
+          }
+        }
+      }
+    },
+    "lock.error.biometry_unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID is not available on this device."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID n'est pas disponible sur cet appareil."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID ist auf diesem Gerät nicht verfügbar."
+          }
+        }
+      }
+    },
+    "lock.error.biometry_not_enrolled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID is not set up on this device."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID n'est pas configuré."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID ist nicht eingerichtet."
+          }
+        }
+      }
+    },
+    "lock.error.passcode_not_set": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set a device passcode in iOS Settings to use app lock."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurez un code dans Réglages iOS."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerätecode in iOS-Einstellungen setzen."
+          }
+        }
+      }
+    },
+    "lock.error.cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock cancelled. Tap Unlock to try again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déverrouillage annulé. Appuyez sur Déverrouiller."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entsperren abgebrochen. Erneut tippen."
+          }
+        }
+      }
+    },
+    "lock.error.not_interactive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID will appear when the app is active."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID apparaîtra lorsque l'app est active."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID erscheint, wenn die App aktiv ist."
+          }
+        }
+      }
+    },
+    "lock.error.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication failed. Try again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentification échouée. Réessayez."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentifizierung fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "notes.empty.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No notes yet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune note"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine Notizen"
+          }
+        }
+      }
+    },
+    "search.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search transcripts…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher dans les transcriptions…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkripte suchen…"
+          }
+        }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

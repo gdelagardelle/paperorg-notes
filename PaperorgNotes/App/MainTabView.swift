@@ -31,6 +31,9 @@ struct RootView: View {
             if settings.faceIDEnabled, oldPhase == .active, newPhase != .active {
                 isUnlocked = false
             }
+            if newPhase == .active, settings.hasCompletedPlanSelection {
+                Task { await environment.subscriptionService.refreshEntitlements() }
+            }
         }
         .onChange(of: settings.faceIDEnabled) { _, enabled in
             if enabled {

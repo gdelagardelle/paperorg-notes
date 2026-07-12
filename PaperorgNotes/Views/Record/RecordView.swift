@@ -93,7 +93,7 @@ struct RecordView: View {
     private var setupCard: some View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Language")
+                Text(L10n.Record.language)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppTheme.textSecondary)
                     .textCase(.uppercase)
@@ -113,7 +113,7 @@ struct RecordView: View {
             }
             
             VStack(alignment: .leading, spacing: 10) {
-                Text("Note style")
+                Text(L10n.Record.noteStyle)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(AppTheme.textSecondary)
                     .textCase(.uppercase)
@@ -202,10 +202,10 @@ struct RecordView: View {
                     Image(systemName: "waveform.badge.mic")
                         .font(.system(size: 36))
                         .foregroundStyle(AppTheme.accent.opacity(0.7))
-                    Text("No recordings yet")
+                    Text(L10n.Record.emptyTitle)
                         .font(.headline)
                         .foregroundStyle(AppTheme.textPrimary)
-                    Text("Tap the microphone to capture your first note.")
+                    Text(L10n.Record.emptySubtitle)
                         .font(.subheadline)
                         .foregroundStyle(AppTheme.textSecondary)
                         .multilineTextAlignment(.center)

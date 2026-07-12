@@ -13,34 +13,34 @@ struct PrivacyConsentView: View {
                     .font(.system(size: 48))
                     .foregroundStyle(AppTheme.primary)
                 
-                Text("Your Privacy Matters")
+                Text(L10n.Privacy.title)
                     .font(.largeTitle.bold())
                 
-                Text("Paperorg Notes records audio on your device. On the Free plan, transcription uses your own OpenAI and ElevenLabs keys. Paperorg Pro includes cloud transcription with no keys required.")
+                Text(L10n.Privacy.intro)
                     .foregroundStyle(AppTheme.textSecondary)
                 
                 VStack(alignment: .leading, spacing: 12) {
-                    privacyRow(icon: "mic.fill", title: "Local Recording", detail: "Audio is saved on your device first.")
-                    privacyRow(icon: "lock.fill", title: "Your Control", detail: "You choose providers and can delete all data anytime.")
-                    privacyRow(icon: "doc.text.fill", title: "GDPR", detail: "Export or delete all your data from Settings.")
-                    privacyRow(icon: "brain.head.profile", title: "Provider Terms", detail: "Your data is handled according to each provider's terms and your configured account settings.")
+                    privacyRow(icon: "mic.fill", title: L10n.Privacy.rowLocalTitle, detail: L10n.Privacy.rowLocalDetail)
+                    privacyRow(icon: "lock.fill", title: L10n.Privacy.rowControlTitle, detail: L10n.Privacy.rowControlDetail)
+                    privacyRow(icon: "doc.text.fill", title: L10n.Privacy.rowGdprTitle, detail: L10n.Privacy.rowGdprDetail)
+                    privacyRow(icon: "brain.head.profile", title: L10n.Privacy.rowProvidersTitle, detail: L10n.Privacy.rowProvidersDetail)
                 }
                 .cardStyle()
                 
                 Toggle(isOn: $agreed) {
-                    Text("I understand and agree to the Privacy Policy")
+                    Text(L10n.Privacy.agree)
                         .font(.subheadline)
                 }
                 .tint(AppTheme.primary)
 
-                Text("Provider consent is requested separately for each transcription provider in Settings before audio is sent off-device.")
+                Text(L10n.Privacy.providerHint)
                     .font(.caption)
                     .foregroundStyle(AppTheme.textSecondary)
                 
-                Link("View Privacy Policy", destination: URL(string: "https://gdelagardelle.github.io/paperorg-notes/privacy.html")!)
+                Link(L10n.Privacy.viewPolicy, destination: URL(string: "https://gdelagardelle.github.io/paperorg-notes/privacy.html")!)
                     .font(.subheadline)
                 
-                Button("Continue") {
+                Button(L10n.Privacy.continue) {
                     settings.hasAcceptedPrivacyPolicy = true
                 }
                 .buttonStyle(PrimaryButtonStyle())
@@ -78,7 +78,7 @@ struct FaceIDLockView: View {
                 .font(.system(size: 64))
                 .foregroundStyle(AppTheme.primary)
             
-            Text("Paperorg Notes is Locked")
+            Text(L10n.Lock.title)
                 .font(.title2.bold())
             
             if let errorMessage {
@@ -89,7 +89,7 @@ struct FaceIDLockView: View {
                     .padding(.horizontal)
             }
             
-            Button("Unlock") {
+            Button(L10n.Lock.unlock) {
                 requestAuthentication(force: true)
             }
             .buttonStyle(PrimaryButtonStyle())
@@ -97,7 +97,7 @@ struct FaceIDLockView: View {
             .disabled(isAuthenticating)
 
             if showDisableLockOption {
-                Button("Turn Off Face ID Lock") {
+                Button(L10n.Lock.disable) {
                     environment.settingsService.faceIDEnabled = false
                     isUnlocked = true
                 }
@@ -184,23 +184,23 @@ enum LAContextWrapper {
     }
 
     private static func friendlyMessage(for error: NSError?) -> String {
-        guard let error else { return "Authentication failed. Try again." }
+        guard let error else { return String(localized: "lock.error.generic") }
 
         switch laErrorCode(from: error) {
         case .biometryNotAvailable:
-            return "Face ID is not available on this device. Use your device passcode, or turn off Face ID lock."
+            return String(localized: "lock.error.biometry_unavailable")
         case .biometryNotEnrolled:
-            return "Face ID is not set up on this device. Enroll Face ID in iOS Settings, or turn off Face ID lock."
+            return String(localized: "lock.error.biometry_not_enrolled")
         case .passcodeNotSet:
-            return "Set a device passcode in iOS Settings to use app lock, or turn off Face ID lock."
+            return String(localized: "lock.error.passcode_not_set")
         case .userCancel, .systemCancel, .appCancel:
-            return "Unlock cancelled. Tap Unlock to try again."
+            return String(localized: "lock.error.cancelled")
         case .notInteractive:
-            return "Face ID will appear when the app is active. Tap Unlock to try again."
+            return String(localized: "lock.error.not_interactive")
         case .authenticationFailed:
-            return "Authentication failed. Try again."
+            return String(localized: "lock.error.failed")
         default:
-            return "Could not unlock Paperorg Notes. Try again or turn off Face ID lock."
+            return String(localized: "lock.error.generic")
         }
     }
 

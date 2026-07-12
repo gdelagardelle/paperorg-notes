@@ -56,7 +56,7 @@ struct SearchView: View {
                 .padding(.vertical, 12)
             }
             .background(AppScreenBackground())
-            .navigationTitle("Search")
+            .navigationTitle(L10n.Search.title)
         }
     }
     
@@ -64,7 +64,7 @@ struct SearchView: View {
         HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(AppTheme.textSecondary)
-            TextField("Search transcripts…", text: $query)
+            TextField(String(localized: "search.placeholder"), text: $query)
                 .textFieldStyle(.plain)
             if !query.isEmpty {
                 Button(action: { query = "" }) {
@@ -85,7 +85,7 @@ struct SearchView: View {
     
     private var filterBar: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Refine")
+            Text(L10n.Search.refine)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(AppTheme.textSecondary)
                 .textCase(.uppercase)
@@ -141,9 +141,9 @@ struct SearchView: View {
             Image(systemName: "text.magnifyingglass")
                 .font(.system(size: 40))
                 .foregroundStyle(AppTheme.accent.opacity(0.75))
-            Text("Search your library")
+            Text(L10n.Search.emptyTitle)
                 .font(.headline)
-            Text("Find notes by keyword, language, project, or tag.")
+            Text(L10n.Search.emptySubtitle)
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -157,9 +157,9 @@ struct SearchView: View {
             Image(systemName: "doc.text.magnifyingglass")
                 .font(.system(size: 36))
                 .foregroundStyle(AppTheme.textSecondary.opacity(0.6))
-            Text("No results")
+            Text(L10n.Search.noResultsTitle)
                 .font(.headline)
-            Text("Try a different keyword or clear your filters.")
+            Text(L10n.Search.noResultsSubtitle)
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)
