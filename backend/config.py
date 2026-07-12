@@ -26,5 +26,13 @@ class Settings(BaseSettings):
     apple_private_key: str = ""
     apple_use_sandbox: bool = True
 
+    # Paperorg Platform (Phase C/D). Empty = platform integration off.
+    # When set, Platform-issued RS256 JWTs are accepted (validated via JWKS)
+    # and those users' minutes are metered on the Platform ledger.
+    platform_api_url: str = ""  # e.g. https://poplatform.paperorg.com
+    # Internal service token: lets notes-api pull provider API keys from the
+    # Platform credentials vault (falls back to the env keys above).
+    platform_internal_token: str = ""
+
 
 settings = Settings()
