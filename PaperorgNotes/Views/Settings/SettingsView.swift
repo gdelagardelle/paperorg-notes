@@ -34,6 +34,7 @@ struct SettingsView: View {
                             }
                         }
                         SettingsSectionHint(text: "Transcription and summaries are included. No API keys required.")
+                        ExportBrandingSettingsSection()
                     } else if settings.selectedPlan == .pro {
                         Text("Pro selected — finish subscription to unlock included transcription.")
                             .font(.caption)

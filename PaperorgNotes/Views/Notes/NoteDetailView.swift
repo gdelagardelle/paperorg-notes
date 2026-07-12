@@ -365,7 +365,10 @@ struct NoteDetailView: View {
                 try environment.exportService.exportMarkdown(note: note),
                 try environment.exportService.exportPDF(
                     note: note,
-                    branded: environment.settingsService.usesProBackend
+                    branding: ExportBranding.from(
+                        settings: environment.settingsService,
+                        storage: environment.storageService
+                    )
                 )
             ]
             showExportShare = true

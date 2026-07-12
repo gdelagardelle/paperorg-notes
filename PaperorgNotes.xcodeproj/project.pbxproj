@@ -36,6 +36,7 @@
 		6AE3CD48C33A80509A37F80C /* ProUsageCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23130EAFD410A3FED41D40AC /* ProUsageCard.swift */; };
 		6E65F038184080AE97869E98 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2776891AC1FF283C722736 /* MainTabView.swift */; };
 		7A9394B7E842956AA8C74F9A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 769C64C50D036C001E300F1F /* LaunchScreen.storyboard */; };
+		836446E824AE29722F824289 /* ExportBranding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382E43B13BC104B0DC4917A5 /* ExportBranding.swift */; };
 		84629E42036542CD62B474F2 /* TranscriptTextFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */; };
 		86D9F89F6DE0D92FF1189E16 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E44CE8EB8204467D2F453A2 /* AudioPlaybackService.swift */; };
 		879EB14C132EDB84188AD160 /* PlanSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */; };
@@ -61,6 +62,7 @@
 		DD2804AF339F8F6A532787B9 /* PaperorgNotesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93893A2E19AAAF5CE666C272 /* PaperorgNotesTests.swift */; };
 		E06CE75A5D7421590AF23B8A /* ProBackendClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5D04D3AEBE5A039C1C1BBD /* ProBackendClient.swift */; };
 		EACCB259CA28F2C218B9F54C /* NoteOrganizerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38212408D78D6D74FA32DCC5 /* NoteOrganizerSection.swift */; };
+		F254C58B2F118C4532B9B7F4 /* ExportBrandingSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5129B0C96608861776DCB9EC /* ExportBrandingSettingsSection.swift */; };
 		F99C6448308444DFDEA91CAC /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A0D92CB81A995CD2A47F03 /* SearchView.swift */; };
 		FF5EB0AEA679DA97A9DEC81D /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A23290AE1D4C2DF9E4BEA45 /* StorageService.swift */; };
 		FF98B44D485C5AE881B077BE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0C9BD304B8AD3F3CF47BD303 /* Assets.xcassets */; };
@@ -119,9 +121,11 @@
 		32E563644B575641930A1E21 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		3405E9F6563295A3256E4763 /* Transcript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transcript.swift; sourceTree = "<group>"; };
 		38212408D78D6D74FA32DCC5 /* NoteOrganizerSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteOrganizerSection.swift; sourceTree = "<group>"; };
+		382E43B13BC104B0DC4917A5 /* ExportBranding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportBranding.swift; sourceTree = "<group>"; };
 		47612546C77D2EBA71ED4283 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		4870B2B5145972BC95567F38 /* PaperorgNotes.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PaperorgNotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B6B8DF7F1EC58D388ACDC88 /* NotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesListView.swift; sourceTree = "<group>"; };
+		5129B0C96608861776DCB9EC /* ExportBrandingSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportBrandingSettingsSection.swift; sourceTree = "<group>"; };
 		5A5243CB5415532B47C9904D /* ProcessRecordingUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRecordingUseCase.swift; sourceTree = "<group>"; };
 		65181023F293D9C4ACE28EEB /* MailComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailComposeView.swift; sourceTree = "<group>"; };
 		68B74C5620F1B13BDE12A809 /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
@@ -186,6 +190,7 @@
 		14A1EB76882F063FC0A728D5 /* Export */ = {
 			isa = PBXGroup;
 			children = (
+				382E43B13BC104B0DC4917A5 /* ExportBranding.swift */,
 				015CA9C9BF4BA1A913E6E87E /* ExportService.swift */,
 			);
 			path = Export;
@@ -242,6 +247,7 @@
 		33D5FF2B176221F2ECAA8223 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				5129B0C96608861776DCB9EC /* ExportBrandingSettingsSection.swift */,
 				A0A47C931C30D4142808038E /* SettingsView.swift */,
 			);
 			path = Settings;
@@ -608,6 +614,8 @@
 				D4B680849B70B937681292C5 /* EmailService.swift in Sources */,
 				47EE42893ACF727B1C51C409 /* EncryptionService.swift in Sources */,
 				AD3AD30C810BF4155A7C4FEC /* Enums.swift in Sources */,
+				836446E824AE29722F824289 /* ExportBranding.swift in Sources */,
+				F254C58B2F118C4532B9B7F4 /* ExportBrandingSettingsSection.swift in Sources */,
 				10D073E462BA623872D954B5 /* ExportService.swift in Sources */,
 				38D2C7623F3074A64BFE1846 /* KeychainService.swift in Sources */,
 				C66B6E6941AC9798F76BE25E /* LuxASRProvider.swift in Sources */,

@@ -37,6 +37,8 @@ final class SettingsService {
         static let proBackendBaseURL = "proBackendBaseURL"
         static let platformAPIBaseURL = "platformAPIBaseURL"
         static let usePlatformAuth = "usePlatformAuth"
+        static let exportBrandName = "exportBrandName"
+        static let exportBrandSubtitle = "exportBrandSubtitle"
         static let cachedProUsage = "cachedProUsage"
     }
     
@@ -165,6 +167,14 @@ final class SettingsService {
         didSet { defaults.set(usePlatformAuth, forKey: Keys.usePlatformAuth) }
     }
 
+    var exportBrandName: String {
+        didSet { defaults.set(exportBrandName, forKey: Keys.exportBrandName) }
+    }
+
+    var exportBrandSubtitle: String {
+        didSet { defaults.set(exportBrandSubtitle, forKey: Keys.exportBrandSubtitle) }
+    }
+
     /// Auth, usage, and subscription endpoints (Platform when enabled, else notes backend).
     var subscriptionBackendBaseURL: String {
         usePlatformAuth ? platformAPIBaseURL : proBackendBaseURL
@@ -287,6 +297,8 @@ final class SettingsService {
         } else {
             self.usePlatformAuth = BackendConfiguration.usePlatformAuthByDefault
         }
+        self.exportBrandName = defaults.string(forKey: Keys.exportBrandName) ?? "Paperorg Notes"
+        self.exportBrandSubtitle = defaults.string(forKey: Keys.exportBrandSubtitle) ?? ""
     }
     
     func providerPreferences() -> [AppLanguage: [ProviderID]] {
@@ -395,6 +407,8 @@ final class SettingsService {
         usePlatformAuth = BackendConfiguration.usePlatformAuthByDefault
         platformAPIBaseURL = BackendConfiguration.defaultPlatformAPIURL
         proBackendBaseURL = BackendConfiguration.defaultProBackendURL
+        exportBrandName = "Paperorg Notes"
+        exportBrandSubtitle = ""
         keychain.delete(for: .proAccessToken)
     }
 }

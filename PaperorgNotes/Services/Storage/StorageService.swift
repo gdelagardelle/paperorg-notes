@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import UIKit
 
 @MainActor
 final class StorageService {
@@ -21,6 +22,14 @@ final class StorageService {
     var gdprDirectory: URL {
         appSupportDirectory.appendingPathComponent("GDPR", isDirectory: true)
     }
+
+    var brandingDirectory: URL {
+        appSupportDirectory.appendingPathComponent("Branding", isDirectory: true)
+    }
+
+    var customExportLogoURL: URL {
+        brandingDirectory.appendingPathComponent("export-logo.png")
+    }
     
     private var appSupportDirectory: URL {
         let url = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
@@ -30,7 +39,7 @@ final class StorageService {
     }
     
     init() {
-        for dir in [recordingsDirectory, checkpointsDirectory, exportsDirectory, gdprDirectory] {
+        for dir in [recordingsDirectory, checkpointsDirectory, exportsDirectory, gdprDirectory, brandingDirectory] {
             try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
             try? fileManager.setAttributes(
                 [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
@@ -117,7 +126,7 @@ final class StorageService {
     }
 
     func deleteAllLocalData() {
-        for directory in [recordingsDirectory, checkpointsDirectory, exportsDirectory, gdprDirectory] {
+        for directory in [recordingsDirectory, checkpointsDirectory, exportsDirectory, gdprDirectory, brandingDirectory] {
             guard let files = try? fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) else { continue }
             for file in files {
                 try? fileManager.removeItem(at: file)
@@ -169,6 +178,36 @@ final class StorageService {
             }
         }
         return removed
+    }
+
+    var hasCustomExportLogo: Bool {
+        fileManager.fileExists(atPath: customExportLogoURL.path)
+    }
+
+    func saveCustomExportLogo(_ image: UIImage) throws {
+        let resized = image.resizedForExportLogo(maxDimension: 512)
+        guard let png = resized.pngData() else {
+            throw CocoaError(.fileWriteUnknown)
+        }
+        try png.write(to: customExportLogoURL, options: .atomic)
+        try fileManager.setAttributes(
+            [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+            ofItemAtPath: customExportLogoURL.path
+        )
+    }
+
+    func loadCustomExportLogo() -> UIImage? {
+        guard hasCustomExportLogo,
+              let data = try? Data(contentsOf: customExportLogoURL),
+              let image = UIImage(data: data) else {
+            return nil
+        }
+        return image
+    }
+
+    func deleteCustomExportLogo() throws {
+        guard hasCustomExportLogo else { return }
+        try fileManager.removeItem(at: customExportLogoURL)
     }
     
     func exportGDPRArchive(notes: [Note]) throws -> URL {
@@ -302,6 +341,19 @@ enum ZipUtility {
         archive.appendLE(centralOffset)
         archive.appendLE(UInt16(0))
         try archive.write(to: destination, options: .atomic)
+    }
+}
+
+private extension UIImage {
+    func resizedForExportLogo(maxDimension: CGFloat) -> UIImage {
+        let maxSide = max(size.width, size.height)
+        guard maxSide > maxDimension else { return self }
+        let scale = maxDimension / maxSide
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            draw(in: CGRect(origin: .zero, size: newSize))
+        }
     }
 }
 

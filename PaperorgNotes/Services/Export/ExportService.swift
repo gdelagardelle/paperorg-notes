@@ -1,6 +1,7 @@
 import Foundation
 import PDFKit
 import UIKit
+import CoreText
 
 @MainActor
 final class ExportService {
@@ -20,9 +21,9 @@ final class ExportService {
         return try writeExport(content: md, noteId: note.id, extension: "md")
     }
     
-    func exportPDF(note: Note, branded: Bool = false) throws -> URL {
-        let content = buildTextContent(note: note)
-        let pdfData = renderPDF(title: note.title, body: content, note: note, branded: branded)
+    func exportPDF(note: Note, branding: ExportBranding?) throws -> URL {
+        let content = buildPDFBody(note: note)
+        let pdfData = renderPDF(title: note.title, body: content, note: note, branding: branding)
         let url = storage.exportsDirectory.appendingPathComponent("\(note.id.uuidString)-\(timestamp()).pdf")
         try pdfData.write(to: url)
         return url
@@ -87,6 +88,35 @@ final class ExportService {
         
         return parts.joined(separator: "\n")
     }
+
+    private func buildPDFBody(note: Note) -> String {
+        var parts: [String] = []
+
+        if !note.displaySummaryShort.isEmpty {
+            parts.append("SUMMARY")
+            parts.append(note.displaySummaryShort)
+            parts.append("")
+        }
+
+        if let structured = note.structuredOutput {
+            if !structured.actionItems.isEmpty {
+                parts.append("ACTION ITEMS")
+                for item in structured.actionItems {
+                    parts.append("- \(item.text)")
+                }
+                parts.append("")
+            }
+            if !structured.decisions.isEmpty {
+                parts.append("DECISIONS")
+                for d in structured.decisions { parts.append("- \(d)") }
+                parts.append("")
+            }
+        }
+
+        parts.append("TRANSCRIPT")
+        parts.append(note.displayTranscript)
+        return parts.joined(separator: "\n")
+    }
     
     private func buildMarkdown(note: Note) -> String {
         var md = "# \(note.title)\n\n"
@@ -116,23 +146,18 @@ final class ExportService {
         return md
     }
     
-    private func renderPDF(title: String, body: String, note: Note, branded: Bool) -> Data {
+    private func renderPDF(title: String, body: String, note: Note, branding: ExportBranding?) -> Data {
         let pageRect = CGRect(x: 0, y: 0, width: 612, height: 792)
         let renderer = UIGraphicsPDFRenderer(bounds: pageRect)
         let margin: CGFloat = 40
-        let headerHeight: CGFloat = branded ? 88 : 0
-        let footerHeight: CGFloat = branded ? 36 : 0
-        let contentTop = margin + headerHeight
-        let contentHeight = pageRect.height - contentTop - margin - footerHeight
+        let footerHeight: CGFloat = branding == nil ? 0 : 28
+        let fullHeaderHeight: CGFloat = branding == nil ? 0 : 88
+        let compactHeaderHeight: CGFloat = branding == nil ? 0 : 28
         
-        let titleFont = UIFont.boldSystemFont(ofSize: branded ? 20 : 18)
+        let titleFont = UIFont.boldSystemFont(ofSize: branding == nil ? 18 : 20)
         let metaFont = UIFont.systemFont(ofSize: 10)
         let bodyFont = UIFont.systemFont(ofSize: 11)
         let footerFont = UIFont.systemFont(ofSize: 9)
-        
-        let navy = UIColor(red: 0.078, green: 0.137, blue: 0.239, alpha: 1)
-        let orange = UIColor(red: 0.961, green: 0.416, blue: 0.039, alpha: 1)
-        let secondary = UIColor(red: 0.302, green: 0.376, blue: 0.482, alpha: 1)
         
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineBreakMode = .byWordWrapping
@@ -140,63 +165,153 @@ final class ExportService {
         
         let bodyAttrs: [NSAttributedString.Key: Any] = [
             .font: bodyFont,
-            .foregroundColor: navy,
+            .foregroundColor: PDFBrandColors.navy,
             .paragraphStyle: paragraph
         ]
+        let bodyString = NSAttributedString(string: body, attributes: bodyAttrs)
         
         return renderer.pdfData { context in
-            context.beginPage()
+            var textStartIndex = 0
+            var pageIndex = 0
             
-            if branded {
-                navy.setFill()
-                UIBezierPath(rect: CGRect(x: 0, y: 0, width: pageRect.width, height: 64)).fill()
-                orange.setFill()
-                UIBezierPath(rect: CGRect(x: 0, y: 64, width: pageRect.width, height: 3)).fill()
+            while textStartIndex < bodyString.length {
+                context.beginPage()
                 
-                if let logo = UIImage(named: "LaunchLogo") {
-                    let logoSide: CGFloat = 36
-                    logo.draw(in: CGRect(x: margin, y: 14, width: logoSide, height: logoSide))
+                let headerHeight = pageIndex == 0 ? fullHeaderHeight : compactHeaderHeight
+                if let branding {
+                    if pageIndex == 0 {
+                        drawFullHeader(branding: branding, pageRect: pageRect, margin: margin)
+                    } else {
+                        drawCompactHeader(branding: branding, pageRect: pageRect, margin: margin)
+                    }
                 }
                 
-                let brandAttrs: [NSAttributedString.Key: Any] = [
-                    .font: UIFont.boldSystemFont(ofSize: 14),
-                    .foregroundColor: UIColor.white
-                ]
-                "Paperorg Notes".draw(at: CGPoint(x: margin + 44, y: 18), withAttributes: brandAttrs)
-                
-                let subtitleAttrs: [NSAttributedString.Key: Any] = [
-                    .font: UIFont.systemFont(ofSize: 10),
-                    .foregroundColor: UIColor.white.withAlphaComponent(0.85)
-                ]
-                "Pro export".draw(at: CGPoint(x: margin + 44, y: 38), withAttributes: subtitleAttrs)
-            }
-            
-            var y = contentTop
-            title.draw(
-                at: CGPoint(x: margin, y: y),
-                withAttributes: [.font: titleFont, .foregroundColor: navy]
-            )
-            y += 28
-            
-            let meta = "\(formattedDate(note.createdAt)) · \(note.appLanguage.displayName)"
-            meta.draw(
-                at: CGPoint(x: margin, y: y),
-                withAttributes: [.font: metaFont, .foregroundColor: secondary]
-            )
-            y += 22
-            
-            let textRect = CGRect(x: margin, y: y, width: pageRect.width - margin * 2, height: contentHeight - (y - contentTop))
-            body.draw(in: textRect, withAttributes: bodyAttrs)
-            
-            if branded {
-                let footer = "Generated by Paperorg Notes · paperorg.com"
-                let footerSize = footer.size(withAttributes: [.font: footerFont])
-                footer.draw(
-                    at: CGPoint(x: margin, y: pageRect.height - margin - footerSize.height + 8),
-                    withAttributes: [.font: footerFont, .foregroundColor: secondary]
+                let contentTop = margin + headerHeight + (pageIndex == 0 ? 52 : 8)
+                let contentBottom = pageRect.height - margin - footerHeight
+                let textRect = CGRect(
+                    x: margin,
+                    y: contentTop,
+                    width: pageRect.width - margin * 2,
+                    height: max(0, contentBottom - contentTop)
                 )
+                
+                if pageIndex == 0 {
+                    var y = margin + headerHeight
+                    title.draw(
+                        at: CGPoint(x: margin, y: y),
+                        withAttributes: [.font: titleFont, .foregroundColor: PDFBrandColors.navy]
+                    )
+                    y += 28
+                    
+                    let meta = "\(formattedDate(note.createdAt)) · \(note.appLanguage.displayName)"
+                    meta.draw(
+                        at: CGPoint(x: margin, y: y),
+                        withAttributes: [.font: metaFont, .foregroundColor: PDFBrandColors.secondary]
+                    )
+                    y += 24
+                    
+                    let adjustedRect = CGRect(
+                        x: textRect.origin.x,
+                        y: y,
+                        width: textRect.width,
+                        height: max(0, textRect.maxY - y)
+                    )
+                    textStartIndex = drawTextPage(
+                        bodyString,
+                        startingAt: textStartIndex,
+                        in: adjustedRect,
+                        context: context.cgContext
+                    )
+                } else {
+                    textStartIndex = drawTextPage(
+                        bodyString,
+                        startingAt: textStartIndex,
+                        in: textRect,
+                        context: context.cgContext
+                    )
+                }
+                
+                if let branding {
+                    let footer = branding.footerText
+                    footer.draw(
+                        at: CGPoint(x: margin, y: pageRect.height - margin - 6),
+                        withAttributes: [.font: footerFont, .foregroundColor: PDFBrandColors.secondary]
+                    )
+                }
+                
+                pageIndex += 1
+                if pageIndex > 200 { break }
             }
         }
+    }
+    
+    private func drawFullHeader(branding: ExportBranding, pageRect: CGRect, margin: CGFloat) {
+        PDFBrandColors.navy.setFill()
+        UIBezierPath(rect: CGRect(x: 0, y: 0, width: pageRect.width, height: 64)).fill()
+        PDFBrandColors.orange.setFill()
+        UIBezierPath(rect: CGRect(x: 0, y: 64, width: pageRect.width, height: 3)).fill()
+        
+        var textX = margin
+        if let logo = branding.logo {
+            let logoSide: CGFloat = 36
+            drawLogo(logo, in: CGRect(x: margin, y: 14, width: logoSide, height: logoSide))
+            textX = margin + logoSide + 8
+        }
+        
+        let brandAttrs: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 14),
+            .foregroundColor: UIColor.white
+        ]
+        branding.brandName.draw(at: CGPoint(x: textX, y: 18), withAttributes: brandAttrs)
+        
+        if !branding.brandSubtitle.isEmpty {
+            let subtitleAttrs: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 10),
+                .foregroundColor: UIColor.white.withAlphaComponent(0.85)
+            ]
+            branding.brandSubtitle.draw(at: CGPoint(x: textX, y: 38), withAttributes: subtitleAttrs)
+        }
+    }
+    
+    private func drawCompactHeader(branding: ExportBranding, pageRect: CGRect, margin: CGFloat) {
+        PDFBrandColors.orange.setFill()
+        UIBezierPath(rect: CGRect(x: margin, y: 18, width: pageRect.width - margin * 2, height: 1)).fill()
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 9, weight: .semibold),
+            .foregroundColor: PDFBrandColors.secondary
+        ]
+        branding.brandName.draw(at: CGPoint(x: margin, y: 4), withAttributes: attrs)
+    }
+    
+    private func drawLogo(_ logo: UIImage, in rect: CGRect) {
+        let aspect = logo.size.width / max(logo.size.height, 1)
+        var drawRect = rect
+        if aspect > 1 {
+            let height = rect.width / aspect
+            drawRect = CGRect(x: rect.minX, y: rect.midY - height / 2, width: rect.width, height: height)
+        } else {
+            let width = rect.height * aspect
+            drawRect = CGRect(x: rect.midX - width / 2, y: rect.minY, width: width, height: rect.height)
+        }
+        logo.draw(in: drawRect)
+    }
+    
+    private func drawTextPage(
+        _ text: NSAttributedString,
+        startingAt location: Int,
+        in rect: CGRect,
+        context: CGContext
+    ) -> Int {
+        guard rect.height > 0, location < text.length else { return text.length }
+        
+        let range = CFRange(location: location, length: text.length - location)
+        let path = CGPath(rect: rect, transform: nil)
+        let framesetter = CTFramesetterCreateWithAttributedString(text)
+        let frame = CTFramesetterCreateFrame(framesetter, range, path, nil)
+        CTFrameDraw(frame, context)
+        
+        let visible = CTFrameGetVisibleStringRange(frame)
+        return location + visible.length
     }
     
     private func writeExport(content: String, noteId: UUID, extension ext: String) throws -> URL {
@@ -215,4 +330,10 @@ final class ExportService {
         formatter.timeStyle = .short
         return formatter.string(from: date)
     }
+}
+
+private enum PDFBrandColors {
+    static let navy = UIColor(red: 0.078, green: 0.137, blue: 0.239, alpha: 1)
+    static let orange = UIColor(red: 0.961, green: 0.416, blue: 0.039, alpha: 1)
+    static let secondary = UIColor(red: 0.302, green: 0.376, blue: 0.482, alpha: 1)
 }
