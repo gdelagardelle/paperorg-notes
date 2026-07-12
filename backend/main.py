@@ -11,6 +11,11 @@ from pydantic import BaseModel, Field
 from app_store import AppStoreVerificationError, verify_pro_subscription
 from app_store_notifications import handle_signed_notification
 from auth_utils import create_access_token, get_current_user
+from platform_client import (
+    platform_minutes_remaining,
+    report_platform_usage,
+    resolve_provider_key,
+)
 from config import settings
 from database import (
     add_usage_minutes,
@@ -87,7 +92,25 @@ def user_is_pro(user_row) -> bool:
         return False
 
 
+def require_device_token(token: dict[str, Any]) -> dict[str, Any]:
+    """Endpoints that manage local users (usage/verify) are legacy-only;
+    Platform-authenticated clients talk to the Platform for those."""
+    if token.get("source") == "platform":
+        raise HTTPException(
+            status_code=400,
+            detail="This endpoint is served by the Platform for platform-authenticated clients.",
+        )
+    return token
+
+
 def require_pro_user(token: dict[str, Any]):
+    if token.get("source") == "platform":
+        if "notes.pro" not in token.get("ent", []):
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail="Paperorg Pro subscription required.",
+            )
+        return {"id": token["sub"], "platform": True, "bearer": token["bearer"]}
     user = get_or_create_user(token["device_id"])
     if not user_is_pro(user):
         raise HTTPException(
@@ -97,8 +120,16 @@ def require_pro_user(token: dict[str, Any]):
     return user
 
 
-def enforce_usage_limit(user_id: str, audio_minutes: float) -> None:
-    used = get_usage_minutes(user_id)
+def enforce_usage_limit(user, audio_minutes: float) -> None:
+    if isinstance(user, dict) and user.get("platform"):
+        remaining = platform_minutes_remaining(user["bearer"])
+        if remaining is not None and audio_minutes > remaining:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Monthly limit reached. Resets next month.",
+            )
+        return
+    used = get_usage_minutes(user["id"])
     if used + audio_minutes > settings.pro_minutes_per_month:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -109,8 +140,13 @@ def enforce_usage_limit(user_id: str, audio_minutes: float) -> None:
         )
 
 
-def record_usage(user_id: str, audio_minutes: float) -> float:
-    return add_usage_minutes(user_id, max(audio_minutes, 0.1))
+def record_usage(user, audio_minutes: float, provider: str = "unknown") -> None:
+    if isinstance(user, dict) and user.get("platform"):
+        report_platform_usage(
+            user["bearer"], user["id"], max(audio_minutes, 0.1), provider
+        )
+        return
+    add_usage_minutes(user["id"], max(audio_minutes, 0.1))
 
 
 @app.get("/health")
@@ -143,6 +179,7 @@ def register(body: RegisterRequest, request: Request) -> RegisterResponse:
 
 @app.get("/v1/usage", response_model=UsageResponse)
 def usage(token: dict[str, Any] = Depends(get_current_user)) -> UsageResponse:
+    token = require_device_token(token)
     user = get_or_create_user(token["device_id"])
     return build_usage_response(user)
 
@@ -168,6 +205,7 @@ def verify_subscription(
     token: dict[str, Any] = Depends(get_current_user),
 ) -> UsageResponse:
     enforce_rate_limit(request, key_prefix="verify", max_requests=30, window_seconds=3600)
+    token = require_device_token(token)
     user = get_or_create_user(token["device_id"])
 
     if body.product_id != settings.apple_pro_product_id:
@@ -225,6 +263,7 @@ def app_store_webhook(body: AppStoreNotificationRequest, request: Request) -> di
 def dev_activate(token: dict[str, Any] = Depends(get_current_user)) -> UsageResponse:
     if not settings.paperorg_dev_mode:
         raise HTTPException(status_code=404, detail="Not found.")
+    token = require_device_token(token)
     user = get_or_create_user(token["device_id"])
     expires_at = (datetime.now(timezone.utc) + timedelta(days=32)).isoformat()
     set_user_pro(user["id"], True, expires_at)
@@ -248,11 +287,12 @@ async def transcribe_openai(
     token: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
     user = require_pro_user(token)
-    if not settings.openai_api_key:
+    openai_key = resolve_provider_key("openai", settings.openai_api_key)
+    if not openai_key:
         raise HTTPException(status_code=503, detail="OpenAI not configured on server.")
 
     minutes = duration_seconds / 60 if duration_seconds > 0 else 1
-    enforce_usage_limit(user["id"], minutes)
+    enforce_usage_limit(user, minutes)
 
     audio_bytes = await file.read()
     data: dict[str, Any] = {
@@ -268,7 +308,7 @@ async def transcribe_openai(
     async with httpx.AsyncClient(timeout=300) as client:
         response = await client.post(
             "https://api.openai.com/v1/audio/transcriptions",
-            headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+            headers={"Authorization": f"Bearer {openai_key}"},
             data=data,
             files=files,
         )
@@ -276,7 +316,7 @@ async def transcribe_openai(
     if response.status_code >= 400:
         raise HTTPException(status_code=response.status_code, detail=response.text)
 
-    record_usage(user["id"], minutes)
+    record_usage(user, minutes, "openai")
     return response.json()
 
 
@@ -289,11 +329,12 @@ async def transcribe_elevenlabs(
     token: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
     user = require_pro_user(token)
-    if not settings.elevenlabs_api_key:
+    elevenlabs_key = resolve_provider_key("elevenlabs", settings.elevenlabs_api_key)
+    if not elevenlabs_key:
         raise HTTPException(status_code=503, detail="ElevenLabs not configured on server.")
 
     minutes = duration_seconds / 60 if duration_seconds > 0 else 1
-    enforce_usage_limit(user["id"], minutes)
+    enforce_usage_limit(user, minutes)
 
     audio_bytes = await file.read()
     data = {
@@ -307,7 +348,7 @@ async def transcribe_elevenlabs(
     async with httpx.AsyncClient(timeout=300) as client:
         response = await client.post(
             "https://api.elevenlabs.io/v1/speech-to-text",
-            headers={"xi-api-key": settings.elevenlabs_api_key},
+            headers={"xi-api-key": elevenlabs_key},
             data=data,
             files=files,
         )
@@ -315,7 +356,7 @@ async def transcribe_elevenlabs(
     if response.status_code >= 400:
         raise HTTPException(status_code=response.status_code, detail=response.text)
 
-    record_usage(user["id"], minutes)
+    record_usage(user, minutes, "elevenlabs")
     return response.json()
 
 
@@ -330,12 +371,13 @@ async def transcribe_luxasr(
     user = require_pro_user(token)
 
     minutes = duration_seconds / 60 if duration_seconds > 0 else 1
-    enforce_usage_limit(user["id"], minutes)
+    enforce_usage_limit(user, minutes)
 
     audio_bytes = await file.read()
     headers = {"Content-Type": file.content_type or "audio/m4a", "X-Filename": file.filename or "audio.m4a"}
-    if settings.luxasr_api_key:
-        headers["Authorization"] = f"Bearer {settings.luxasr_api_key}"
+    luxasr_key = resolve_provider_key("luxasr", settings.luxasr_api_key)
+    if luxasr_key:
+        headers["Authorization"] = f"Bearer {luxasr_key}"
 
     params = {"language": language, "diarization": "Enabled", "outfmt": "json"}
     if prompt:
@@ -359,7 +401,7 @@ async def transcribe_luxasr(
                 result = await client.get(f"/v3/asr/jobs/{job_id}/result")
                 if result.status_code >= 400:
                     raise HTTPException(status_code=result.status_code, detail=result.text)
-                record_usage(user["id"], minutes)
+                record_usage(user, minutes, "luxasr")
                 return result.json()
             if job_status == "failed":
                 raise HTTPException(status_code=502, detail="LuxASR job failed.")
@@ -374,7 +416,8 @@ async def summarize(
     token: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
     user = require_pro_user(token)
-    if not settings.openai_api_key:
+    openai_key = resolve_provider_key("openai", settings.openai_api_key)
+    if not openai_key:
         raise HTTPException(status_code=503, detail="OpenAI not configured on server.")
 
     system_prompt = (
@@ -413,7 +456,7 @@ risks, nextSteps, peopleMentioned, datesMentioned, importantNumbers, followUpEma
     async with httpx.AsyncClient(timeout=120) as client:
         response = await client.post(
             "https://api.openai.com/v1/chat/completions",
-            headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+            headers={"Authorization": f"Bearer {openai_key}"},
             json=request_body,
         )
 
