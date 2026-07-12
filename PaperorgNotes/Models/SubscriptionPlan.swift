@@ -40,6 +40,66 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         case proExpiresAt = "pro_expires_at"
     }
 
+    init(
+        isPro: Bool,
+        minutesLimit: Int,
+        minutesUsed: Double,
+        minutesRemaining: Double,
+        periodKey: String,
+        proExpiresAt: String?
+    ) {
+        self.isPro = isPro
+        self.minutesLimit = minutesLimit
+        self.minutesUsed = minutesUsed
+        self.minutesRemaining = minutesRemaining
+        self.periodKey = periodKey
+        self.proExpiresAt = proExpiresAt
+    }
+
+    /// Decodes both the legacy Notes backend shape (flat fields, integer
+    /// minutes_limit) and the Paperorg Platform shapes: register/refresh
+    /// nest the same flat fields with float limits, and GET /v1/usage wraps
+    /// them in a `metrics` envelope keyed by metric name.
+    init(from decoder: Decoder) throws {
+        let platform = try decoder.container(keyedBy: PlatformKeys.self)
+        if platform.contains(.metrics) {
+            let metrics = try platform.decode([String: PlatformMetric].self, forKey: .metrics)
+            let minutes = metrics["transcription.minutes"]
+            isPro = try platform.decode(Bool.self, forKey: .isPro)
+            minutesLimit = Int(minutes?.limit ?? 0)
+            minutesUsed = minutes?.used ?? 0
+            minutesRemaining = minutes?.remaining ?? 0
+            periodKey = try platform.decode(String.self, forKey: .periodKey)
+            proExpiresAt = try platform.decodeIfPresent(String.self, forKey: .proExpiresAt)
+            return
+        }
+
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        isPro = try container.decode(Bool.self, forKey: .isPro)
+        if let intLimit = try? container.decode(Int.self, forKey: .minutesLimit) {
+            minutesLimit = intLimit
+        } else {
+            minutesLimit = Int(try container.decode(Double.self, forKey: .minutesLimit))
+        }
+        minutesUsed = try container.decode(Double.self, forKey: .minutesUsed)
+        minutesRemaining = try container.decode(Double.self, forKey: .minutesRemaining)
+        periodKey = try container.decode(String.self, forKey: .periodKey)
+        proExpiresAt = try container.decodeIfPresent(String.self, forKey: .proExpiresAt)
+    }
+
+    private enum PlatformKeys: String, CodingKey {
+        case metrics
+        case isPro = "is_pro"
+        case periodKey = "period_key"
+        case proExpiresAt = "pro_expires_at"
+    }
+
+    private struct PlatformMetric: Decodable {
+        let used: Double
+        let limit: Double?
+        let remaining: Double?
+    }
+
     var usageProgress: Double {
         guard minutesLimit > 0 else { return 0 }
         return min(1, max(0, minutesUsed / Double(minutesLimit)))

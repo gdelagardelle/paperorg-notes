@@ -33,7 +33,8 @@ final class ProBackendClient {
         var request = URLRequest(url: subscriptionBaseURL.appending(path: "/v1/auth/register"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(["device_id": deviceID])
+        // app_id is required by the Platform API and ignored by the legacy backend
+        request.httpBody = try JSONEncoder().encode(["device_id": deviceID, "app_id": "notes"])
 
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
@@ -282,15 +283,18 @@ private struct RegisterResponse: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
-        case isPro = "is_pro"
-        case minutesLimit = "minutes_limit"
-        case minutesUsed = "minutes_used"
+        case usage
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         accessToken = try container.decode(String.self, forKey: .accessToken)
-        usageInfo = try ProUsageInfo(from: decoder)
+        // Platform nests the usage block; the legacy backend inlines it.
+        if container.contains(.usage) {
+            usageInfo = try container.decode(ProUsageInfo.self, forKey: .usage)
+        } else {
+            usageInfo = try ProUsageInfo(from: decoder)
+        }
     }
 }
 
@@ -298,11 +302,14 @@ private struct VerifySubscriptionRequest: Encodable {
     let productID: String
     let transactionID: String?
     let signedTransactionInfo: String?
+    // required by the Platform API, ignored by the legacy backend
+    let appID = "notes"
 
     enum CodingKeys: String, CodingKey {
         case productID = "product_id"
         case transactionID = "transaction_id"
         case signedTransactionInfo = "signed_transaction_info"
+        case appID = "app_id"
     }
 }
 
