@@ -85,6 +85,14 @@ final class ProBackendClient {
     }
 
     func devActivatePro() async throws -> ProUsageInfo {
+        if settings.usePlatformAuth {
+            return try await verifySubscription(
+                productID: SubscriptionProduct.proMonthly,
+                transactionID: nil,
+                signedTransactionInfo: nil
+            )
+        }
+
         try await ensureRegistered()
         var request = URLRequest(url: baseURL.appending(path: "/v1/subscription/dev-activate"))
         request.httpMethod = "POST"

@@ -185,12 +185,21 @@ struct PaywallView: View {
                     }
                     .buttonStyle(SecondaryButtonStyle())
 
+                    if !environment.subscriptionService.isProActive {
+                        Button("Refresh Status") {
+                            Task { await environment.subscriptionService.refreshEntitlements() }
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+                    }
+
                     #if DEBUG
                     Button("Activate Dev Pro (Simulator)") {
                         Task {
                             await environment.subscriptionService.activateDevPro()
-                            onCompleted?()
-                            dismiss()
+                            if environment.subscriptionService.isProActive {
+                                onCompleted?()
+                                dismiss()
+                            }
                         }
                     }
                     .buttonStyle(SecondaryButtonStyle())
@@ -213,6 +222,7 @@ struct PaywallView: View {
             .task {
                 await environment.subscriptionService.loadProducts()
                 try? await environment.proBackendClient.ensureRegistered()
+                await environment.subscriptionService.refreshEntitlements()
             }
         }
     }

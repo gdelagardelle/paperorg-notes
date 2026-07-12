@@ -195,7 +195,10 @@ final class SettingsService {
     }
 
     var usesProBackend: Bool {
-        selectedPlan == .pro && cachedProUsage?.isPro == true
+        if usePlatformAuth {
+            return cachedProUsage?.isPro == true
+        }
+        return selectedPlan == .pro && cachedProUsage?.isPro == true
     }
 
     var freeVocabularyLimit: Int { 20 }

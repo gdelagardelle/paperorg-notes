@@ -41,9 +41,17 @@ final class SubscriptionService {
 
     func refreshEntitlements() async {
         do {
-            _ = try await proBackend.refreshUsage()
+            let usage = try await proBackend.refreshUsage()
+            applyUsageEntitlements(usage)
         } catch {
             lastError = error.localizedDescription
+        }
+    }
+
+    private func applyUsageEntitlements(_ usage: ProUsageInfo) {
+        if usage.isPro {
+            settings.selectedPlan = .pro
+            settings.applyProEntitlements()
         }
     }
 
@@ -97,9 +105,8 @@ final class SubscriptionService {
     #if DEBUG
     func activateDevPro() async {
         do {
-            _ = try await proBackend.devActivatePro()
-            settings.selectedPlan = .pro
-            settings.applyProEntitlements()
+            let usage = try await proBackend.devActivatePro()
+            applyUsageEntitlements(usage)
         } catch {
             lastError = error.localizedDescription
         }
