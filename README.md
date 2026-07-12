@@ -12,6 +12,32 @@ A production-grade native iOS app for voice recording, multilingual transcriptio
 - **Export & email** — TXT, Markdown, PDF, RTF; Mail compose with attachments
 - **Privacy/GDPR** — consent flows, data export, delete all, Keychain API keys
 
+## Free vs Paperorg Pro
+
+| | **Free** | **Pro** |
+|---|----------|---------|
+| Price | €0 | Subscription |
+| API keys | Your OpenAI + ElevenLabs (BYOK) | Included — no setup |
+| Transcription | Direct to providers | Via Paperorg backend |
+| Minutes | Unlimited (you pay providers) | 600 min/month included |
+| Vocabulary | 20 custom terms | Unlimited |
+| Audio retention | Your settings | 90 days included |
+
+### Free plan
+Launch the app → **Settings → Transcription** → add OpenAI key (required) and ElevenLabs (recommended for Lëtzebuergesch).
+
+### Pro plan
+Requires the [Paperorg Pro backend](backend/README.md). For local development:
+
+```bash
+chmod +x Scripts/start-backend.sh
+./Scripts/start-backend.sh
+```
+
+In the app: choose **Paperorg Pro** → subscribe (or **Activate Dev Pro** in Debug builds).
+
+Product ID: `com.paperorg.notes.pro.monthly`
+
 ## Supported Languages
 
 | Language | Code | Primary Provider |
@@ -27,7 +53,7 @@ A production-grade native iOS app for voice recording, multilingual transcriptio
 - Xcode 16+
 - iOS 17.0+
 - Swift 5.9+
-- API keys for transcription providers (BYOK model)
+- API keys for transcription providers (**Free** BYOK) or **Pro** subscription + backend
 
 ## Getting Started
 

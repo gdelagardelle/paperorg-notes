@@ -14,6 +14,8 @@ struct RootView: View {
         Group {
             if !settings.hasAcceptedPrivacyPolicy {
                 PrivacyConsentView()
+            } else if !settings.hasCompletedPlanSelection {
+                PlanSelectionView()
             } else if settings.faceIDEnabled && !isUnlocked {
                 FaceIDLockView(isUnlocked: $isUnlocked)
             } else {
@@ -21,6 +23,9 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(nil)
+        .task {
+            await environment.subscriptionService.refreshEntitlements()
+        }
         .onAppear(perform: recoverInterruptedProcessing)
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if settings.faceIDEnabled, oldPhase == .active, newPhase != .active {
@@ -60,7 +65,7 @@ struct RootView: View {
 
         environment.storageService.purgeExpiredAudio(
             notes: notes,
-            retentionDays: environment.settingsService.deleteAudioAfterDays
+            retentionDays: environment.settingsService.effectiveAudioRetentionDays
         )
 
         do {

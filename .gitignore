@@ -24,3 +24,8 @@ Recordings/
 
 # Benchmark output
 benchmark_results.csv
+
+# Backend
+backend/.venv/
+backend/paperorg_pro.db
+backend/.env

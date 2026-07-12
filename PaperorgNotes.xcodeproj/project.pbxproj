@@ -20,7 +20,9 @@
 		3A9C435B67B50413336FBEA5 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A087642002F869CCB02526 /* AppTheme.swift */; };
 		3AB2E53851565A8E0772D71F /* Transcript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3405E9F6563295A3256E4763 /* Transcript.swift */; };
 		43D03C3A017A47CA5DE86303 /* PaperorgNotesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D682905B816444B9E87CD2FC /* PaperorgNotesApp.swift */; };
+		45A23803A98BFB53B9D59593 /* ProTranscriptionRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5F341369B3D0BDA7654913 /* ProTranscriptionRouter.swift */; };
 		47EE42893ACF727B1C51C409 /* EncryptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA483298C7DA2060170BD821 /* EncryptionService.swift */; };
+		4E5DF63F68F6DDE96E4CE9F1 /* PaperorgPro.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 26A44276A0E661C5F8BAD71E /* PaperorgPro.storekit */; };
 		4F50EF1F0AFE4ED640D08435 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */; };
 		517509262D50F3108147C612 /* AppleSpeechProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAB3995B0D7080BE3AFC20C7 /* AppleSpeechProvider.swift */; };
 		51E2E8EC0F74C349152E75BF /* ProcessRecordingUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5243CB5415532B47C9904D /* ProcessRecordingUseCase.swift */; };
@@ -35,10 +37,12 @@
 		7A9394B7E842956AA8C74F9A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 769C64C50D036C001E300F1F /* LaunchScreen.storyboard */; };
 		84629E42036542CD62B474F2 /* TranscriptTextFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */; };
 		86D9F89F6DE0D92FF1189E16 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E44CE8EB8204467D2F453A2 /* AudioPlaybackService.swift */; };
+		879EB14C132EDB84188AD160 /* PlanSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */; };
 		87C1DF8AFD2418DBAF9B3FC2 /* SettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9824E63EEC45F2200D535A2F /* SettingsService.swift */; };
 		958031920000A50C401A194D /* RecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C32F8A10B9DF8469B8745043 /* RecordView.swift */; };
 		96EE2A629E724164161E4373 /* PaperorgNotesWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829314BC54DCB82DDAC7E449 /* PaperorgNotesWidgetBundle.swift */; };
 		99E2BC589319777947514DAF /* OpenAITranscriptionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */; };
+		AA416AB7CAD44329FD134834 /* SubscriptionPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */; };
 		AD3AD30C810BF4155A7C4FEC /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D34CD6703E1B9404B252C40 /* Enums.swift */; };
 		ADC9EA453F99A4C9066C2A90 /* PrivacyConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4CCE7823C18246EF50175B /* PrivacyConsentView.swift */; };
 		B2A3392EF299E2B52340BD1A /* NotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B6B8DF7F1EC58D388ACDC88 /* NotesListView.swift */; };
@@ -51,7 +55,9 @@
 		C9E1C416FB7F69A7A840C6EA /* StartRecordingIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C627A5CB7405AD3E454F04 /* StartRecordingIntent.swift */; };
 		D29B614761129438BD9C8245 /* PaperorgNotesWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 74C446E4F10FD42ACD134C39 /* PaperorgNotesWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D4B680849B70B937681292C5 /* EmailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E64381808162838B2D811BC /* EmailService.swift */; };
+		D85773C5F00AC0F88A50EE83 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DF048A8D3EF11339C56A9C /* SubscriptionService.swift */; };
 		DD2804AF339F8F6A532787B9 /* PaperorgNotesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93893A2E19AAAF5CE666C272 /* PaperorgNotesTests.swift */; };
+		E06CE75A5D7421590AF23B8A /* ProBackendClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5D04D3AEBE5A039C1C1BBD /* ProBackendClient.swift */; };
 		EACCB259CA28F2C218B9F54C /* NoteOrganizerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38212408D78D6D74FA32DCC5 /* NoteOrganizerSection.swift */; };
 		F99C6448308444DFDEA91CAC /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A0D92CB81A995CD2A47F03 /* SearchView.swift */; };
 		FF5EB0AEA679DA97A9DEC81D /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A23290AE1D4C2DF9E4BEA45 /* StorageService.swift */; };
@@ -96,8 +102,12 @@
 		0C9BD304B8AD3F3CF47BD303 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		10F451B9CE45F448ED5357EA /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 		111EBE0439A2EDDB89A24C20 /* SummaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryService.swift; sourceTree = "<group>"; };
+		15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionPlan.swift; sourceTree = "<group>"; };
 		182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionProvider.swift; sourceTree = "<group>"; };
 		1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteNoteUseCase.swift; sourceTree = "<group>"; };
+		24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanSelectionView.swift; sourceTree = "<group>"; };
+		26A44276A0E661C5F8BAD71E /* PaperorgPro.storekit */ = {isa = PBXFileReference; path = PaperorgPro.storekit; sourceTree = "<group>"; };
+		2A5F341369B3D0BDA7654913 /* ProTranscriptionRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProTranscriptionRouter.swift; sourceTree = "<group>"; };
 		2A7A286993897E5DE6FB106C /* AppDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDesignSystem.swift; sourceTree = "<group>"; };
 		2BF5DBF0A62BECF4981A7BE7 /* ReviewBeforeSendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewBeforeSendView.swift; sourceTree = "<group>"; };
 		2C4CCE7823C18246EF50175B /* PrivacyConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyConsentView.swift; sourceTree = "<group>"; };
@@ -114,6 +124,7 @@
 		68B74C5620F1B13BDE12A809 /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
 		68BDFF716C1EC2A56F0A160E /* OutputTypePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputTypePicker.swift; sourceTree = "<group>"; };
 		6C0D2034A23A4CA8E571D5F4 /* SMTPEmailDeliveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMTPEmailDeliveryService.swift; sourceTree = "<group>"; };
+		6D5D04D3AEBE5A039C1C1BBD /* ProBackendClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProBackendClient.swift; sourceTree = "<group>"; };
 		6E44CE8EB8204467D2F453A2 /* AudioPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlaybackService.swift; sourceTree = "<group>"; };
 		74C446E4F10FD42ACD134C39 /* PaperorgNotesWidgetExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PaperorgNotesWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		769C64C50D036C001E300F1F /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -142,6 +153,7 @@
 		CF1762B9D2A80DF2BDFFD225 /* RecordingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingService.swift; sourceTree = "<group>"; };
 		D2CB1C8B9F80F34734755D2C /* QualityPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualityPipeline.swift; sourceTree = "<group>"; };
 		D682905B816444B9E87CD2FC /* PaperorgNotesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesApp.swift; sourceTree = "<group>"; };
+		D6DF048A8D3EF11339C56A9C /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
 		DE0C06053A99804E1AA8110D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E5C627A5CB7405AD3E454F04 /* StartRecordingIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartRecordingIntent.swift; sourceTree = "<group>"; };
 		FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptTextFormatter.swift; sourceTree = "<group>"; };
@@ -156,6 +168,15 @@
 				E82200EAA48E7B03AEBBB41E /* Providers */,
 			);
 			path = Transcription;
+			sourceTree = "<group>";
+		};
+		122E13C83916009815D75B91 /* Backend */ = {
+			isa = PBXGroup;
+			children = (
+				6D5D04D3AEBE5A039C1C1BBD /* ProBackendClient.swift */,
+				2A5F341369B3D0BDA7654913 /* ProTranscriptionRouter.swift */,
+			);
+			path = Backend;
 			sourceTree = "<group>";
 		};
 		14A1EB76882F063FC0A728D5 /* Export */ = {
@@ -188,11 +209,13 @@
 		25EE11E266B4BB7CCD82E1F3 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				122E13C83916009815D75B91 /* Backend */,
 				3AA2CE636883B8AF263721D1 /* Email */,
 				14A1EB76882F063FC0A728D5 /* Export */,
 				909DA3D8B92FBD36BB74CAD5 /* Recording */,
 				358E0A97B38B4C6403F0B30D /* Settings */,
 				1A1F1CEAAB7521ABF392EF76 /* Storage */,
+				360C28AB8DD6643ACDF01D6B /* Subscription */,
 				E3212F9B7A1A9CC921567918 /* Summary */,
 				0774A3172AF416539AF8BD9B /* Transcription */,
 			);
@@ -226,6 +249,14 @@
 				9824E63EEC45F2200D535A2F /* SettingsService.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		360C28AB8DD6643ACDF01D6B /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				D6DF048A8D3EF11339C56A9C /* SubscriptionService.swift */,
+			);
+			path = Subscription;
 			sourceTree = "<group>";
 		};
 		36598FC936411D3B85F40BF9 /* Components */ = {
@@ -268,6 +299,7 @@
 				73D8A1100EC4314B21F6CA9E /* Record */,
 				52AA8DF15632FB7EC7FDF6AE /* Search */,
 				33D5FF2B176221F2ECAA8223 /* Settings */,
+				CCEBE183B0E312625328C1B2 /* Subscription */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -369,6 +401,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		CCEBE183B0E312625328C1B2 /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */,
+			);
+			path = Subscription;
+			sourceTree = "<group>";
+		};
 		CECE5466C3B7E0A7B2B9FEDF /* PaperorgNotes */ = {
 			isa = PBXGroup;
 			children = (
@@ -389,6 +429,7 @@
 			children = (
 				9D34CD6703E1B9404B252C40 /* Enums.swift */,
 				76B3C01618A0601C86CA1CF7 /* Note.swift */,
+				15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */,
 				3405E9F6563295A3256E4763 /* Transcript.swift */,
 			);
 			path = Models;
@@ -420,6 +461,7 @@
 				A11A5FEB0631867ABFC14D54 /* Info.plist */,
 				769C64C50D036C001E300F1F /* LaunchScreen.storyboard */,
 				923CEA82446856AA18906690 /* PaperorgNotes.entitlements */,
+				26A44276A0E661C5F8BAD71E /* PaperorgPro.storekit */,
 				073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
@@ -534,6 +576,7 @@
 			files = (
 				FF98B44D485C5AE881B077BE /* Assets.xcassets in Resources */,
 				7A9394B7E842956AA8C74F9A /* LaunchScreen.storyboard in Resources */,
+				4E5DF63F68F6DDE96E4CE9F1 /* PaperorgPro.storekit in Resources */,
 				4F50EF1F0AFE4ED640D08435 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -570,7 +613,10 @@
 				99E2BC589319777947514DAF /* OpenAITranscriptionProvider.swift in Sources */,
 				B7398D2BD5EE2B7DC5384443 /* OutputTypePicker.swift in Sources */,
 				43D03C3A017A47CA5DE86303 /* PaperorgNotesApp.swift in Sources */,
+				879EB14C132EDB84188AD160 /* PlanSelectionView.swift in Sources */,
 				ADC9EA453F99A4C9066C2A90 /* PrivacyConsentView.swift in Sources */,
+				E06CE75A5D7421590AF23B8A /* ProBackendClient.swift in Sources */,
+				45A23803A98BFB53B9D59593 /* ProTranscriptionRouter.swift in Sources */,
 				51E2E8EC0F74C349152E75BF /* ProcessRecordingUseCase.swift in Sources */,
 				5659B8363936129D5E6448BA /* QualityPipeline.swift in Sources */,
 				958031920000A50C401A194D /* RecordView.swift in Sources */,
@@ -583,6 +629,8 @@
 				C9E1C416FB7F69A7A840C6EA /* StartRecordingIntent.swift in Sources */,
 				FF5EB0AEA679DA97A9DEC81D /* StorageService.swift in Sources */,
 				5AF12EEBB8AC0DC80C04A015 /* StoreRecoveryView.swift in Sources */,
+				AA416AB7CAD44329FD134834 /* SubscriptionPlan.swift in Sources */,
+				D85773C5F00AC0F88A50EE83 /* SubscriptionService.swift in Sources */,
 				184523BFC4362034B7A83B56 /* SummaryService.swift in Sources */,
 				3AB2E53851565A8E0772D71F /* Transcript.swift in Sources */,
 				84629E42036542CD62B474F2 /* TranscriptTextFormatter.swift in Sources */,

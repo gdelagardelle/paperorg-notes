@@ -4,10 +4,12 @@ import Foundation
 final class SummaryService {
     private let settings: SettingsService
     private let keychain: KeychainService
+    private let proBackend: ProBackendClient
     
-    init(settings: SettingsService, keychain: KeychainService) {
+    init(settings: SettingsService, keychain: KeychainService, proBackend: ProBackendClient) {
         self.settings = settings
         self.keychain = keychain
+        self.proBackend = proBackend
     }
     
     func generate(
@@ -17,6 +19,14 @@ final class SummaryService {
     ) async throws -> SummaryGeneration {
         if outputType == .rawTranscript {
             return .notRequested
+        }
+
+        if settings.usesProBackend {
+            return try await generateViaProBackend(
+                transcript: transcript,
+                outputType: outputType,
+                language: language
+            )
         }
         
         guard settings.isProviderConsented(.openai),
@@ -76,6 +86,42 @@ final class SummaryService {
             followUpEmailDraft: output.followUpEmailDraft,
             generatedAt: .now
         ))
+    }
+
+    private func generateViaProBackend(
+        transcript: String,
+        outputType: OutputType,
+        language: AppLanguage
+    ) async throws -> SummaryGeneration {
+        do {
+            let data = try await proBackend.summarize(
+                transcript: transcript,
+                outputType: outputType,
+                language: language,
+                summaryLength: settings.summaryLength
+            )
+            var output = try JSONDecoder().decode(StructuredOutputDTO.self, from: data)
+            output = sanitize(output, transcript: transcript)
+            return .generated(StructuredOutput(
+                outputType: outputType,
+                title: output.title,
+                shortSummary: output.shortSummary,
+                detailedSummary: output.detailedSummary,
+                keyIdeas: output.keyIdeas,
+                decisions: output.decisions,
+                actionItems: output.actionItems.map { ActionItem(text: $0.text, assignee: $0.assignee, dueDate: $0.dueDate) },
+                openQuestions: output.openQuestions,
+                risks: output.risks,
+                nextSteps: output.nextSteps,
+                peopleMentioned: output.peopleMentioned,
+                datesMentioned: output.datesMentioned,
+                importantNumbers: output.importantNumbers,
+                followUpEmailDraft: output.followUpEmailDraft,
+                generatedAt: .now
+            ))
+        } catch {
+            return .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
+        }
     }
     
     private var systemPrompt: String {

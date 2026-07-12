@@ -15,6 +15,7 @@ struct RecordView: View {
     @State private var pulseAnimation = false
     @State private var showQuickRecordQueued = false
     @State private var autoEmailError: String?
+    @State private var showPaywall = false
     
     private var isRecordingSession: Bool {
         environment.recordingService.state == .recording || environment.recordingService.state == .paused
@@ -82,6 +83,9 @@ struct RecordView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(autoEmailError ?? "")
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
             }
         }
     }
@@ -240,6 +244,18 @@ struct RecordView: View {
     }
     
     private func startRecording() {
+        if environment.settingsService.selectedPlan == .pro,
+           !environment.subscriptionService.isProActive {
+            showPaywall = true
+            return
+        }
+
+        if !environment.settingsService.usesProBackend,
+           environment.settingsService.openAIAPIKey?.isEmpty != false {
+            processingError = "Add your OpenAI API key in Settings → Transcription, or upgrade to Paperorg Pro."
+            return
+        }
+
         let noteId = UUID()
         
         Task {

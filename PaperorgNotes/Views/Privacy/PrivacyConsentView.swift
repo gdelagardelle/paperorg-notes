@@ -16,7 +16,7 @@ struct PrivacyConsentView: View {
                 Text("Your Privacy Matters")
                     .font(.largeTitle.bold())
                 
-                Text("Paperorg Notes records audio on your device. When you transcribe, audio may be sent to third-party services you configure (OpenAI, ElevenLabs, LuxASR).")
+                Text("Paperorg Notes records audio on your device. On the Free plan, transcription uses your own OpenAI and ElevenLabs keys. Paperorg Pro includes cloud transcription with no keys required.")
                     .foregroundStyle(AppTheme.textSecondary)
                 
                 VStack(alignment: .leading, spacing: 12) {

@@ -38,6 +38,8 @@ targets:
           - audio
         UILaunchStoryboardName: LaunchScreen
         ITSAppUsesNonExemptEncryption: false
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         CFBundleURLTypes:
           - CFBundleURLName: com.paperorg.notes
             CFBundleURLSchemes:

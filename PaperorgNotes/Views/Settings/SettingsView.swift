@@ -17,12 +17,34 @@ struct SettingsView: View {
     @State private var gdprExportURL: URL?
     @State private var showGDPRExportShare = false
     @State private var gdprExportError: String?
+    @State private var showPaywall = false
     
     var body: some View {
         @Bindable var settings = environment.settingsService
         
         NavigationStack {
             Form {
+                Section("Paperorg Pro") {
+                    if environment.subscriptionService.isProActive {
+                        Label("Pro subscription active", systemImage: "checkmark.seal.fill")
+                            .foregroundStyle(AppTheme.accent)
+                        if let usage = environment.subscriptionService.usageInfo {
+                            Text("\(Int(usage.minutesRemaining)) of \(usage.minutesLimit) minutes remaining this month")
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.textSecondary)
+                        }
+                        SettingsSectionHint(text: "Transcription and summaries are included. No API keys required.")
+                    } else if settings.selectedPlan == .pro {
+                        Text("Pro selected — finish subscription to unlock included transcription.")
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.error)
+                        Button("Subscribe to Pro") { showPaywall = true }
+                    } else {
+                        SettingsSectionHint(text: "Free plan uses your own OpenAI and ElevenLabs API keys.")
+                        Button("Upgrade to Pro") { showPaywall = true }
+                    }
+                }
+
                 Section("Language") {
                     Picker("Default Language", selection: $settings.defaultLanguage) {
                         ForEach(AppLanguage.allCases) { lang in
@@ -31,49 +53,60 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section("Transcription") {
-                    SecureField("OpenAI API Key", text: $openAIKey)
-                        .textContentType(.password)
-                        .onChange(of: openAIKey) { _, val in
-                            settings.openAIAPIKey = val.isEmpty ? nil : val
-                        }
-                    
-                    SecureField("ElevenLabs API Key", text: $elevenLabsKey)
-                        .textContentType(.password)
-                        .onChange(of: elevenLabsKey) { _, val in
-                            settings.elevenLabsAPIKey = val.isEmpty ? nil : val
-                        }
-                    
-                    SecureField("LuxASR API Key (optional)", text: $luxASRKey)
-                        .textContentType(.password)
-                        .onChange(of: luxASRKey) { _, val in
-                            settings.luxASRAPIKey = val.isEmpty ? nil : val
-                        }
-                    
-                    ForEach(ProviderID.allCases, id: \.self) { provider in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(provider.displayName)
-                                    .font(.subheadline)
-                                Text(provider.sendsAudioOffDevice ? "Sends audio off-device" : "On-device only")
-                                    .font(.caption)
-                                    .foregroundStyle(AppTheme.textSecondary)
+                Section {
+                    if environment.subscriptionService.isProActive {
+                        SettingsSectionHint(text: "Your Pro plan includes cloud transcription through Paperorg's secure backend.")
+                    } else {
+                        SettingsSectionHint(text: "Free plan: add your OpenAI API key below (required). ElevenLabs is recommended for Lëtzebuergesch.")
+                    }
+
+                    if !environment.subscriptionService.isProActive {
+                        SecureField("OpenAI API Key", text: $openAIKey)
+                            .textContentType(.password)
+                            .onChange(of: openAIKey) { _, val in
+                                settings.openAIAPIKey = val.isEmpty ? nil : val
                             }
-                            Spacer()
-                            if settings.isProviderConsented(provider) {
-                                Button("Revoke") {
-                                    settings.revokeProviderConsent(provider)
+                        
+                        SecureField("ElevenLabs API Key", text: $elevenLabsKey)
+                            .textContentType(.password)
+                            .onChange(of: elevenLabsKey) { _, val in
+                                settings.elevenLabsAPIKey = val.isEmpty ? nil : val
+                            }
+                        
+                        SecureField("LuxASR API Key (optional)", text: $luxASRKey)
+                            .textContentType(.password)
+                            .onChange(of: luxASRKey) { _, val in
+                                settings.luxASRAPIKey = val.isEmpty ? nil : val
+                            }
+                    }
+                    if !environment.subscriptionService.isProActive {
+                        ForEach(ProviderID.allCases, id: \.self) { provider in
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(provider.displayName)
+                                        .font(.subheadline)
+                                    Text(provider.sendsAudioOffDevice ? "Sends audio off-device" : "On-device only")
+                                        .font(.caption)
+                                        .foregroundStyle(AppTheme.textSecondary)
                                 }
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.error)
-                            } else {
-                                Button("Consent") {
-                                    showProviderConsent = provider
+                                Spacer()
+                                if settings.isProviderConsented(provider) {
+                                    Button("Revoke") {
+                                        settings.revokeProviderConsent(provider)
+                                    }
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.error)
+                                } else {
+                                    Button("Consent") {
+                                        showProviderConsent = provider
+                                    }
+                                    .font(.caption)
                                 }
-                                .font(.caption)
                             }
                         }
                     }
+                } header: {
+                    Text("Transcription")
                 }
                 
                 Section {
@@ -83,6 +116,11 @@ struct SettingsView: View {
                         Text("Names, brands, and terms to improve transcription accuracy.")
                             .font(.caption)
                             .foregroundStyle(AppTheme.textSecondary)
+                        if !environment.subscriptionService.isProActive {
+                            Text("Free plan: up to \(settings.freeVocabularyLimit) terms. Pro includes unlimited vocabulary.")
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.textSecondary)
+                        }
                     }
                     
                     ForEach(settings.customVocabulary, id: \.self) { term in
@@ -104,7 +142,11 @@ struct SettingsView: View {
                             settings.addVocabularyTerm(newVocabularyTerm)
                             newVocabularyTerm = ""
                         }
-                        .disabled(newVocabularyTerm.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .disabled(
+                            newVocabularyTerm.trimmingCharacters(in: .whitespaces).isEmpty
+                            || (!environment.subscriptionService.isProActive
+                                && settings.customVocabulary.count >= settings.freeVocabularyLimit)
+                        )
                     }
                 } header: {
                     Text("Vocabulary")
@@ -268,7 +310,7 @@ struct SettingsView: View {
                 loadKeys()
                 environment.storageService.purgeExpiredAudio(
                     notes: notes,
-                    retentionDays: environment.settingsService.deleteAudioAfterDays
+                    retentionDays: environment.settingsService.effectiveAudioRetentionDays
                 )
                 try? modelContext.save()
             }
@@ -284,6 +326,9 @@ struct SettingsView: View {
             }
             .sheet(item: $showProviderConsent) { provider in
                 ProviderConsentView(provider: provider)
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
             }
             .sheet(isPresented: $showGDPRExportShare) {
                 if let gdprExportURL {

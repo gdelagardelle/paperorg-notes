@@ -44,10 +44,12 @@ final class ProviderRegistry {
     ]
     
     let settings: SettingsService
+    let proBackend: ProBackendClient
     private let providers: [String: any TranscriptionProvider]
     
-    init(settings: SettingsService, keychain: KeychainService) {
+    init(settings: SettingsService, keychain: KeychainService, proBackend: ProBackendClient) {
         self.settings = settings
+        self.proBackend = proBackend
         self.providers = [
             ProviderID.luxasr.rawValue: LuxASRProvider(),
             ProviderID.openai.rawValue: OpenAITranscriptionProvider(),
@@ -71,12 +73,18 @@ final class ProviderRegistry {
 @MainActor
 final class TranscriptionOrchestrator {
     let registry: ProviderRegistry
+    private let proRouter: ProTranscriptionRouter
     
     init(registry: ProviderRegistry) {
         self.registry = registry
+        self.proRouter = ProTranscriptionRouter(registry: registry)
     }
     
     func transcribe(_ request: TranscriptionRequest) async throws -> TranscriptionResult {
+        if registry.settings.usesProBackend {
+            return try await proRouter.transcribe(request)
+        }
+
         let providers = registry.orderedProviders(for: request.language)
         guard !providers.isEmpty else {
             throw TranscriptionError.noProviderAvailable(request.language)
@@ -133,6 +141,10 @@ final class TranscriptionOrchestrator {
         request: TranscriptionRequest,
         excludingProvider: String
     ) async throws -> TranscriptionResult {
+        if registry.settings.usesProBackend {
+            return try await proRouter.transcribe(request)
+        }
+
         let providers = registry.orderedProviders(for: request.language)
             .filter { $0.identifier != excludingProvider }
         

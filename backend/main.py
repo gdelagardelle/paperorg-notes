@@ -1,0 +1,380 @@
+import asyncio
+import json
+import uuid
+from datetime import datetime, timedelta, timezone
+from typing import Any, Optional
+
+import httpx
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, status
+from pydantic import BaseModel, Field
+
+from auth_utils import create_access_token, get_current_user
+from config import settings
+from database import (
+    add_usage_minutes,
+    get_or_create_user,
+    get_usage_minutes,
+    init_db,
+    log_subscription_event,
+    period_key,
+    set_user_pro,
+)
+
+app = FastAPI(title="Paperorg Notes Pro API", version="1.0.0")
+
+
+class RegisterRequest(BaseModel):
+    device_id: str = Field(min_length=8, max_length=128)
+
+
+class RegisterResponse(BaseModel):
+    access_token: str
+    user_id: str
+    is_pro: bool
+    minutes_limit: int
+    minutes_used: float
+
+
+class UsageResponse(BaseModel):
+    is_pro: bool
+    minutes_limit: int
+    minutes_used: float
+    minutes_remaining: float
+    period_key: str
+    pro_expires_at: Optional[str] = None
+
+
+class VerifySubscriptionRequest(BaseModel):
+    product_id: str
+    transaction_id: Optional[str] = None
+    signed_transaction_info: Optional[str] = None
+
+
+class SummarizeRequest(BaseModel):
+    transcript: str
+    output_type: str
+    language: str
+    summary_length: str = "detailed"
+
+
+@app.on_event("startup")
+def startup() -> None:
+    init_db()
+
+
+def user_is_pro(user_row) -> bool:
+    if not user_row["is_pro"]:
+        return False
+    expires = user_row["pro_expires_at"]
+    if not expires:
+        return True
+    try:
+        expiry = datetime.fromisoformat(expires)
+        if expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=timezone.utc)
+        return expiry > datetime.now(timezone.utc)
+    except ValueError:
+        return False
+
+
+def require_pro_user(token: dict[str, Any]):
+    user = get_or_create_user(token["device_id"])
+    if not user_is_pro(user):
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Paperorg Pro subscription required.",
+        )
+    return user
+
+
+def enforce_usage_limit(user_id: str, audio_minutes: float) -> None:
+    used = get_usage_minutes(user_id)
+    if used + audio_minutes > settings.pro_minutes_per_month:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                f"Monthly limit reached ({settings.pro_minutes_per_month} minutes). "
+                "Resets next month or upgrade when available."
+            ),
+        )
+
+
+def record_usage(user_id: str, audio_minutes: float) -> float:
+    return add_usage_minutes(user_id, max(audio_minutes, 0.1))
+
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok", "service": "paperorg-pro"}
+
+
+@app.post("/v1/auth/register", response_model=RegisterResponse)
+def register(body: RegisterRequest) -> RegisterResponse:
+    user = get_or_create_user(body.device_id)
+    token = create_access_token(user["id"], user["device_id"])
+    minutes_used = get_usage_minutes(user["id"])
+    return RegisterResponse(
+        access_token=token,
+        user_id=user["id"],
+        is_pro=user_is_pro(user),
+        minutes_limit=settings.pro_minutes_per_month if user_is_pro(user) else 0,
+        minutes_used=minutes_used,
+    )
+
+
+@app.get("/v1/usage", response_model=UsageResponse)
+def usage(token: dict[str, Any] = Depends(get_current_user)) -> UsageResponse:
+    user = get_or_create_user(token["device_id"])
+    is_pro = user_is_pro(user)
+    used = get_usage_minutes(user["id"])
+    limit = settings.pro_minutes_per_month if is_pro else 0
+    return UsageResponse(
+        is_pro=is_pro,
+        minutes_limit=limit,
+        minutes_used=used,
+        minutes_remaining=max(0.0, limit - used),
+        period_key=period_key(),
+        pro_expires_at=user["pro_expires_at"],
+    )
+
+
+@app.post("/v1/subscription/verify", response_model=UsageResponse)
+def verify_subscription(
+    body: VerifySubscriptionRequest,
+    token: dict[str, Any] = Depends(get_current_user),
+) -> UsageResponse:
+    user = get_or_create_user(token["device_id"])
+
+    if body.product_id != settings.apple_pro_product_id:
+        raise HTTPException(status_code=400, detail="Unknown product.")
+
+    # Production: verify signed_transaction_info with App Store Server API.
+    # Dev/sandbox: accept transaction when dev mode is enabled.
+    if not settings.paperorg_dev_mode and not body.signed_transaction_info:
+        raise HTTPException(
+            status_code=400,
+            detail="Signed transaction required in production.",
+        )
+
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=32)).isoformat()
+    set_user_pro(user["id"], True, expires_at)
+    log_subscription_event(
+        user["id"],
+        body.product_id,
+        body.transaction_id,
+        "verified",
+    )
+    user = get_or_create_user(token["device_id"])
+    used = get_usage_minutes(user["id"])
+    return UsageResponse(
+        is_pro=True,
+        minutes_limit=settings.pro_minutes_per_month,
+        minutes_used=used,
+        minutes_remaining=max(0.0, settings.pro_minutes_per_month - used),
+        period_key=period_key(),
+        pro_expires_at=user["pro_expires_at"],
+    )
+
+
+@app.post("/v1/subscription/dev-activate", response_model=UsageResponse)
+def dev_activate(token: dict[str, Any] = Depends(get_current_user)) -> UsageResponse:
+    if not settings.paperorg_dev_mode:
+        raise HTTPException(status_code=404, detail="Not found.")
+    user = get_or_create_user(token["device_id"])
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=32)).isoformat()
+    set_user_pro(user["id"], True, expires_at)
+    used = get_usage_minutes(user["id"])
+    return UsageResponse(
+        is_pro=True,
+        minutes_limit=settings.pro_minutes_per_month,
+        minutes_used=used,
+        minutes_remaining=max(0.0, settings.pro_minutes_per_month - used),
+        period_key=period_key(),
+        pro_expires_at=expires_at,
+    )
+
+
+@app.post("/v1/transcribe/openai")
+async def transcribe_openai(
+    file: UploadFile = File(...),
+    language: str = Form("en"),
+    prompt: Optional[str] = Form(None),
+    duration_seconds: float = Form(0),
+    token: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    user = require_pro_user(token)
+    if not settings.openai_api_key:
+        raise HTTPException(status_code=503, detail="OpenAI not configured on server.")
+
+    minutes = duration_seconds / 60 if duration_seconds > 0 else 1
+    enforce_usage_limit(user["id"], minutes)
+
+    audio_bytes = await file.read()
+    data: dict[str, Any] = {
+        "model": "gpt-4o-transcribe",
+        "response_format": "json",
+        "language": language,
+    }
+    if prompt:
+        data["prompt"] = prompt[:900]
+
+    files = {"file": (file.filename or "audio.m4a", audio_bytes, file.content_type or "audio/m4a")}
+
+    async with httpx.AsyncClient(timeout=300) as client:
+        response = await client.post(
+            "https://api.openai.com/v1/audio/transcriptions",
+            headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+            data=data,
+            files=files,
+        )
+
+    if response.status_code >= 400:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+
+    record_usage(user["id"], minutes)
+    return response.json()
+
+
+@app.post("/v1/transcribe/elevenlabs")
+async def transcribe_elevenlabs(
+    file: UploadFile = File(...),
+    language_code: str = Form("eng"),
+    diarize: bool = Form(False),
+    duration_seconds: float = Form(0),
+    token: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    user = require_pro_user(token)
+    if not settings.elevenlabs_api_key:
+        raise HTTPException(status_code=503, detail="ElevenLabs not configured on server.")
+
+    minutes = duration_seconds / 60 if duration_seconds > 0 else 1
+    enforce_usage_limit(user["id"], minutes)
+
+    audio_bytes = await file.read()
+    data = {
+        "model_id": "scribe_v2",
+        "language_code": language_code,
+        "timestamps_granularity": "word",
+        "diarize": "true" if diarize else "false",
+    }
+    files = {"file": (file.filename or "audio.m4a", audio_bytes, file.content_type or "audio/m4a")}
+
+    async with httpx.AsyncClient(timeout=300) as client:
+        response = await client.post(
+            "https://api.elevenlabs.io/v1/speech-to-text",
+            headers={"xi-api-key": settings.elevenlabs_api_key},
+            data=data,
+            files=files,
+        )
+
+    if response.status_code >= 400:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+
+    record_usage(user["id"], minutes)
+    return response.json()
+
+
+@app.post("/v1/transcribe/luxasr")
+async def transcribe_luxasr(
+    file: UploadFile = File(...),
+    language: str = Form("lb"),
+    prompt: Optional[str] = Form(None),
+    duration_seconds: float = Form(0),
+    token: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    user = require_pro_user(token)
+
+    minutes = duration_seconds / 60 if duration_seconds > 0 else 1
+    enforce_usage_limit(user["id"], minutes)
+
+    audio_bytes = await file.read()
+    headers = {"Content-Type": file.content_type or "audio/m4a", "X-Filename": file.filename or "audio.m4a"}
+    if settings.luxasr_api_key:
+        headers["Authorization"] = f"Bearer {settings.luxasr_api_key}"
+
+    params = {"language": language, "diarization": "Enabled", "outfmt": "json"}
+    if prompt:
+        params["prompt"] = prompt[:900]
+
+    async with httpx.AsyncClient(timeout=300, base_url="https://luxasr.uni.lu") as client:
+        submit = await client.post("/asr2", params=params, content=audio_bytes, headers=headers)
+        if submit.status_code >= 400:
+            raise HTTPException(status_code=submit.status_code, detail=submit.text)
+
+        payload = submit.json()
+        job_id = payload.get("job_id")
+        if not job_id:
+            raise HTTPException(status_code=502, detail="LuxASR did not return a job ID.")
+
+        for _ in range(120):
+            status_response = await client.get(f"/v3/asr/jobs/{job_id}")
+            status_payload = status_response.json()
+            job_status = status_payload.get("status")
+            if job_status == "completed":
+                result = await client.get(f"/v3/asr/jobs/{job_id}/result")
+                if result.status_code >= 400:
+                    raise HTTPException(status_code=result.status_code, detail=result.text)
+                record_usage(user["id"], minutes)
+                return result.json()
+            if job_status == "failed":
+                raise HTTPException(status_code=502, detail="LuxASR job failed.")
+            await asyncio.sleep(2)
+
+    raise HTTPException(status_code=504, detail="LuxASR timed out.")
+
+
+@app.post("/v1/summarize")
+async def summarize(
+    body: SummarizeRequest,
+    token: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    user = require_pro_user(token)
+    if not settings.openai_api_key:
+        raise HTTPException(status_code=503, detail="OpenAI not configured on server.")
+
+    system_prompt = (
+        "You are a precise meeting and voice note analyst. Extract structured information ONLY "
+        "from the provided transcript. Never invent facts. Return valid JSON."
+    )
+    length_instruction = (
+        "Keep summaries concise (2-3 sentences for short summary)."
+        if body.summary_length == "short"
+        else "Provide a thorough detailed summary."
+    )
+    user_prompt = f"""
+Output type: {body.output_type}
+Language: {body.language}
+{length_instruction}
+
+Transcript:
+{body.transcript}
+
+Return JSON with keys:
+title, shortSummary, detailedSummary, keyIdeas, decisions,
+actionItems (array of {{text, assignee, dueDate}}), openQuestions,
+risks, nextSteps, peopleMentioned, datesMentioned, importantNumbers, followUpEmailDraft
+"""
+
+    request_body = {
+        "model": "gpt-4o-mini",
+        "response_format": {"type": "json_object"},
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "temperature": 0.2,
+    }
+
+    async with httpx.AsyncClient(timeout=120) as client:
+        response = await client.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+            json=request_body,
+        )
+
+    if response.status_code >= 400:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+
+    payload = response.json()
+    content = payload["choices"][0]["message"]["content"]
+    return json.loads(content)

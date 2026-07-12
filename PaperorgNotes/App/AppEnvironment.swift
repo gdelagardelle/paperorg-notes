@@ -17,6 +17,8 @@ final class AppEnvironment {
     let processRecordingUseCase: ProcessRecordingUseCase
     let deleteNoteUseCase: DeleteNoteUseCase
     let deepLinkHandler: DeepLinkHandler
+    let proBackendClient: ProBackendClient
+    let subscriptionService: SubscriptionService
     
     init(
         recordingService: RecordingService,
@@ -29,7 +31,9 @@ final class AppEnvironment {
         exportService: ExportService,
         qualityPipeline: QualityPipeline,
         keychainService: KeychainService,
-        deepLinkHandler: DeepLinkHandler
+        deepLinkHandler: DeepLinkHandler,
+        proBackendClient: ProBackendClient,
+        subscriptionService: SubscriptionService
     ) {
         self.recordingService = recordingService
         self.transcriptionService = transcriptionService
@@ -42,6 +46,8 @@ final class AppEnvironment {
         self.qualityPipeline = qualityPipeline
         self.keychainService = keychainService
         self.deepLinkHandler = deepLinkHandler
+        self.proBackendClient = proBackendClient
+        self.subscriptionService = subscriptionService
         self.processRecordingUseCase = ProcessRecordingUseCase(
             transcriptionService: transcriptionService,
             summaryService: summaryService,
@@ -56,10 +62,12 @@ final class AppEnvironment {
         let keychain = KeychainService()
         let settings = SettingsService(keychain: keychain)
         let storage = StorageService()
-        let registry = ProviderRegistry(settings: settings, keychain: keychain)
+        let proBackend = ProBackendClient(settings: settings, keychain: keychain)
+        let subscription = SubscriptionService(settings: settings, proBackend: proBackend)
+        let registry = ProviderRegistry(settings: settings, keychain: keychain, proBackend: proBackend)
         let orchestrator = TranscriptionOrchestrator(registry: registry)
         let transcription = TranscriptionService(orchestrator: orchestrator)
-        let summary = SummaryService(settings: settings, keychain: keychain)
+        let summary = SummaryService(settings: settings, keychain: keychain, proBackend: proBackend)
         let recording = RecordingService(storage: storage)
         let email = EmailService(settings: settings)
         let smtpEmail = SMTPEmailDeliveryService(settings: settings)
@@ -78,7 +86,9 @@ final class AppEnvironment {
             exportService: export,
             qualityPipeline: quality,
             keychainService: keychain,
-            deepLinkHandler: deepLink
+            deepLinkHandler: deepLink,
+            proBackendClient: proBackend,
+            subscriptionService: subscription
         )
     }()
 }

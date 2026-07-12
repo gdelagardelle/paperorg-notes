@@ -32,6 +32,10 @@ final class SettingsService {
         static let smtpPort = "smtpPort"
         static let smtpUsername = "smtpUsername"
         static let smtpFromAddress = "smtpFromAddress"
+        static let selectedPlan = "selectedPlan"
+        static let hasCompletedPlanSelection = "hasCompletedPlanSelection"
+        static let proBackendBaseURL = "proBackendBaseURL"
+        static let cachedProUsage = "cachedProUsage"
     }
     
     var defaultLanguage: AppLanguage {
@@ -138,6 +142,63 @@ final class SettingsService {
             && !smtpFromAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && smtpPassword != nil
     }
+
+    var selectedPlan: SubscriptionPlan {
+        didSet { defaults.set(selectedPlan.rawValue, forKey: Keys.selectedPlan) }
+    }
+
+    var hasCompletedPlanSelection: Bool {
+        didSet { defaults.set(hasCompletedPlanSelection, forKey: Keys.hasCompletedPlanSelection) }
+    }
+
+    var proBackendBaseURL: String {
+        didSet { defaults.set(proBackendBaseURL, forKey: Keys.proBackendBaseURL) }
+    }
+
+    var cachedProUsage: ProUsageInfo? {
+        get {
+            guard let data = defaults.data(forKey: Keys.cachedProUsage) else { return nil }
+            return try? JSONDecoder().decode(ProUsageInfo.self, from: data)
+        }
+        set {
+            if let newValue, let data = try? JSONEncoder().encode(newValue) {
+                defaults.set(data, forKey: Keys.cachedProUsage)
+            } else {
+                defaults.removeObject(forKey: Keys.cachedProUsage)
+            }
+        }
+    }
+
+    var usesProBackend: Bool {
+        selectedPlan == .pro && cachedProUsage?.isPro == true
+    }
+
+    var freeVocabularyLimit: Int { 20 }
+    static let proAudioRetentionDays = 90
+
+    var effectiveAudioRetentionDays: Int? {
+        if usesProBackend {
+            return Self.proAudioRetentionDays
+        }
+        return deleteAudioAfterDays
+    }
+
+    func applyProEntitlements() {
+        keepAudioFiles = true
+        deleteAudioAfterTranscription = false
+        if deleteAudioAfterDays == nil {
+            deleteAudioAfterDays = Self.proAudioRetentionDays
+        }
+    }
+
+    var deviceID: String {
+        if let existing = keychain.retrieve(for: .deviceID) {
+            return existing
+        }
+        let id = UUID().uuidString
+        try? keychain.save(id, for: .deviceID)
+        return id
+    }
     
     func transcriptionPrompt() -> String? {
         VocabularyFormatter.prompt(from: customVocabulary)
@@ -146,6 +207,9 @@ final class SettingsService {
     func addVocabularyTerm(_ term: String) {
         let trimmed = term.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !customVocabulary.contains(trimmed) else { return }
+        if !usesProBackend, customVocabulary.count >= freeVocabularyLimit {
+            return
+        }
         customVocabulary = customVocabulary + [trimmed]
     }
     
@@ -189,6 +253,17 @@ final class SettingsService {
         self.smtpPort = defaults.object(forKey: Keys.smtpPort) as? Int ?? 465
         self.smtpUsername = defaults.string(forKey: Keys.smtpUsername) ?? ""
         self.smtpFromAddress = defaults.string(forKey: Keys.smtpFromAddress) ?? ""
+        self.selectedPlan = SubscriptionPlan(rawValue: defaults.string(forKey: Keys.selectedPlan) ?? "") ?? .free
+        if defaults.object(forKey: Keys.hasCompletedPlanSelection) != nil {
+            self.hasCompletedPlanSelection = defaults.bool(forKey: Keys.hasCompletedPlanSelection)
+        } else if defaults.bool(forKey: Keys.hasAcceptedPrivacyPolicy) {
+            // Existing installs skip plan selection and stay on Free/BYOK.
+            self.hasCompletedPlanSelection = true
+            self.selectedPlan = .free
+        } else {
+            self.hasCompletedPlanSelection = false
+        }
+        self.proBackendBaseURL = defaults.string(forKey: Keys.proBackendBaseURL) ?? "http://127.0.0.1:8080"
     }
     
     func providerPreferences() -> [AppLanguage: [ProviderID]] {
@@ -291,5 +366,9 @@ final class SettingsService {
         smtpUsername = ""
         smtpFromAddress = ""
         smtpPassword = nil
+        selectedPlan = .free
+        hasCompletedPlanSelection = false
+        cachedProUsage = nil
+        keychain.delete(for: .proAccessToken)
     }
 }
