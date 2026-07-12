@@ -63,18 +63,18 @@ struct RecordView: View {
                     language: selectedLanguage
                 )
             }
-            .alert("Recording Failed", isPresented: Binding(
+            .alert(L10n.Record.failedTitle, isPresented: Binding(
                 get: { processingError != nil && !showProcessing },
                 set: { if !$0 { processingError = nil } }
             )) {
-                Button("OK", role: .cancel) {}
+                Button(L10n.Common.ok, role: .cancel) {}
             } message: {
                 Text(processingError ?? "")
             }
-            .alert("Quick Record Queued", isPresented: $showQuickRecordQueued) {
-                Button("OK", role: .cancel) {}
+            .alert(L10n.Record.quickRecordQueuedTitle, isPresented: $showQuickRecordQueued) {
+                Button(L10n.Common.ok, role: .cancel) {}
             } message: {
-                Text("Your recording will start after the current recording finishes processing.")
+                Text(L10n.Record.quickRecordQueuedMessage)
             }
             .alert("Email Not Sent", isPresented: Binding(
                 get: { autoEmailError != nil },

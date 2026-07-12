@@ -57,7 +57,7 @@ def decode_and_verify_jws(
     signed_payload: str,
     *,
     bundle_id: str,
-    product_id: str,
+    product_id: Optional[str] = None,
 ) -> dict[str, Any]:
     header = jwt.get_unverified_header(signed_payload)
     x5c = header.get("x5c")
@@ -72,12 +72,12 @@ def decode_and_verify_jws(
         options={"verify_aud": False},
     )
 
-    if payload.get("bundleId") != bundle_id:
+    if payload.get("bundleId") and payload.get("bundleId") != bundle_id:
         raise AppStoreVerificationError("Subscription bundle ID does not match this app.")
-    if payload.get("productId") != product_id:
+    if product_id and payload.get("productId") and payload.get("productId") != product_id:
         raise AppStoreVerificationError("Subscription product ID does not match Paperorg Pro.")
 
-    if payload.get("revocationDate"):
+    if payload.get("revocationDate") and product_id:
         raise AppStoreVerificationError("This subscription transaction was revoked.")
 
     return payload
@@ -118,15 +118,18 @@ def fetch_signed_transaction_info(
     return signed
 
 
-def expires_at_from_transaction(payload: dict[str, Any]) -> str:
+def expires_at_from_transaction(
+    payload: dict[str, Any],
+    *,
+    allow_expired: bool = False,
+) -> Optional[str]:
     expires_ms = payload.get("expiresDate")
     if expires_ms:
         expiry = datetime.fromtimestamp(int(expires_ms) / 1000, tz=timezone.utc)
-        if expiry <= datetime.now(timezone.utc):
+        if expiry <= datetime.now(timezone.utc) and not allow_expired:
             raise AppStoreVerificationError("Subscription has expired.")
         return expiry.isoformat()
 
-    # Fallback for non-expiring test payloads.
     return (datetime.now(timezone.utc) + timedelta(days=32)).isoformat()
 
 
@@ -140,7 +143,7 @@ def verify_pro_subscription(
     key_id: str,
     private_key: str,
     use_sandbox: bool,
-) -> str:
+) -> dict[str, Any]:
     signed_payload = signed_transaction_info
 
     if not signed_payload:
@@ -162,4 +165,9 @@ def verify_pro_subscription(
         bundle_id=bundle_id,
         product_id=product_id,
     )
-    return expires_at_from_transaction(payload)
+    return {
+        "expires_at": expires_at_from_transaction(payload),
+        "original_transaction_id": payload.get("originalTransactionId"),
+        "transaction_id": payload.get("transactionId") or transaction_id,
+        "product_id": payload.get("productId") or product_id,
+    }

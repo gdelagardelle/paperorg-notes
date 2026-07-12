@@ -39,7 +39,16 @@ APPLE_USE_SANDBOX=true   # false in production
 ```
 
 The iOS app sends `transaction_id` from StoreKit 2; the backend fetches and verifies the signed transaction with Apple.
-Optionally send `signed_transaction_info` JWS directly if available.
+
+### App Store Server Notifications (v2)
+
+Configure in App Store Connect → your app → App Store Server Notifications:
+
+```
+POST https://YOUR-HOST/v1/webhooks/app-store
+```
+
+The backend verifies the signed payload and updates Pro status on renewals, expirations, refunds, and revocations. Users are linked by `originalTransactionId` when they first verify a purchase.
 
 ## Pro endpoints
 

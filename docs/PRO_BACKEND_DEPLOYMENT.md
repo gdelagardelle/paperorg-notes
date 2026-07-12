@@ -73,6 +73,25 @@ Archive with **Release** configuration for TestFlight.
 
 ---
 
+## 7. App Store Server Notifications
+
+In App Store Connect, set the notification URL to:
+
+```
+https://YOUR-HOST/v1/webhooks/app-store
+```
+
+Use the **Sandbox** URL for staging (`APPLE_USE_SANDBOX=true`) and **Production** for live.
+
+Apple sends `{ "signedPayload": "..." }`. The backend handles:
+
+- **Activate Pro:** `SUBSCRIBED`, `DID_RENEW`, `OFFER_REDEEMED`
+- **Deactivate Pro:** `EXPIRED`, `GRACE_PERIOD_EXPIRED`, `REFUND`, `REVOKE`
+
+Users must complete at least one in-app purchase verify so their `originalTransactionId` is linked.
+
+---
+
 ## 6. Staging tip
 
 Deploy a second instance with `APPLE_USE_SANDBOX=true` and use a **Staging** Xcode configuration before production.

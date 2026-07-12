@@ -85,25 +85,25 @@ struct MainTabView: View {
         TabView(selection: $deepLink.selectedTab) {
             RecordView()
                 .tabItem {
-                    Label("Record", systemImage: "mic.fill")
+                    Label(L10n.Tab.record, systemImage: "mic.fill")
                 }
                 .tag(0)
             
             NotesListView()
                 .tabItem {
-                    Label("Notes", systemImage: "doc.text.fill")
+                    Label(L10n.Tab.notes, systemImage: "doc.text.fill")
                 }
                 .tag(1)
             
             SearchView()
                 .tabItem {
-                    Label("Search", systemImage: "magnifyingglass")
+                    Label(L10n.Tab.search, systemImage: "magnifyingglass")
                 }
                 .tag(2)
             
             SettingsView()
                 .tabItem {
-                    Label("Settings", systemImage: "gearshape.fill")
+                    Label(L10n.Tab.settings, systemImage: "gearshape.fill")
                 }
                 .tag(3)
         }

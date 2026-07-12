@@ -43,6 +43,14 @@ def init_db() -> None:
                 created_at TEXT NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             );
+
+            CREATE TABLE IF NOT EXISTS subscription_links (
+                original_transaction_id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                product_id TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            );
             """
         )
 
@@ -148,3 +156,38 @@ def log_subscription_event(
             """,
             (user_id, product_id, transaction_id, event_type, utc_now()),
         )
+
+
+def link_subscription(
+    user_id: str,
+    original_transaction_id: str,
+    product_id: str,
+) -> None:
+    if not original_transaction_id:
+        return
+    with connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO subscription_links (original_transaction_id, user_id, product_id, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(original_transaction_id) DO UPDATE SET
+                user_id = excluded.user_id,
+                product_id = excluded.product_id,
+                updated_at = excluded.updated_at
+            """,
+            (original_transaction_id, user_id, product_id, utc_now()),
+        )
+
+
+def find_user_by_original_transaction(original_transaction_id: Optional[str]) -> Optional[str]:
+    if not original_transaction_id:
+        return None
+    with connect() as conn:
+        row = conn.execute(
+            """
+            SELECT user_id FROM subscription_links
+            WHERE original_transaction_id = ?
+            """,
+            (original_transaction_id,),
+        ).fetchone()
+        return row["user_id"] if row else None

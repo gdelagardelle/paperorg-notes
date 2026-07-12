@@ -10,26 +10,26 @@ struct ExportBrandingSettingsSection: View {
     var body: some View {
         @Bindable var settings = environment.settingsService
 
-        Section("PDF Export Branding") {
-            SettingsSectionHint(
-                text: "Customize Pro PDF exports and email attachments. Upload your logo to replace the Paperorg default."
-            )
+        Section(L10n.Settings.pdfBrandingSection) {
+            SettingsSectionHint(text: L10n.Settings.pdfBrandingHint)
 
-            TextField("Brand name", text: $settings.exportBrandName)
-            TextField("Subtitle (optional)", text: $settings.exportBrandSubtitle)
+            TextField(L10n.Settings.brandName, text: $settings.exportBrandName)
+            TextField(L10n.Settings.brandSubtitle, text: $settings.exportBrandSubtitle)
 
             HStack(spacing: 12) {
                 logoPreview
                 VStack(alignment: .leading, spacing: 8) {
                     PhotosPicker(selection: $logoPickerItem, matching: .images) {
                         Label(
-                            environment.storageService.hasCustomExportLogo ? "Replace logo" : "Upload logo",
+                            environment.storageService.hasCustomExportLogo
+                                ? L10n.Settings.replaceLogo
+                                : L10n.Settings.uploadLogo,
                             systemImage: "photo"
                         )
                     }
 
                     if environment.storageService.hasCustomExportLogo {
-                        Button("Use Paperorg logo", role: .destructive) {
+                        Button(L10n.Settings.useDefaultLogo, role: .destructive) {
                             removeCustomLogo()
                         }
                         .font(.caption)
@@ -93,7 +93,7 @@ struct ExportBrandingSettingsSection: View {
         do {
             guard let data = try await item.loadTransferable(type: Data.self),
                   let image = UIImage(data: data) else {
-                logoError = "Could not load the selected image."
+                logoError = String(localized: "settings.pdf.logo_load_error")
                 return
             }
             try environment.storageService.saveCustomExportLogo(image)

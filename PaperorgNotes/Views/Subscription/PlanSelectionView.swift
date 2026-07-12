@@ -9,22 +9,22 @@ struct PlanSelectionView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Choose your plan")
+                    Text(L10n.Plan.chooseTitle)
                         .font(.largeTitle.bold())
-                    Text("Start free with your own API keys, or upgrade to Pro for everything included.")
+                    Text(L10n.Plan.chooseSubtitle)
                         .foregroundStyle(AppTheme.textSecondary)
                 }
 
                 planCard(
                     plan: .free,
-                    price: "Free",
+                    price: L10n.Plan.freePrice,
                     features: [
-                        "Record, transcribe, and summarize",
-                        "Requires your OpenAI API key",
-                        "ElevenLabs recommended for Lëtzebuergesch",
-                        "Up to 20 custom vocabulary terms"
+                        String(localized: "plan.free.feature.record"),
+                        String(localized: "plan.free.feature.openai"),
+                        String(localized: "plan.free.feature.elevenlabs"),
+                        String(localized: "plan.free.feature.vocabulary")
                     ],
-                    buttonTitle: "Continue with Free",
+                    buttonTitle: L10n.Plan.continueFree,
                     accent: AppTheme.primary
                 ) {
                     environment.settingsService.selectedPlan = .free
@@ -35,12 +35,12 @@ struct PlanSelectionView: View {
                     plan: .pro,
                     price: proPriceLabel,
                     features: [
-                        "600 minutes/month included",
-                        "No API keys to configure",
-                        "Priority Lëtzebuergesch pipeline",
-                        "Unlimited vocabulary & 90-day audio retention"
+                        String(localized: "plan.pro.feature.minutes"),
+                        String(localized: "plan.pro.feature.no_keys"),
+                        String(localized: "plan.pro.feature.luxembourgish"),
+                        String(localized: "plan.pro.feature.retention")
                     ],
-                    buttonTitle: "Get Paperorg Pro",
+                    buttonTitle: L10n.Plan.getPro,
                     accent: AppTheme.accent
                 ) {
                     showPaywall = true
@@ -64,7 +64,7 @@ struct PlanSelectionView: View {
         if let product = environment.subscriptionService.products.first {
             return "\(product.displayPrice)/month"
         }
-        return "Pro subscription"
+        return L10n.Plan.proFallbackPrice
     }
 
     @ViewBuilder

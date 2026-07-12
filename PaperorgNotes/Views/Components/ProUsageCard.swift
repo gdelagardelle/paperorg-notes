@@ -7,7 +7,7 @@ struct ProUsageCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("Included transcription", systemImage: "waveform")
+                Label(L10n.Pro.includedTranscription, systemImage: "waveform")
                     .font(.subheadline.bold())
                     .foregroundStyle(AppTheme.textPrimary)
                 Spacer()
@@ -23,20 +23,26 @@ struct ProUsageCard: View {
             ProgressView(value: usage.usageProgress)
                 .tint(usage.usageProgress > 0.85 ? AppTheme.error : AppTheme.accent)
 
+            if usage.usageProgress > 0.85 {
+                Text(L10n.Pro.usageWarning)
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.error)
+            }
+
             HStack {
-                Text("\(usage.minutesUsedFormatted) used")
+                Text("\(usage.minutesUsedFormatted) \(L10n.Pro.minutesUsed)")
                 Spacer()
-                Text("\(usage.minutesRemainingFormatted) left")
+                Text("\(usage.minutesRemainingFormatted) \(L10n.Pro.minutesLeft)")
             }
             .font(.caption)
             .foregroundStyle(AppTheme.textSecondary)
 
-            Text("\(usage.minutesLimit) min/month · \(usage.periodDisplayName)")
+            Text("\(usage.minutesLimit) \(L10n.Pro.monthlyQuota) · \(usage.periodDisplayName)")
                 .font(.caption2)
                 .foregroundStyle(AppTheme.textSecondary)
 
             if let expiry = usage.proExpiryDisplay {
-                Text("Renews \(expiry)")
+                Text("\(L10n.Pro.renews) \(expiry)")
                     .font(.caption2)
                     .foregroundStyle(AppTheme.textSecondary)
             }

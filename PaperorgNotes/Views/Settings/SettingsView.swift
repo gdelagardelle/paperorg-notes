@@ -24,30 +24,33 @@ struct SettingsView: View {
         
         NavigationStack {
             Form {
-                Section("Paperorg Pro") {
+                Section(L10n.Settings.proSection) {
                     if environment.subscriptionService.isProActive {
-                        Label("Pro subscription active", systemImage: "checkmark.seal.fill")
+                        Label(L10n.Settings.proActive, systemImage: "checkmark.seal.fill")
                             .foregroundStyle(AppTheme.accent)
                         if let usage = environment.subscriptionService.usageInfo {
                             ProUsageCard(usage: usage) {
                                 Task { await environment.subscriptionService.refreshEntitlements() }
                             }
                         }
-                        SettingsSectionHint(text: "Transcription and summaries are included. No API keys required.")
-                        ExportBrandingSettingsSection()
+                        SettingsSectionHint(text: L10n.Settings.proHint)
                     } else if settings.selectedPlan == .pro {
-                        Text("Pro selected — finish subscription to unlock included transcription.")
+                        Text(L10n.Settings.proSelected)
                             .font(.caption)
                             .foregroundStyle(AppTheme.error)
-                        Button("Subscribe to Pro") { showPaywall = true }
+                        Button(L10n.Settings.subscribePro) { showPaywall = true }
                     } else {
-                        SettingsSectionHint(text: "Free plan uses your own OpenAI and ElevenLabs API keys.")
-                        Button("Upgrade to Pro") { showPaywall = true }
+                        SettingsSectionHint(text: String(localized: "settings.free.hint"))
+                        Button(L10n.Settings.upgradePro) { showPaywall = true }
                     }
                 }
 
-                Section("Language") {
-                    Picker("Default Language", selection: $settings.defaultLanguage) {
+                if environment.subscriptionService.isProActive {
+                    ExportBrandingSettingsSection()
+                }
+
+                Section(L10n.Settings.languageSection) {
+                    Picker(L10n.Settings.defaultLanguage, selection: $settings.defaultLanguage) {
                         ForEach(AppLanguage.allCases) { lang in
                             Text("\(lang.flag) \(lang.displayName)").tag(lang)
                         }
@@ -107,7 +110,7 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    Text("Transcription")
+                    Text(L10n.Settings.transcriptionSection)
                 }
                 
                 Section {
@@ -306,7 +309,7 @@ struct SettingsView: View {
             }
             .listStyle(.insetGrouped)
             .settingsScreenStyle()
-            .navigationTitle("Settings")
+            .navigationTitle(L10n.Settings.title)
             .onAppear {
                 loadKeys()
                 environment.storageService.purgeExpiredAudio(

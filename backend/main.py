@@ -9,6 +9,7 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, sta
 from pydantic import BaseModel, Field
 
 from app_store import AppStoreVerificationError, verify_pro_subscription
+from app_store_notifications import handle_signed_notification
 from auth_utils import create_access_token, get_current_user
 from config import settings
 from database import (
@@ -16,6 +17,7 @@ from database import (
     get_or_create_user,
     get_usage_minutes,
     init_db,
+    link_subscription,
     log_subscription_event,
     period_key,
     set_user_pro,
@@ -49,6 +51,10 @@ class VerifySubscriptionRequest(BaseModel):
     product_id: str
     transaction_id: Optional[str] = None
     signed_transaction_info: Optional[str] = None
+
+
+class AppStoreNotificationRequest(BaseModel):
+    signedPayload: str = Field(min_length=10)
 
 
 class SummarizeRequest(BaseModel):
@@ -161,7 +167,7 @@ def verify_subscription(
         return build_usage_response(user)
 
     try:
-        expires_at = verify_pro_subscription(
+        verification = verify_pro_subscription(
             product_id=body.product_id,
             transaction_id=body.transaction_id,
             signed_transaction_info=body.signed_transaction_info,
@@ -174,15 +180,30 @@ def verify_subscription(
     except AppStoreVerificationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    expires_at = verification["expires_at"]
     set_user_pro(user["id"], True, expires_at)
+    if verification.get("original_transaction_id"):
+        link_subscription(
+            user["id"],
+            verification["original_transaction_id"],
+            verification.get("product_id") or body.product_id,
+        )
     log_subscription_event(
         user["id"],
         body.product_id,
-        body.transaction_id,
+        verification.get("transaction_id") or body.transaction_id,
         "verified",
     )
     user = get_or_create_user(token["device_id"])
     return build_usage_response(user)
+
+
+@app.post("/v1/webhooks/app-store")
+def app_store_webhook(body: AppStoreNotificationRequest) -> dict[str, str]:
+    try:
+        return handle_signed_notification(body.signedPayload)
+    except AppStoreVerificationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/v1/subscription/dev-activate", response_model=UsageResponse)
