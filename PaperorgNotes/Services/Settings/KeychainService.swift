@@ -5,6 +5,7 @@ enum KeychainKey: String {
     case openAIAPIKey = "com.paperorg.notes.openai.apikey"
     case elevenLabsAPIKey = "com.paperorg.notes.elevenlabs.apikey"
     case luxASRAPIKey = "com.paperorg.notes.luxasr.apikey"
+    case smtpPassword = "com.paperorg.notes.smtp.password"
 }
 
 final class KeychainService: Sendable {
@@ -46,7 +47,7 @@ final class KeychainService: Sendable {
     }
     
     func deleteAll() {
-        for key in [KeychainKey.openAIAPIKey, .elevenLabsAPIKey, .luxASRAPIKey] {
+        for key in [KeychainKey.openAIAPIKey, .elevenLabsAPIKey, .luxASRAPIKey, .smtpPassword] {
             delete(for: key)
         }
     }

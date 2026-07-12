@@ -36,6 +36,115 @@ extension View {
     }
 }
 
+struct SwipeToDeleteRow<Content: View>: View {
+    let cornerRadius: CGFloat
+    let onDelete: () -> Void
+    @ViewBuilder var content: () -> Content
+
+    @State private var offset: CGFloat = 0
+    @State private var dragStartOffset: CGFloat = 0
+    @State private var lockedHorizontal = false
+
+    private let actionWidth: CGFloat = 92
+    private let openThreshold: CGFloat = -52
+    private let deleteThreshold: CGFloat = -130
+
+    init(
+        cornerRadius: CGFloat = 20,
+        onDelete: @escaping () -> Void,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self.cornerRadius = cornerRadius
+        self.onDelete = onDelete
+        self.content = content
+    }
+
+    var body: some View {
+        ZStack(alignment: .trailing) {
+            Button(role: .destructive, action: performDelete) {
+                VStack(spacing: 6) {
+                    Image(systemName: "trash.fill")
+                    Text("Delete")
+                        .font(.caption2.weight(.semibold))
+                }
+                .foregroundStyle(.white)
+                .frame(width: actionWidth)
+                .frame(maxHeight: .infinity)
+                .background(AppTheme.error)
+            }
+            .buttonStyle(.plain)
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+
+            content()
+                .offset(x: offset)
+                .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .gesture(swipeGesture)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+    }
+
+    private var swipeGesture: some Gesture {
+        DragGesture(minimumDistance: 12, coordinateSpace: .local)
+            .onChanged { value in
+                let horizontal = abs(value.translation.width)
+                let vertical = abs(value.translation.height)
+
+                if !lockedHorizontal {
+                    guard horizontal > vertical else { return }
+                    lockedHorizontal = true
+                    dragStartOffset = offset
+                }
+
+                guard lockedHorizontal else { return }
+                let proposed = dragStartOffset + value.translation.width
+                offset = min(0, max(-actionWidth, proposed))
+            }
+            .onEnded { value in
+                defer {
+                    lockedHorizontal = false
+                    dragStartOffset = 0
+                }
+
+                let projected = offset + value.predictedEndTranslation.width * 0.25
+                if projected <= deleteThreshold {
+                    performDelete()
+                    return
+                }
+
+                withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                    offset = projected <= openThreshold ? -actionWidth : 0
+                }
+            }
+    }
+
+    private func performDelete() {
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.9)) {
+            offset = 0
+        }
+        onDelete()
+    }
+}
+
+struct DeletableNoteLink<Content: View>: View {
+    let note: Note
+    let onDelete: () -> Void
+    var cornerRadius: CGFloat = 20
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        SwipeToDeleteRow(cornerRadius: cornerRadius, onDelete: onDelete) {
+            ZStack {
+                NavigationLink(destination: NoteDetailView(note: note)) {
+                    EmptyView()
+                }
+                .opacity(0)
+
+                content()
+            }
+        }
+    }
+}
+
 struct AppSectionHeader: View {
     let title: String
     var subtitle: String?
@@ -285,6 +394,162 @@ struct NoteCardRow: View {
 }
 
 // MARK: - Recording UI
+
+struct ScrollingAudioWaveform: View {
+    let level: Float
+    let isActive: Bool
+    var isVisible: Bool = true
+
+    @State private var samples: [CGFloat] = []
+    @State private var phase: CGFloat = 0
+
+    private let maxSamples = 130
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 0.04, paused: !isActive)) { timeline in
+            GeometryReader { geo in
+                ZStack {
+                    waveform(in: geo.size, closePath: true)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    AppTheme.accent.opacity(0.03),
+                                    AppTheme.accent.opacity(0.14),
+                                    AppTheme.accent.opacity(0.22)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+
+                    waveform(in: geo.size, closePath: false)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    AppTheme.accent.opacity(0.2),
+                                    AppTheme.accent.opacity(0.75),
+                                    AppTheme.accent
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ),
+                            style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round)
+                        )
+                }
+            }
+            .onChange(of: timeline.date) { _, _ in
+                guard isActive else { return }
+                appendSample(from: level)
+            }
+        }
+        .frame(height: 58)
+        .mask {
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0),
+                    .init(color: .black, location: 0.12),
+                    .init(color: .black, location: 0.88),
+                    .init(color: .clear, location: 1)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
+        .opacity(isVisible ? 1 : 0.18)
+        .animation(.easeInOut(duration: 0.25), value: isVisible)
+        .onChange(of: isActive) { _, active in
+            if active {
+                if samples.isEmpty {
+                    samples = Array(repeating: 0.06, count: maxSamples)
+                }
+            } else if !isVisible {
+                samples = []
+                phase = 0
+            }
+        }
+        .onChange(of: isVisible) { _, visible in
+            if visible, samples.isEmpty {
+                samples = Array(repeating: 0.06, count: maxSamples)
+            } else if !visible {
+                samples = []
+                phase = 0
+            }
+        }
+    }
+
+    private func appendSample(from level: Float) {
+        phase += 0.18 + CGFloat(level) * 1.05
+        let harmonic = sin(phase) * 0.34
+            + sin(phase * 2.4) * 0.2
+            + sin(phase * 0.62) * 0.14
+        let envelope = CGFloat(level) * 0.95 + 0.05
+        let value = min(1, max(0.04, envelope * (0.56 + harmonic)))
+        samples.append(value)
+        if samples.count > maxSamples {
+            samples.removeFirst(samples.count - maxSamples)
+        }
+    }
+
+    private func waveform(in size: CGSize, closePath: Bool) -> Path {
+        var path = Path()
+        guard samples.count > 1 else { return path }
+
+        let midY = size.height * 0.5
+        let amplitude = size.height * 0.44
+        let step = size.width / CGFloat(samples.count - 1)
+
+        for (index, sample) in samples.enumerated() {
+            let x = CGFloat(index) * step
+            let y = midY - (sample - 0.5) * 2 * amplitude
+            if index == 0 {
+                path.move(to: CGPoint(x: x, y: y))
+            } else {
+                let previousX = CGFloat(index - 1) * step
+                let previousY = midY - (samples[index - 1] - 0.5) * 2 * amplitude
+                let controlX = (previousX + x) * 0.5
+                path.addQuadCurve(
+                    to: CGPoint(x: x, y: y),
+                    control: CGPoint(x: controlX, y: previousY)
+                )
+            }
+        }
+
+        if closePath {
+            path.addLine(to: CGPoint(x: size.width, y: size.height))
+            path.addLine(to: CGPoint(x: 0, y: size.height))
+            path.closeSubpath()
+        }
+
+        return path
+    }
+}
+
+struct RecordHeroStack: View {
+    let state: RecordingState
+    let pulseAnimation: Bool
+    let audioLevel: Float
+    let action: () -> Void
+
+    var body: some View {
+        ZStack {
+            ScrollingAudioWaveform(
+                level: audioLevel,
+                isActive: state == .recording,
+                isVisible: state == .recording || state == .paused
+            )
+            .padding(.horizontal, -8)
+            .allowsHitTesting(false)
+
+            RecordHeroButton(
+                state: state,
+                pulseAnimation: pulseAnimation,
+                audioLevel: audioLevel,
+                action: action
+            )
+        }
+        .frame(height: 168)
+    }
+}
 
 struct AudioLevelMeter: View {
     let level: Float

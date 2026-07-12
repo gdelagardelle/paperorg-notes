@@ -27,34 +27,51 @@ struct NotesListView: View {
             Group {
                 if notes.isEmpty {
                     emptyLibraryView
-                } else {
+                } else if filteredNotes.isEmpty {
                     ScrollView {
                         VStack(spacing: 16) {
                             filterBar
-                            
-                            if filteredNotes.isEmpty {
-                                noResultsView
-                            } else {
-                                LazyVStack(spacing: 10) {
-                                    ForEach(filteredNotes) { note in
-                                        NavigationLink(destination: NoteDetailView(note: note)) {
-                                            NoteCardRow(note: note)
-                                        }
-                                        .buttonStyle(.plain)
-                                        .contextMenu {
-                                            Button(role: .destructive) {
-                                                try? environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
-                                            } label: {
-                                                Label("Delete", systemImage: "trash")
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            noResultsView
                         }
                         .padding(.horizontal, 20)
                         .padding(.vertical, 12)
                     }
+                } else {
+                    List {
+                        if showFavoritesOnly || filterLanguage != nil || filterProject != nil {
+                            Section {
+                                filterBar
+                            }
+                            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                        }
+
+                        Section {
+                            ForEach(filteredNotes) { note in
+                                ZStack {
+                                    NavigationLink(destination: NoteDetailView(note: note)) {
+                                        EmptyView()
+                                    }
+                                    .opacity(0)
+
+                                    NoteCardRow(note: note)
+                                }
+                                .listRowInsets(EdgeInsets(top: 5, leading: 20, bottom: 5, trailing: 20))
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        delete(note)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
             .background(AppScreenBackground())
@@ -83,6 +100,10 @@ struct NotesListView: View {
                 }
             }
         }
+    }
+
+    private func delete(_ note: Note) {
+        try? environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
     }
     
     @ViewBuilder

@@ -13,9 +13,8 @@ struct RecordView: View {
     @State private var processingStage: ProcessingStage = .savingAudio
     @State private var processingError: String?
     @State private var pulseAnimation = false
-    @State private var pendingEmailPayload: EmailPayload?
-    @State private var postRecordingEmailPresentation: EmailPresentation?
     @State private var showQuickRecordQueued = false
+    @State private var autoEmailError: String?
     
     private var isRecordingSession: Bool {
         environment.recordingService.state == .recording || environment.recordingService.state == .paused
@@ -63,18 +62,6 @@ struct RecordView: View {
                     language: selectedLanguage
                 )
             }
-            .sheet(item: $postRecordingEmailPresentation) { presentation in
-                switch presentation {
-                case .review(let payload, _):
-                    if let note = activeNote {
-                        ReviewBeforeSendView(note: note, payload: payload) { reviewed in
-                            postRecordingEmailPresentation = .compose(reviewed, UUID())
-                        }
-                    }
-                case .compose(let payload, _):
-                    EmailComposeSheet(payload: payload)
-                }
-            }
             .alert("Recording Failed", isPresented: Binding(
                 get: { processingError != nil && !showProcessing },
                 set: { if !$0 { processingError = nil } }
@@ -87,6 +74,14 @@ struct RecordView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text("Your recording will start after the current recording finishes processing.")
+            }
+            .alert("Email Not Sent", isPresented: Binding(
+                get: { autoEmailError != nil },
+                set: { if !$0 { autoEmailError = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(autoEmailError ?? "")
             }
         }
     }
@@ -141,7 +136,7 @@ struct RecordView: View {
     
     private var recordHeroCard: some View {
         VStack(spacing: 20) {
-            RecordHeroButton(
+            RecordHeroStack(
                 state: environment.recordingService.state,
                 pulseAnimation: pulseAnimation,
                 audioLevel: environment.recordingService.audioLevel,
@@ -152,11 +147,6 @@ struct RecordView: View {
                 .font(.system(size: 36, weight: .light, design: .rounded))
                 .foregroundStyle(AppTheme.textPrimary)
                 .monospacedDigit()
-            
-            AudioLevelMeter(
-                level: environment.recordingService.audioLevel,
-                isActive: environment.recordingService.state == .recording
-            )
             
             Text(recordStatusText)
                 .font(.subheadline.weight(.medium))
@@ -221,10 +211,11 @@ struct RecordView: View {
             } else {
                 VStack(spacing: 10) {
                     ForEach(recentNotes.prefix(5)) { note in
-                        NavigationLink(destination: NoteDetailView(note: note)) {
+                        DeletableNoteLink(note: note) {
+                            deleteRecentNote(note)
+                        } content: {
                             NoteCardRow(note: note, style: .compact)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -364,22 +355,22 @@ struct RecordView: View {
     private func preparePostRecordingEmail(for note: Note) {
         guard note.noteStatus == .ready,
               environment.emailService.shouldSendAfterTranscription else { return }
-        
-        do {
-            let payload = try environment.emailService.buildPayload(
-                for: note,
-                exportService: environment.exportService
-            )
-            pendingEmailPayload = payload
-            presentPostRecordingEmail()
-        } catch {
-            // Silently skip auto-email if not configured
+
+        Task {
+            do {
+                let payload = try environment.emailService.buildPayload(
+                    for: note,
+                    exportService: environment.exportService
+                )
+                try await environment.smtpEmailDeliveryService.send(payload)
+            } catch {
+                autoEmailError = error.localizedDescription
+            }
         }
     }
 
-    private func presentPostRecordingEmail() {
-        guard let payload = pendingEmailPayload else { return }
-        postRecordingEmailPresentation = .compose(payload, UUID())
+    private func deleteRecentNote(_ note: Note) {
+        try? environment.deleteNoteUseCase.deleteNote(note, context: modelContext)
     }
 }
 

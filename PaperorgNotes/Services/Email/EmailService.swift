@@ -82,6 +82,8 @@ final class EmailService {
     }
     
     var shouldSendAfterTranscription: Bool {
-        settings.sendEmailAfterTranscription && !settings.emailRecipients.isEmpty
+        settings.sendEmailAfterTranscription
+            && !settings.emailRecipients.isEmpty
+            && settings.isAutomaticEmailConfigured
     }
 }
