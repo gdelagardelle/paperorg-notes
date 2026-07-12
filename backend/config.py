@@ -17,5 +17,11 @@ class Settings(BaseSettings):
     apple_bundle_id: str = "com.paperorg.notes"
     apple_pro_product_id: str = "com.paperorg.notes.pro.monthly"
 
+    # App Store Server API (production subscription verification)
+    apple_issuer_id: str = ""
+    apple_key_id: str = ""
+    apple_private_key: str = ""
+    apple_use_sandbox: bool = True
+
 
 settings = Settings()

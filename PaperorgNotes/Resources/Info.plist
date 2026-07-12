@@ -46,6 +46,12 @@
 	<string>Paperorg Notes needs microphone access to record voice notes and meetings.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Paperorg Notes uses speech recognition for on-device English transcription.</string>
+	<key>PAPERORG_PLATFORM_API_URL</key>
+	<string>$(PAPERORG_PLATFORM_API_URL)</string>
+	<key>PAPERORG_PRO_BACKEND_URL</key>
+	<string>$(PAPERORG_PRO_BACKEND_URL)</string>
+	<key>PAPERORG_USE_PLATFORM_AUTH</key>
+	<string>$(PAPERORG_USE_PLATFORM_AUTH)</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

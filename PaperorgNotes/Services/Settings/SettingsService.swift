@@ -35,6 +35,8 @@ final class SettingsService {
         static let selectedPlan = "selectedPlan"
         static let hasCompletedPlanSelection = "hasCompletedPlanSelection"
         static let proBackendBaseURL = "proBackendBaseURL"
+        static let platformAPIBaseURL = "platformAPIBaseURL"
+        static let usePlatformAuth = "usePlatformAuth"
         static let cachedProUsage = "cachedProUsage"
     }
     
@@ -155,6 +157,19 @@ final class SettingsService {
         didSet { defaults.set(proBackendBaseURL, forKey: Keys.proBackendBaseURL) }
     }
 
+    var platformAPIBaseURL: String {
+        didSet { defaults.set(platformAPIBaseURL, forKey: Keys.platformAPIBaseURL) }
+    }
+
+    var usePlatformAuth: Bool {
+        didSet { defaults.set(usePlatformAuth, forKey: Keys.usePlatformAuth) }
+    }
+
+    /// Auth, usage, and subscription endpoints (Platform when enabled, else notes backend).
+    var subscriptionBackendBaseURL: String {
+        usePlatformAuth ? platformAPIBaseURL : proBackendBaseURL
+    }
+
     var cachedProUsage: ProUsageInfo? {
         get {
             guard let data = defaults.data(forKey: Keys.cachedProUsage) else { return nil }
@@ -263,7 +278,15 @@ final class SettingsService {
         } else {
             self.hasCompletedPlanSelection = false
         }
-        self.proBackendBaseURL = defaults.string(forKey: Keys.proBackendBaseURL) ?? "http://127.0.0.1:8080"
+        self.proBackendBaseURL = defaults.string(forKey: Keys.proBackendBaseURL)
+            ?? BackendConfiguration.defaultProBackendURL
+        self.platformAPIBaseURL = defaults.string(forKey: Keys.platformAPIBaseURL)
+            ?? BackendConfiguration.defaultPlatformAPIURL
+        if defaults.object(forKey: Keys.usePlatformAuth) != nil {
+            self.usePlatformAuth = defaults.bool(forKey: Keys.usePlatformAuth)
+        } else {
+            self.usePlatformAuth = BackendConfiguration.usePlatformAuthByDefault
+        }
     }
     
     func providerPreferences() -> [AppLanguage: [ProviderID]] {
@@ -369,6 +392,9 @@ final class SettingsService {
         selectedPlan = .free
         hasCompletedPlanSelection = false
         cachedProUsage = nil
+        usePlatformAuth = BackendConfiguration.usePlatformAuthByDefault
+        platformAPIBaseURL = BackendConfiguration.defaultPlatformAPIURL
+        proBackendBaseURL = BackendConfiguration.defaultProBackendURL
         keychain.delete(for: .proAccessToken)
     }
 }

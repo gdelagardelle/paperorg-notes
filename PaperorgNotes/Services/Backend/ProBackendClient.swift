@@ -16,6 +16,10 @@ final class ProBackendClient {
         URL(string: settings.proBackendBaseURL)!
     }
 
+    private var subscriptionBaseURL: URL {
+        URL(string: settings.subscriptionBackendBaseURL)!
+    }
+
     func ensureRegistered() async throws {
         if keychain.retrieve(for: .proAccessToken) != nil {
             return
@@ -26,7 +30,7 @@ final class ProBackendClient {
     @discardableResult
     func register() async throws -> ProUsageInfo {
         let deviceID = settings.deviceID
-        var request = URLRequest(url: baseURL.appending(path: "/v1/auth/register"))
+        var request = URLRequest(url: subscriptionBaseURL.appending(path: "/v1/auth/register"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(["device_id": deviceID])
@@ -42,7 +46,7 @@ final class ProBackendClient {
 
     func refreshUsage() async throws -> ProUsageInfo {
         try await ensureRegistered()
-        var request = URLRequest(url: baseURL.appending(path: "/v1/usage"))
+        var request = URLRequest(url: subscriptionBaseURL.appending(path: "/v1/usage"))
         try authorize(&request)
 
         let (data, response) = try await session.data(for: request)
@@ -59,7 +63,7 @@ final class ProBackendClient {
         signedTransactionInfo: String?
     ) async throws -> ProUsageInfo {
         try await ensureRegistered()
-        var request = URLRequest(url: baseURL.appending(path: "/v1/subscription/verify"))
+        var request = URLRequest(url: subscriptionBaseURL.appending(path: "/v1/subscription/verify"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         try authorize(&request)

@@ -33,6 +33,7 @@
 		5659B8363936129D5E6448BA /* QualityPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CB1C8B9F80F34734755D2C /* QualityPipeline.swift */; };
 		5AF12EEBB8AC0DC80C04A015 /* StoreRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2EF76ECA8152BE338CF0F /* StoreRecoveryView.swift */; };
 		5D9B4272A0E335AADB6CDDFB /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10F451B9CE45F448ED5357EA /* AppConstants.swift */; };
+		6AE3CD48C33A80509A37F80C /* ProUsageCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23130EAFD410A3FED41D40AC /* ProUsageCard.swift */; };
 		6E65F038184080AE97869E98 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2776891AC1FF283C722736 /* MainTabView.swift */; };
 		7A9394B7E842956AA8C74F9A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 769C64C50D036C001E300F1F /* LaunchScreen.storyboard */; };
 		84629E42036542CD62B474F2 /* TranscriptTextFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */; };
@@ -50,6 +51,7 @@
 		B56F621E4D48F4CF8B8AC067 /* SMTPEmailDeliveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0D2034A23A4CA8E571D5F4 /* SMTPEmailDeliveryService.swift */; };
 		B7398D2BD5EE2B7DC5384443 /* OutputTypePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68BDFF716C1EC2A56F0A160E /* OutputTypePicker.swift */; };
 		C1929CB0E7F507F935A2A0BB /* RecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1762B9D2A80DF2BDFFD225 /* RecordingService.swift */; };
+		C34A594FCC69C325A8897319 /* BackendConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADDE0214C73B37E41F8FEC6D /* BackendConfiguration.swift */; };
 		C372E6B396493FA331A1DA18 /* ElevenLabsScribeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0294214FBB3427648651250 /* ElevenLabsScribeProvider.swift */; };
 		C66B6E6941AC9798F76BE25E /* LuxASRProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1FC22DD067CE9B48F213E8D /* LuxASRProvider.swift */; };
 		C9E1C416FB7F69A7A840C6EA /* StartRecordingIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C627A5CB7405AD3E454F04 /* StartRecordingIntent.swift */; };
@@ -105,6 +107,7 @@
 		15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionPlan.swift; sourceTree = "<group>"; };
 		182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionProvider.swift; sourceTree = "<group>"; };
 		1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteNoteUseCase.swift; sourceTree = "<group>"; };
+		23130EAFD410A3FED41D40AC /* ProUsageCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProUsageCard.swift; sourceTree = "<group>"; };
 		24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanSelectionView.swift; sourceTree = "<group>"; };
 		26A44276A0E661C5F8BAD71E /* PaperorgPro.storekit */ = {isa = PBXFileReference; path = PaperorgPro.storekit; sourceTree = "<group>"; };
 		2A5F341369B3D0BDA7654913 /* ProTranscriptionRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProTranscriptionRouter.swift; sourceTree = "<group>"; };
@@ -140,6 +143,7 @@
 		9D34CD6703E1B9404B252C40 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		A0A47C931C30D4142808038E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A11A5FEB0631867ABFC14D54 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		ADDE0214C73B37E41F8FEC6D /* BackendConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendConfiguration.swift; sourceTree = "<group>"; };
 		B97FC756EBB626004AB78526 /* PaperorgNotesWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PaperorgNotesWidget.entitlements; sourceTree = "<group>"; };
 		B9A0D92CB81A995CD2A47F03 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		BAB3995B0D7080BE3AFC20C7 /* AppleSpeechProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSpeechProvider.swift; sourceTree = "<group>"; };
@@ -228,6 +232,7 @@
 				10F451B9CE45F448ED5357EA /* AppConstants.swift */,
 				C9A087642002F869CCB02526 /* AppTheme.swift */,
 				82977FFEA0CD98DC14761648 /* AudioFileReader.swift */,
+				ADDE0214C73B37E41F8FEC6D /* BackendConfiguration.swift */,
 				68B74C5620F1B13BDE12A809 /* DeepLinkHandler.swift */,
 				FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */,
 			);
@@ -265,6 +270,7 @@
 				2A7A286993897E5DE6FB106C /* AppDesignSystem.swift */,
 				65181023F293D9C4ACE28EEB /* MailComposeView.swift */,
 				68BDFF716C1EC2A56F0A160E /* OutputTypePicker.swift */,
+				23130EAFD410A3FED41D40AC /* ProUsageCard.swift */,
 				C1D2EF76ECA8152BE338CF0F /* StoreRecoveryView.swift */,
 			);
 			path = Components;
@@ -595,6 +601,7 @@
 				517509262D50F3108147C612 /* AppleSpeechProvider.swift in Sources */,
 				09B3CC195AEDAE6321FAAAC5 /* AudioFileReader.swift in Sources */,
 				86D9F89F6DE0D92FF1189E16 /* AudioPlaybackService.swift in Sources */,
+				C34A594FCC69C325A8897319 /* BackendConfiguration.swift in Sources */,
 				180B2284CCCCBFF9B09A60B4 /* DeepLinkHandler.swift in Sources */,
 				53A84583C3B43D6875DCA00C /* DeleteNoteUseCase.swift in Sources */,
 				C372E6B396493FA331A1DA18 /* ElevenLabsScribeProvider.swift in Sources */,
@@ -617,6 +624,7 @@
 				ADC9EA453F99A4C9066C2A90 /* PrivacyConsentView.swift in Sources */,
 				E06CE75A5D7421590AF23B8A /* ProBackendClient.swift in Sources */,
 				45A23803A98BFB53B9D59593 /* ProTranscriptionRouter.swift in Sources */,
+				6AE3CD48C33A80509A37F80C /* ProUsageCard.swift in Sources */,
 				51E2E8EC0F74C349152E75BF /* ProcessRecordingUseCase.swift in Sources */,
 				5659B8363936129D5E6448BA /* QualityPipeline.swift in Sources */,
 				958031920000A50C401A194D /* RecordView.swift in Sources */,
@@ -745,6 +753,9 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				PAPERORG_PLATFORM_API_URL = "https://platform.paperorg.com";
+				PAPERORG_PRO_BACKEND_URL = "https://notes-api.paperorg.com";
+				PAPERORG_USE_PLATFORM_AUTH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -813,6 +824,9 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PAPERORG_PLATFORM_API_URL = "http://127.0.0.1:8000";
+				PAPERORG_PRO_BACKEND_URL = "http://127.0.0.1:8080";
+				PAPERORG_USE_PLATFORM_AUTH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;

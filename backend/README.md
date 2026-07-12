@@ -24,8 +24,22 @@ Health check: `GET http://localhost:8080/health`
 
 ## Subscription
 
-- `POST /v1/subscription/verify` — send StoreKit transaction after purchase
+- `POST /v1/subscription/verify` — send StoreKit `transaction_id` after purchase; backend verifies via **App Store Server API**
 - `POST /v1/subscription/dev-activate` — **dev only** (`PAPERORG_DEV_MODE=true`) activates Pro without App Store
+
+### App Store Server API (production)
+
+Set in `.env`:
+
+```
+APPLE_ISSUER_ID=...
+APPLE_KEY_ID=...
+APPLE_PRIVATE_KEY=/path/to/AuthKey_XXXX.p8
+APPLE_USE_SANDBOX=true   # false in production
+```
+
+The iOS app sends `transaction_id` from StoreKit 2; the backend fetches and verifies the signed transaction with Apple.
+Optionally send `signed_transaction_info` JWS directly if available.
 
 ## Pro endpoints
 
@@ -45,9 +59,11 @@ Default **600 minutes/month** per Pro user (`PRO_MINUTES_PER_MONTH`).
 
 - Set `PAPERORG_DEV_MODE=false`
 - Use a strong `PAPERORG_JWT_SECRET`
-- Implement App Store Server API verification for `signed_transaction_info`
+- Configure App Store Server API credentials (see above)
+- Set `APPLE_USE_SANDBOX=false` for App Store builds
 - Deploy behind HTTPS (Fly.io, Railway, Render, etc.)
-- Set `PAPERORG_BACKEND_URL` in the iOS app build config
+- Set `PAPERORG_PRO_BACKEND_URL` in iOS **Release** config (`project.yml`)
+- See [`docs/PRO_BACKEND_DEPLOYMENT.md`](../docs/PRO_BACKEND_DEPLOYMENT.md)
 
 ## App Store product
 

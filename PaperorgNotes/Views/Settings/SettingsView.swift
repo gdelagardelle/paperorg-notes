@@ -29,9 +29,9 @@ struct SettingsView: View {
                         Label("Pro subscription active", systemImage: "checkmark.seal.fill")
                             .foregroundStyle(AppTheme.accent)
                         if let usage = environment.subscriptionService.usageInfo {
-                            Text("\(Int(usage.minutesRemaining)) of \(usage.minutesLimit) minutes remaining this month")
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.textSecondary)
+                            ProUsageCard(usage: usage) {
+                                Task { await environment.subscriptionService.refreshEntitlements() }
+                            }
                         }
                         SettingsSectionHint(text: "Transcription and summaries are included. No API keys required.")
                     } else if settings.selectedPlan == .pro {

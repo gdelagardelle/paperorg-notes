@@ -8,6 +8,7 @@ import httpx
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile, status
 from pydantic import BaseModel, Field
 
+from app_store import AppStoreVerificationError, verify_pro_subscription
 from auth_utils import create_access_token, get_current_user
 from config import settings
 from database import (
@@ -125,6 +126,10 @@ def register(body: RegisterRequest) -> RegisterResponse:
 @app.get("/v1/usage", response_model=UsageResponse)
 def usage(token: dict[str, Any] = Depends(get_current_user)) -> UsageResponse:
     user = get_or_create_user(token["device_id"])
+    return build_usage_response(user)
+
+
+def build_usage_response(user) -> UsageResponse:
     is_pro = user_is_pro(user)
     used = get_usage_minutes(user["id"])
     limit = settings.pro_minutes_per_month if is_pro else 0
@@ -148,15 +153,27 @@ def verify_subscription(
     if body.product_id != settings.apple_pro_product_id:
         raise HTTPException(status_code=400, detail="Unknown product.")
 
-    # Production: verify signed_transaction_info with App Store Server API.
-    # Dev/sandbox: accept transaction when dev mode is enabled.
-    if not settings.paperorg_dev_mode and not body.signed_transaction_info:
-        raise HTTPException(
-            status_code=400,
-            detail="Signed transaction required in production.",
-        )
+    if settings.paperorg_dev_mode and not body.signed_transaction_info and not body.transaction_id:
+        expires_at = (datetime.now(timezone.utc) + timedelta(days=32)).isoformat()
+        set_user_pro(user["id"], True, expires_at)
+        log_subscription_event(user["id"], body.product_id, body.transaction_id, "dev_verified")
+        user = get_or_create_user(token["device_id"])
+        return build_usage_response(user)
 
-    expires_at = (datetime.now(timezone.utc) + timedelta(days=32)).isoformat()
+    try:
+        expires_at = verify_pro_subscription(
+            product_id=body.product_id,
+            transaction_id=body.transaction_id,
+            signed_transaction_info=body.signed_transaction_info,
+            bundle_id=settings.apple_bundle_id,
+            issuer_id=settings.apple_issuer_id,
+            key_id=settings.apple_key_id,
+            private_key=settings.apple_private_key,
+            use_sandbox=settings.apple_use_sandbox,
+        )
+    except AppStoreVerificationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     set_user_pro(user["id"], True, expires_at)
     log_subscription_event(
         user["id"],
@@ -165,15 +182,7 @@ def verify_subscription(
         "verified",
     )
     user = get_or_create_user(token["device_id"])
-    used = get_usage_minutes(user["id"])
-    return UsageResponse(
-        is_pro=True,
-        minutes_limit=settings.pro_minutes_per_month,
-        minutes_used=used,
-        minutes_remaining=max(0.0, settings.pro_minutes_per_month - used),
-        period_key=period_key(),
-        pro_expires_at=user["pro_expires_at"],
-    )
+    return build_usage_response(user)
 
 
 @app.post("/v1/subscription/dev-activate", response_model=UsageResponse)

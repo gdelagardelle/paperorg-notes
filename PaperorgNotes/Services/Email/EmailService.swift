@@ -64,7 +64,7 @@ final class EmailService {
         }
         
         if settings.emailAttachPDF {
-            pdfURL = try? exportService.exportPDF(note: note)
+            pdfURL = try? exportService.exportPDF(note: note, branded: settings.usesProBackend)
         }
         
         if settings.emailAttachMarkdown {

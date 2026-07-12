@@ -363,7 +363,10 @@ struct NoteDetailView: View {
             exportURLs = [
                 try environment.exportService.exportPlainText(note: note),
                 try environment.exportService.exportMarkdown(note: note),
-                try environment.exportService.exportPDF(note: note)
+                try environment.exportService.exportPDF(
+                    note: note,
+                    branded: environment.settingsService.usesProBackend
+                )
             ]
             showExportShare = true
         } catch {

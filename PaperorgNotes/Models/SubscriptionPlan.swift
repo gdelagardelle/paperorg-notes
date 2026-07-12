@@ -39,6 +39,31 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         case periodKey = "period_key"
         case proExpiresAt = "pro_expires_at"
     }
+
+    var usageProgress: Double {
+        guard minutesLimit > 0 else { return 0 }
+        return min(1, max(0, minutesUsed / Double(minutesLimit)))
+    }
+
+    var periodDisplayName: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        guard let date = formatter.date(from: periodKey) else { return periodKey }
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: date)
+    }
+
+    var proExpiryDisplay: String? {
+        guard let proExpiresAt else { return nil }
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let fallback = ISO8601DateFormatter()
+        let date = iso.date(from: proExpiresAt) ?? fallback.date(from: proExpiresAt)
+        guard let date else { return nil }
+        let display = DateFormatter()
+        display.dateStyle = .medium
+        return display.string(from: date)
+    }
 }
 
 enum ProBackendError: LocalizedError {

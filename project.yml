@@ -14,6 +14,15 @@ settings:
     DEVELOPMENT_TEAM: "3N4Q2GQ558"
     INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
     INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+  configs:
+    Debug:
+      PAPERORG_PRO_BACKEND_URL: "http://127.0.0.1:8080"
+      PAPERORG_PLATFORM_API_URL: "http://127.0.0.1:8000"
+      PAPERORG_USE_PLATFORM_AUTH: "NO"
+    Release:
+      PAPERORG_PRO_BACKEND_URL: "https://notes-api.paperorg.com"
+      PAPERORG_PLATFORM_API_URL: "https://platform.paperorg.com"
+      PAPERORG_USE_PLATFORM_AUTH: "NO"
 
 targets:
   PaperorgNotes:
@@ -44,6 +53,9 @@ targets:
           - CFBundleURLName: com.paperorg.notes
             CFBundleURLSchemes:
               - paperorgnotes
+        PAPERORG_PRO_BACKEND_URL: $(PAPERORG_PRO_BACKEND_URL)
+        PAPERORG_PLATFORM_API_URL: $(PAPERORG_PLATFORM_API_URL)
+        PAPERORG_USE_PLATFORM_AUTH: $(PAPERORG_USE_PLATFORM_AUTH)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.notes
