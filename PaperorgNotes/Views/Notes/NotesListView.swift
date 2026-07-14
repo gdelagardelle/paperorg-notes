@@ -49,14 +49,12 @@ struct NotesListView: View {
 
                         Section {
                             ForEach(filteredNotes) { note in
-                                ZStack {
-                                    NavigationLink(destination: NoteDetailView(note: note)) {
-                                        EmptyView()
-                                    }
-                                    .opacity(0)
-
+                                NavigationLink {
+                                    NoteDetailView(note: note)
+                                } label: {
                                     NoteCardRow(note: note)
                                 }
+                                .buttonStyle(.plain)
                                 .listRowInsets(EdgeInsets(top: 5, leading: 20, bottom: 5, trailing: 20))
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)

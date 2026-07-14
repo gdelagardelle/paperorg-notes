@@ -99,7 +99,7 @@ final class ProTranscriptionRouter {
     }
 
     private func parseOpenAI(_ data: Data, request: TranscriptionRequest, startedAt: Date) throws -> TranscriptionResult {
-        let parsed = try JSONDecoder().decode(OpenAITranscriptionResponse.self, from: data)
+        let parsed = try OpenAITranscriptionParser.parse(data)
         let segments: [TranscriptSegmentDTO]
         if let responseSegments = parsed.segments, !responseSegments.isEmpty {
             segments = responseSegments.enumerated().map { index, seg in
@@ -234,18 +234,6 @@ final class ProTranscriptionRouter {
             providerId: ProviderID.elevenlabs.rawValue
         )
     }
-}
-
-private struct OpenAITranscriptionResponse: Decodable {
-    let text: String
-    let duration: Double?
-    let segments: [OpenAISegment]?
-}
-
-private struct OpenAISegment: Decodable {
-    let text: String
-    let start: Double
-    let end: Double
 }
 
 private struct ElevenLabsResponse: Decodable {

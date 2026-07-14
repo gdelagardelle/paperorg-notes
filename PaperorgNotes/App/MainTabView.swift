@@ -16,7 +16,7 @@ struct RootView: View {
                 PrivacyConsentView()
             } else if !settings.hasCompletedPlanSelection {
                 PlanSelectionView()
-            } else if settings.faceIDEnabled && !isUnlocked {
+            } else if settings.faceIDEnabled && !isUnlocked && environment.recordingService.state == .idle {
                 FaceIDLockView(isUnlocked: $isUnlocked)
             } else {
                 MainTabView()
@@ -28,10 +28,14 @@ struct RootView: View {
         }
         .onAppear(perform: recoverInterruptedProcessing)
         .onChange(of: scenePhase) { oldPhase, newPhase in
-            if settings.faceIDEnabled, oldPhase == .active, newPhase != .active {
+            if settings.faceIDEnabled,
+               oldPhase == .active,
+               newPhase != .active,
+               environment.recordingService.state == .idle {
                 isUnlocked = false
             }
             if newPhase == .active, settings.hasCompletedPlanSelection {
+                recoverInterruptedProcessing()
                 Task { await environment.subscriptionService.refreshEntitlements() }
             }
         }
@@ -50,12 +54,14 @@ struct RootView: View {
 
         for note in notes {
             if let recovered = recoveredByNoteID[note.id] {
-                note.audioFileName = recovered.audioURL.lastPathComponent
-                note.durationSeconds = recovered.duration
-                note.status = NoteStatus.draft.rawValue
-                note.processingStage = nil
-                note.errorMessage = "Recording recovered after an interruption. You can transcribe it when ready."
-                note.updatedAt = .now
+                applyRecovery(recovered, to: note)
+                continue
+            }
+
+            let needsRecovery = note.noteStatus == .draft
+                && (note.durationSeconds <= 0 || !audioExists(for: note.id))
+            if needsRecovery, let recovered = environment.recordingService.recoverRecording(for: note.id) {
+                applyRecovery(recovered, to: note)
             }
         }
 
@@ -76,6 +82,19 @@ struct RootView: View {
         } catch {
             print("Failed to recover interrupted notes: \(error.localizedDescription)")
         }
+    }
+
+    private func applyRecovery(_ recovered: RecoveredRecording, to note: Note) {
+        note.audioFileName = recovered.audioURL.lastPathComponent
+        note.durationSeconds = recovered.duration
+        note.status = NoteStatus.draft.rawValue
+        note.processingStage = nil
+        note.errorMessage = "Recording recovered after an interruption. Tap Transcribe again to process."
+        note.updatedAt = .now
+    }
+
+    private func audioExists(for noteId: UUID) -> Bool {
+        FileManager.default.fileExists(atPath: environment.storageService.audioURL(for: noteId).path)
     }
 }
 

@@ -66,7 +66,7 @@ final class OpenAITranscriptionProvider: TranscriptionProvider, @unchecked Senda
             throw TranscriptionError.providerError(message)
         }
         
-        let parsed = try parseTranscriptionResponse(data)
+        let parsed = try OpenAITranscriptionParser.parse(data)
         let segments: [TranscriptSegmentDTO]
         
         if let responseSegments = parsed.segments, !responseSegments.isEmpty {
@@ -108,21 +108,6 @@ final class OpenAITranscriptionProvider: TranscriptionProvider, @unchecked Senda
         )
     }
     
-    private func parseTranscriptionResponse(_ data: Data) throws -> OpenAITranscriptionResponse {
-        if let parsed = try? JSONDecoder().decode(OpenAITranscriptionResponse.self, from: data) {
-            return parsed
-        }
-        
-        if let text = String(data: data, encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-           !text.isEmpty,
-           !text.hasPrefix("{") {
-            return OpenAITranscriptionResponse(text: text, duration: nil, segments: nil)
-        }
-        
-        throw TranscriptionError.providerError("Could not parse OpenAI transcription response")
-    }
-    
     private func combinedPrompt(for request: TranscriptionRequest) -> String? {
         var parts: [String] = []
         if let hint = request.language.openAITranscriptionPromptHint {
@@ -134,16 +119,4 @@ final class OpenAITranscriptionProvider: TranscriptionProvider, @unchecked Senda
         guard !parts.isEmpty else { return nil }
         return String(parts.joined(separator: " ").prefix(900))
     }
-}
-
-private struct OpenAITranscriptionResponse: Decodable {
-    let text: String
-    let duration: Double?
-    let segments: [OpenAISegment]?
-}
-
-private struct OpenAISegment: Decodable {
-    let text: String
-    let start: Double
-    let end: Double
 }

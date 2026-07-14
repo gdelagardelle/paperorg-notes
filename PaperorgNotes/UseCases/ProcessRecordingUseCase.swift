@@ -265,10 +265,16 @@ final class ProcessRecordingUseCase {
         if let error = error as? ReprocessError {
             return error.localizedDescription
         }
+        if let error = error as? TranscriptionError {
+            return error.localizedDescription
+        }
         if error is CancellationError {
             return "Processing was cancelled. Your previous transcript and summary were kept."
         }
-        return "Processing failed. Your previous transcript and summary were kept."
+        if error is DecodingError {
+            return "Processing failed because the server returned an unexpected response. Open the note and tap Transcribe again."
+        }
+        return error.localizedDescription
     }
     
     private func buildSections(from output: StructuredOutput, note: Note) -> [StructuredSectionModel] {

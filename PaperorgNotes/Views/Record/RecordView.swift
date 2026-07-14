@@ -46,6 +46,7 @@ struct RecordView: View {
                 selectedLanguage = environment.settingsService.defaultLanguage
                 selectedOutputType = environment.settingsService.defaultOutputType
                 environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
+                relinkActiveNoteIfRecording()
                 handleQuickRecordRequestIfNeeded()
             }
             .onChange(of: environment.recordingService.state) { _, newState in
@@ -299,11 +300,11 @@ struct RecordView: View {
         processingError = nil
         
         Task {
+            var finalizedNoteId: UUID?
             do {
                 let result = try await environment.recordingService.stop()
-                guard let note = activeNote else {
-                    throw RecordingError.saveFailed("Recording was saved, but its note could not be found.")
-                }
+                finalizedNoteId = result.noteId
+                let note = try noteForRecordingResult(result.noteId)
                 
                 note.durationSeconds = result.duration
                 note.status = NoteStatus.processing.rawValue
@@ -325,10 +326,11 @@ struct RecordView: View {
                 startQueuedQuickRecordIfPossible()
             } catch {
                 processingError = safeProcessingError(error)
-                activeNote?.status = NoteStatus.failed.rawValue
-                activeNote?.errorMessage = processingError
-                if let activeNote {
-                    activeNote.updatedAt = .now
+                if let noteId = finalizedNoteId ?? activeNote?.id,
+                   let note = try? noteForRecordingResult(noteId) {
+                    note.status = NoteStatus.failed.rawValue
+                    note.errorMessage = processingError
+                    note.updatedAt = .now
                     try? modelContext.save()
                 }
                 showProcessing = false
@@ -337,13 +339,39 @@ struct RecordView: View {
         }
     }
 
+    private func noteForRecordingResult(_ noteId: UUID) throws -> Note {
+        if let activeNote, activeNote.id == noteId {
+            return activeNote
+        }
+        var descriptor = FetchDescriptor<Note>(predicate: #Predicate { $0.id == noteId })
+        descriptor.fetchLimit = 1
+        guard let note = try modelContext.fetch(descriptor).first else {
+            throw RecordingError.saveFailed("Recording was saved, but its note could not be found.")
+        }
+        activeNote = note
+        return note
+    }
+
     private func safeProcessingError(_ error: Error) -> String {
         if let error = error as? RecordingError {
             return error.localizedDescription
         }
-        return "Processing failed. Your recording remains available to retry."
+        if let error = error as? TranscriptionError {
+            return error.localizedDescription
+        }
+        if error is DecodingError {
+            return "Processing failed because the server returned an unexpected response. Try again, or reprocess from the note."
+        }
+        return error.localizedDescription
     }
     
+    private func relinkActiveNoteIfRecording() {
+        guard activeNote == nil, let noteId = environment.recordingService.currentNoteId else { return }
+        var descriptor = FetchDescriptor<Note>(predicate: #Predicate { $0.id == noteId })
+        descriptor.fetchLimit = 1
+        activeNote = try? modelContext.fetch(descriptor).first
+    }
+
     private func handleQuickRecordRequestIfNeeded() {
         guard environment.deepLinkHandler.pendingQuickRecord else { return }
         guard environment.recordingService.state == .idle, !showProcessing else {

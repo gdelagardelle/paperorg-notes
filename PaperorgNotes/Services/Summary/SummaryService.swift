@@ -245,6 +245,29 @@ private struct StructuredOutputDTO: Decodable {
     var datesMentioned: [String]
     var importantNumbers: [String]
     var followUpEmailDraft: String?
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        title = try container.decodeIfPresent(String.self, forKey: .title)
+        shortSummary = try container.decodeIfPresent(String.self, forKey: .shortSummary) ?? ""
+        detailedSummary = try container.decodeIfPresent(String.self, forKey: .detailedSummary) ?? shortSummary
+        keyIdeas = try container.decodeIfPresent([String].self, forKey: .keyIdeas) ?? []
+        decisions = try container.decodeIfPresent([String].self, forKey: .decisions) ?? []
+        actionItems = try container.decodeIfPresent([ActionItemDTO].self, forKey: .actionItems) ?? []
+        openQuestions = try container.decodeIfPresent([String].self, forKey: .openQuestions) ?? []
+        risks = try container.decodeIfPresent([String].self, forKey: .risks) ?? []
+        nextSteps = try container.decodeIfPresent([String].self, forKey: .nextSteps) ?? []
+        peopleMentioned = try container.decodeIfPresent([String].self, forKey: .peopleMentioned) ?? []
+        datesMentioned = try container.decodeIfPresent([String].self, forKey: .datesMentioned) ?? []
+        importantNumbers = try container.decodeIfPresent([String].self, forKey: .importantNumbers) ?? []
+        followUpEmailDraft = try container.decodeIfPresent(String.self, forKey: .followUpEmailDraft)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case title, shortSummary, detailedSummary, keyIdeas, decisions, actionItems
+        case openQuestions, risks, nextSteps, peopleMentioned, datesMentioned
+        case importantNumbers, followUpEmailDraft
+    }
 }
 
 private struct ActionItemDTO: Decodable {

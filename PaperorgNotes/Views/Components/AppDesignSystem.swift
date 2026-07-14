@@ -132,16 +132,14 @@ struct DeletableNoteLink<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        SwipeToDeleteRow(cornerRadius: cornerRadius, onDelete: onDelete) {
-            ZStack {
-                NavigationLink(destination: NoteDetailView(note: note)) {
-                    EmptyView()
-                }
-                .opacity(0)
-
+        NavigationLink {
+            NoteDetailView(note: note)
+        } label: {
+            SwipeToDeleteRow(cornerRadius: cornerRadius, onDelete: onDelete) {
                 content()
             }
         }
+        .buttonStyle(.plain)
     }
 }
 

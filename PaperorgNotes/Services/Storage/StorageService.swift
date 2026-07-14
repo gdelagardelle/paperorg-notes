@@ -119,6 +119,18 @@ final class StorageService {
         let url = audioURL(for: noteId)
         try? fileManager.removeItem(at: url)
     }
+
+    func replaceAudio(at destination: URL, with source: URL) throws {
+        if fileManager.fileExists(atPath: destination.path) {
+            try fileManager.removeItem(at: destination)
+        }
+        try fileManager.copyItem(at: source, to: destination)
+        try fileManager.setAttributes(
+            [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+            ofItemAtPath: destination.path
+        )
+        try? fileManager.removeItem(at: source)
+    }
     
     func deleteAllAudio() {
         guard let files = try? fileManager.contentsOfDirectory(at: recordingsDirectory, includingPropertiesForKeys: nil) else { return }

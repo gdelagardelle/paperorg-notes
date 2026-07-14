@@ -20,6 +20,8 @@ struct NoteDetailView: View {
     @State private var exportURLs: [URL] = []
     @State private var showExportShare = false
     @State private var exportError: String?
+    @State private var showAudioTrim = false
+    @State private var trimError: String?
     @StateObject private var playback = AudioPlaybackService()
     
     private var audioAvailable: Bool {
@@ -30,6 +32,18 @@ struct NoteDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 metadataHeader
+                if audioAvailable {
+                    NoteAudioPlayerSection(
+                        note: note,
+                        audioURL: environment.storageService.audioURL(for: note.id),
+                        playback: playback,
+                        onTrim: { showAudioTrim = true }
+                    )
+                } else if note.audioDeletedAt != nil {
+                    SettingsSectionHint(text: "Audio was removed after processing. Re-summarize or transcribe again if you kept the transcript.")
+                } else if note.noteStatus == .draft {
+                    SettingsSectionHint(text: "No recording file found. If this note stays empty after reopening the app, the audio was likely lost when recording stopped.")
+                }
                 if note.noteStatus == .failed, let error = note.errorMessage, !error.isEmpty {
                     HStack(spacing: 10) {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -55,6 +69,7 @@ struct NoteDetailView: View {
         .onAppear {
             selectedOutputType = note.noteOutputType
             selectedLanguage = note.appLanguage
+            attemptRecordingRecovery()
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -122,6 +137,19 @@ struct NoteDetailView: View {
             Button(L10n.Common.ok, role: .cancel) {}
         } message: {
             Text(exportError ?? "")
+        }
+        .alert("Trim Failed", isPresented: Binding(
+            get: { trimError != nil },
+            set: { if !$0 { trimError = nil } }
+        )) {
+            Button(L10n.Common.ok, role: .cancel) {}
+        } message: {
+            Text(trimError ?? "")
+        }
+        .sheet(isPresented: $showAudioTrim) {
+            AudioTrimSheet(audioURL: environment.storageService.audioURL(for: note.id)) { start, end in
+                Task { await applyTrim(start: start, end: end) }
+            }
         }
     }
     
@@ -353,11 +381,26 @@ struct NoteDetailView: View {
         playback.play(url: url, segment: segment)
     }
     
+    private func applyTrim(start: TimeInterval, end: TimeInterval) async {
+        let source = environment.storageService.audioURL(for: note.id)
+        do {
+            let trimmed = try await AudioTrimService.trim(sourceURL: source, start: start, end: end)
+            try environment.storageService.replaceAudio(at: source, with: trimmed)
+            note.durationSeconds = end - start
+            note.audioDeletedAt = nil
+            note.updatedAt = .now
+            playback.stopFullPlayback()
+            playback.prepareFullPlayback(url: source)
+            try? modelContext.save()
+        } catch {
+            trimError = error.localizedDescription
+        }
+    }
+
     private func toggleFavorite() {
         note.isFavorite.toggle()
         try? modelContext.save()
     }
-    
     private func exportNote() {
         do {
             exportURLs = [
@@ -389,6 +432,20 @@ struct NoteDetailView: View {
     private func applySelectionsToNote() {
         note.outputType = selectedOutputType.rawValue
         note.language = selectedLanguage.rawValue
+    }
+
+    private func attemptRecordingRecovery() {
+        guard !audioAvailable else { return }
+        guard note.noteStatus == .draft || note.durationSeconds <= 0 else { return }
+        guard let recovered = environment.recordingService.recoverRecording(for: note.id) else { return }
+
+        note.audioFileName = recovered.audioURL.lastPathComponent
+        note.durationSeconds = recovered.duration
+        note.status = NoteStatus.draft.rawValue
+        note.processingStage = nil
+        note.errorMessage = "Recording recovered. Tap Transcribe again to process."
+        note.updatedAt = .now
+        try? modelContext.save()
     }
     
     private func transcribeAgain() {

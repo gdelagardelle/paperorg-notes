@@ -35,6 +35,7 @@
 		5659B8363936129D5E6448BA /* QualityPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CB1C8B9F80F34734755D2C /* QualityPipeline.swift */; };
 		5AF12EEBB8AC0DC80C04A015 /* StoreRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2EF76ECA8152BE338CF0F /* StoreRecoveryView.swift */; };
 		5D9B4272A0E335AADB6CDDFB /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10F451B9CE45F448ED5357EA /* AppConstants.swift */; };
+		6AB75FB35487E4D282E4BDEA /* NoteAudioPlayerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 411E38DDB48629A61AEDDAA8 /* NoteAudioPlayerSection.swift */; };
 		6AE3CD48C33A80509A37F80C /* ProUsageCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23130EAFD410A3FED41D40AC /* ProUsageCard.swift */; };
 		6E65F038184080AE97869E98 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2776891AC1FF283C722736 /* MainTabView.swift */; };
 		7A9394B7E842956AA8C74F9A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 769C64C50D036C001E300F1F /* LaunchScreen.storyboard */; };
@@ -43,6 +44,7 @@
 		86D9F89F6DE0D92FF1189E16 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E44CE8EB8204467D2F453A2 /* AudioPlaybackService.swift */; };
 		879EB14C132EDB84188AD160 /* PlanSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */; };
 		87C1DF8AFD2418DBAF9B3FC2 /* SettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9824E63EEC45F2200D535A2F /* SettingsService.swift */; };
+		8C0D6EA0DC38CD6AFDC3C11C /* AudioTrimService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED20357D5435D4ECE33D822A /* AudioTrimService.swift */; };
 		958031920000A50C401A194D /* RecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C32F8A10B9DF8469B8745043 /* RecordView.swift */; };
 		96EE2A629E724164161E4373 /* PaperorgNotesWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829314BC54DCB82DDAC7E449 /* PaperorgNotesWidgetBundle.swift */; };
 		99E2BC589319777947514DAF /* OpenAITranscriptionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */; };
@@ -66,6 +68,7 @@
 		EACCB259CA28F2C218B9F54C /* NoteOrganizerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38212408D78D6D74FA32DCC5 /* NoteOrganizerSection.swift */; };
 		F254C58B2F118C4532B9B7F4 /* ExportBrandingSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5129B0C96608861776DCB9EC /* ExportBrandingSettingsSection.swift */; };
 		F99C6448308444DFDEA91CAC /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A0D92CB81A995CD2A47F03 /* SearchView.swift */; };
+		FA06E073A7AAB19C465D58E5 /* OpenAITranscriptionParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB19E21168DDA27DF38BDFAC /* OpenAITranscriptionParser.swift */; };
 		FF5EB0AEA679DA97A9DEC81D /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A23290AE1D4C2DF9E4BEA45 /* StorageService.swift */; };
 		FF98B44D485C5AE881B077BE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0C9BD304B8AD3F3CF47BD303 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -125,6 +128,7 @@
 		341A5C7198151CC7CA8CC630 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		38212408D78D6D74FA32DCC5 /* NoteOrganizerSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteOrganizerSection.swift; sourceTree = "<group>"; };
 		382E43B13BC104B0DC4917A5 /* ExportBranding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportBranding.swift; sourceTree = "<group>"; };
+		411E38DDB48629A61AEDDAA8 /* NoteAudioPlayerSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteAudioPlayerSection.swift; sourceTree = "<group>"; };
 		47612546C77D2EBA71ED4283 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		4870B2B5145972BC95567F38 /* PaperorgNotes.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PaperorgNotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B6B8DF7F1EC58D388ACDC88 /* NotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesListView.swift; sourceTree = "<group>"; };
@@ -168,6 +172,8 @@
 		D6DF048A8D3EF11339C56A9C /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
 		DE0C06053A99804E1AA8110D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E5C627A5CB7405AD3E454F04 /* StartRecordingIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartRecordingIntent.swift; sourceTree = "<group>"; };
+		EB19E21168DDA27DF38BDFAC /* OpenAITranscriptionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionParser.swift; sourceTree = "<group>"; };
+		ED20357D5435D4ECE33D822A /* AudioTrimService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTrimService.swift; sourceTree = "<group>"; };
 		FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptTextFormatter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -244,6 +250,7 @@
 				ADDE0214C73B37E41F8FEC6D /* BackendConfiguration.swift */,
 				68B74C5620F1B13BDE12A809 /* DeepLinkHandler.swift */,
 				565A7124A59F839DA2119477 /* L10n.swift */,
+				EB19E21168DDA27DF38BDFAC /* OpenAITranscriptionParser.swift */,
 				FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */,
 			);
 			path = Utilities;
@@ -280,6 +287,7 @@
 			children = (
 				2A7A286993897E5DE6FB106C /* AppDesignSystem.swift */,
 				65181023F293D9C4ACE28EEB /* MailComposeView.swift */,
+				411E38DDB48629A61AEDDAA8 /* NoteAudioPlayerSection.swift */,
 				68BDFF716C1EC2A56F0A160E /* OutputTypePicker.swift */,
 				23130EAFD410A3FED41D40AC /* ProUsageCard.swift */,
 				C1D2EF76ECA8152BE338CF0F /* StoreRecoveryView.swift */,
@@ -377,6 +385,7 @@
 			isa = PBXGroup;
 			children = (
 				6E44CE8EB8204467D2F453A2 /* AudioPlaybackService.swift */,
+				ED20357D5435D4ECE33D822A /* AudioTrimService.swift */,
 				CF1762B9D2A80DF2BDFFD225 /* RecordingService.swift */,
 			);
 			path = Recording;
@@ -616,6 +625,7 @@
 				517509262D50F3108147C612 /* AppleSpeechProvider.swift in Sources */,
 				09B3CC195AEDAE6321FAAAC5 /* AudioFileReader.swift in Sources */,
 				86D9F89F6DE0D92FF1189E16 /* AudioPlaybackService.swift in Sources */,
+				8C0D6EA0DC38CD6AFDC3C11C /* AudioTrimService.swift in Sources */,
 				C34A594FCC69C325A8897319 /* BackendConfiguration.swift in Sources */,
 				180B2284CCCCBFF9B09A60B4 /* DeepLinkHandler.swift in Sources */,
 				53A84583C3B43D6875DCA00C /* DeleteNoteUseCase.swift in Sources */,
@@ -632,9 +642,11 @@
 				B528AA9EBC95FD71061FEFD0 /* MailComposeView.swift in Sources */,
 				6E65F038184080AE97869E98 /* MainTabView.swift in Sources */,
 				04CFA2851125FEF94203EB4F /* Note.swift in Sources */,
+				6AB75FB35487E4D282E4BDEA /* NoteAudioPlayerSection.swift in Sources */,
 				026EFC7E07DD0201D8FBD951 /* NoteDetailView.swift in Sources */,
 				EACCB259CA28F2C218B9F54C /* NoteOrganizerSection.swift in Sources */,
 				B2A3392EF299E2B52340BD1A /* NotesListView.swift in Sources */,
+				FA06E073A7AAB19C465D58E5 /* OpenAITranscriptionParser.swift in Sources */,
 				99E2BC589319777947514DAF /* OpenAITranscriptionProvider.swift in Sources */,
 				B7398D2BD5EE2B7DC5384443 /* OutputTypePicker.swift in Sources */,
 				43D03C3A017A47CA5DE86303 /* PaperorgNotesApp.swift in Sources */,

@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 import Observation
+import UIKit
 
 enum RecordingState: Sendable, Equatable {
     case idle
@@ -27,6 +28,7 @@ final class RecordingService: NSObject {
     init(storage: StorageService) {
         self.storage = storage
         super.init()
+        observeAppLifecycle()
     }
     
     func requestPermission() async -> Bool {
@@ -95,7 +97,8 @@ final class RecordingService: NSObject {
         recorder?.stop()
         timer?.invalidate()
         timer = nil
-        
+
+        syncDurationFromTempFile()
         let finalDuration = duration
         let finalURL = try storage.finalizeRecording(from: temp, noteId: noteId)
         storage.deleteCheckpoint(sessionId: sessionId)
@@ -118,26 +121,49 @@ final class RecordingService: NSObject {
     /// Finalizes recordings left behind by an interrupted app session.
     /// Callers can use the returned note IDs to reconcile the corresponding SwiftData notes.
     func recoverInterruptedRecordings() -> [RecoveredRecording] {
-        storage.loadPendingCheckpoints().compactMap { checkpoint in
-            let temporaryURL = URL(fileURLWithPath: checkpoint.tempAudioPath)
-            let expectedPrefix = storage.recordingsDirectory.path + "/temp-"
-            guard temporaryURL.path.hasPrefix(expectedPrefix),
-                  FileManager.default.fileExists(atPath: temporaryURL.path) else {
-                storage.deleteCheckpoint(sessionId: checkpoint.sessionId)
-                return nil
-            }
+        storage.loadPendingCheckpoints().compactMap { recover(checkpoint: $0) }
+    }
 
-            do {
-                let audioURL = try storage.finalizeRecording(from: temporaryURL, noteId: checkpoint.noteId)
-                storage.deleteCheckpoint(sessionId: checkpoint.sessionId)
-                return RecoveredRecording(
-                    noteId: checkpoint.noteId,
-                    audioURL: audioURL,
-                    duration: checkpoint.duration
-                )
-            } catch {
-                return nil
-            }
+    /// Attempts to locate or finalize audio for a specific note (checkpoint temp file or saved m4a).
+    func recoverRecording(for noteId: UUID) -> RecoveredRecording? {
+        if let existing = existingRecording(for: noteId) {
+            return existing
+        }
+        guard let checkpoint = storage.loadPendingCheckpoints().first(where: { $0.noteId == noteId }) else {
+            return nil
+        }
+        return recover(checkpoint: checkpoint)
+    }
+
+    func existingRecording(for noteId: UUID) -> RecoveredRecording? {
+        let audioURL = storage.audioURL(for: noteId)
+        guard FileManager.default.fileExists(atPath: audioURL.path) else { return nil }
+        let measuredDuration = AudioTrimService.duration(of: audioURL)
+        guard measuredDuration > 0 else { return nil }
+        return RecoveredRecording(noteId: noteId, audioURL: audioURL, duration: measuredDuration)
+    }
+
+    private func recover(checkpoint: RecordingCheckpoint) -> RecoveredRecording? {
+        let temporaryURL = URL(fileURLWithPath: checkpoint.tempAudioPath)
+        let expectedPrefix = storage.recordingsDirectory.path + "/temp-"
+        guard temporaryURL.path.hasPrefix(expectedPrefix),
+              FileManager.default.fileExists(atPath: temporaryURL.path) else {
+            storage.deleteCheckpoint(sessionId: checkpoint.sessionId)
+            return nil
+        }
+
+        do {
+            let audioURL = try storage.finalizeRecording(from: temporaryURL, noteId: checkpoint.noteId)
+            storage.deleteCheckpoint(sessionId: checkpoint.sessionId)
+            let measuredDuration = AudioTrimService.duration(of: audioURL)
+            let duration = max(checkpoint.duration, measuredDuration)
+            return RecoveredRecording(
+                noteId: checkpoint.noteId,
+                audioURL: audioURL,
+                duration: duration
+            )
+        } catch {
+            return nil
         }
     }
     
@@ -197,12 +223,69 @@ final class RecordingService: NSObject {
     
     private func persistCheckpoint() {
         guard let noteId = currentNoteId, let temp = tempURL else { return }
+        syncDurationFromTempFile()
         try? storage.saveCheckpoint(
             sessionId: sessionId,
             noteId: noteId,
             tempAudioPath: temp.path,
             duration: duration
         )
+    }
+
+    /// UI timers pause when the device sleeps; read the growing m4a on disk for the real length.
+    private func syncDurationFromTempFile() {
+        guard let temp = tempURL, FileManager.default.fileExists(atPath: temp.path) else { return }
+        let measured = AudioTrimService.duration(of: temp)
+        if measured > duration {
+            duration = measured
+        }
+    }
+
+    private func observeAppLifecycle() {
+        let center = NotificationCenter.default
+        center.addObserver(
+            forName: UIApplication.willResignActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleAppBackgrounding()
+            }
+        }
+        center.addObserver(
+            forName: UIApplication.didEnterBackgroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleAppBackgrounding()
+            }
+        }
+        center.addObserver(
+            forName: UIApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleAppForegrounding()
+            }
+        }
+    }
+
+    private func handleAppBackgrounding() {
+        guard state != .idle else { return }
+        syncDurationFromTempFile()
+        persistCheckpoint()
+    }
+
+    private func handleAppForegrounding() {
+        guard state != .idle else { return }
+        syncDurationFromTempFile()
+        if state == .recording, recorder?.isRecording == false {
+            state = .paused
+            timer?.invalidate()
+            qualityWarning = "Recording was paused while the phone was locked. Tap Resume or Stop."
+        }
     }
 }
 
