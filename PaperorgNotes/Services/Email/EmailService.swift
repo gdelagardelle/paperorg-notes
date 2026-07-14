@@ -59,8 +59,10 @@ final class EmailService {
         var pdfURL: URL?
         var markdownURL: URL?
         
-        if settings.emailAttachAudio && note.audioDeletedAt == nil {
-            audioURL = exportService.audioURL(for: note)
+        if settings.emailAttachAudio && note.audioDeletedAt == nil,
+           let candidate = exportService.audioURL(for: note),
+           FileManager.default.fileExists(atPath: candidate.path) {
+            audioURL = candidate
         }
         
         if settings.emailAttachPDF {

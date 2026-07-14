@@ -36,21 +36,39 @@ struct ReviewBeforeSendView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L10n.Email.subject)
                             .font(.headline)
+                            .foregroundStyle(AppTheme.textPrimary)
                         TextField(L10n.Email.subject, text: $editedSubject)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(.plain)
+                            .padding(12)
+                            .background(AppTheme.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(AppTheme.border, lineWidth: 1)
+                            }
+                            .foregroundStyle(AppTheme.textPrimary)
                     }
                     
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L10n.Email.message)
                             .font(.headline)
+                            .foregroundStyle(AppTheme.textPrimary)
                         TextEditor(text: $editedBody)
                             .frame(minHeight: 180)
-                            .padding(8)
+                            .padding(10)
+                            .scrollContentBackground(.hidden)
+                            .foregroundStyle(AppTheme.textPrimary)
                             .background(AppTheme.surface)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(AppTheme.border, lineWidth: 1)
+                            }
                     }
                     
-                    attachmentSummary
+                    if !resolvedAttachments.isEmpty {
+                        attachmentSummary
+                    }
                     
                     recipientsSummary
                 }
@@ -71,6 +89,42 @@ struct ReviewBeforeSendView: View {
                 }
             }
         }
+        .preferredColorScheme(.light)
+    }
+    
+    private struct ResolvedAttachment: Identifiable {
+        let id: String
+        let label: String
+        let systemImage: String
+    }
+    
+    private var resolvedAttachments: [ResolvedAttachment] {
+        var items: [ResolvedAttachment] = []
+        if let audioURL = payload.audioURL,
+           FileManager.default.fileExists(atPath: audioURL.path) {
+            items.append(ResolvedAttachment(
+                id: "audio",
+                label: L10n.Email.attachmentAudio,
+                systemImage: "waveform"
+            ))
+        }
+        if let pdfURL = payload.pdfURL,
+           FileManager.default.fileExists(atPath: pdfURL.path) {
+            items.append(ResolvedAttachment(
+                id: "pdf",
+                label: L10n.Email.attachmentPDF,
+                systemImage: "doc.fill"
+            ))
+        }
+        if let markdownURL = payload.markdownURL,
+           FileManager.default.fileExists(atPath: markdownURL.path) {
+            items.append(ResolvedAttachment(
+                id: "markdown",
+                label: L10n.Email.attachmentMarkdown,
+                systemImage: "doc.text"
+            ))
+        }
+        return items
     }
     
     private var reviewWarnings: some View {
@@ -109,22 +163,15 @@ struct ReviewBeforeSendView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L10n.Email.attachments)
                 .font(.headline)
+                .foregroundStyle(AppTheme.textPrimary)
             
-            if payload.audioURL != nil {
-                Label(L10n.Email.attachmentAudio, systemImage: "waveform")
-            }
-            if payload.pdfURL != nil {
-                Label(L10n.Email.attachmentPDF, systemImage: "doc.fill")
-            }
-            if payload.markdownURL != nil {
-                Label(L10n.Email.attachmentMarkdown, systemImage: "doc.text")
-            }
-            if payload.audioURL == nil && payload.pdfURL == nil && payload.markdownURL == nil {
-                Text(L10n.Email.attachmentNone)
-                    .foregroundStyle(AppTheme.textSecondary)
+            ForEach(resolvedAttachments) { attachment in
+                Label(attachment.label, systemImage: attachment.systemImage)
+                    .foregroundStyle(AppTheme.textPrimary)
             }
         }
         .font(.subheadline)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .cardStyle()
     }
     
@@ -132,6 +179,7 @@ struct ReviewBeforeSendView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L10n.Email.to)
                 .font(.headline)
+                .foregroundStyle(AppTheme.textPrimary)
             Text(payload.recipients.joined(separator: ", "))
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
@@ -145,9 +193,9 @@ struct ReviewBeforeSendView: View {
             recipients: payload.recipients,
             subject: editedSubject,
             body: editedBody,
-            audioURL: payload.audioURL,
-            pdfURL: payload.pdfURL,
-            markdownURL: payload.markdownURL
+            audioURL: payload.audioURL.flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil },
+            pdfURL: payload.pdfURL.flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil },
+            markdownURL: payload.markdownURL.flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil }
         )
     }
 }
