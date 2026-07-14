@@ -51,6 +51,9 @@ class RegisterResponse(BaseModel):
     is_pro: bool
     minutes_limit: int
     minutes_used: float
+    minutes_remaining: float
+    period_key: str
+    pro_expires_at: Optional[str] = None
 
 
 class UsageResponse(BaseModel):
@@ -174,13 +177,16 @@ def register(body: RegisterRequest, request: Request) -> RegisterResponse:
     enforce_rate_limit(request, key_prefix="register", max_requests=20, window_seconds=3600)
     user = get_or_create_user(body.device_id)
     token = create_access_token(user["id"], user["device_id"])
-    minutes_used = get_usage_minutes(user["id"])
+    usage = build_usage_response(user)
     return RegisterResponse(
         access_token=token,
         user_id=user["id"],
-        is_pro=user_is_pro(user),
-        minutes_limit=settings.pro_minutes_per_month if user_is_pro(user) else 0,
-        minutes_used=minutes_used,
+        is_pro=usage.is_pro,
+        minutes_limit=usage.minutes_limit,
+        minutes_used=usage.minutes_used,
+        minutes_remaining=usage.minutes_remaining,
+        period_key=usage.period_key,
+        pro_expires_at=usage.pro_expires_at,
     )
 
 

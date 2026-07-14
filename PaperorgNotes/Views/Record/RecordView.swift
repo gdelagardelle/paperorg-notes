@@ -418,9 +418,25 @@ struct RecordView: View {
                 )
                 try await environment.emailDeliveryService.send(payload)
             } catch {
-                autoEmailError = error.localizedDescription
+                autoEmailError = friendlyEmailErrorMessage(for: error)
             }
         }
+    }
+
+    private func friendlyEmailErrorMessage(for error: Error) -> String {
+        if let backendError = error as? ProBackendError {
+            return backendError.localizedDescription
+        }
+        if let deliveryError = error as? EmailDeliveryError {
+            return deliveryError.localizedDescription
+        }
+        if let emailError = error as? EmailError {
+            return emailError.localizedDescription
+        }
+        if error is DecodingError {
+            return "Could not read the server response. Check your connection and try again."
+        }
+        return error.localizedDescription
     }
 
     private func deleteRecentNote(_ note: Note) {

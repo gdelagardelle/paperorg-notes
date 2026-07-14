@@ -82,9 +82,20 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
             minutesLimit = Int(try container.decode(Double.self, forKey: .minutesLimit))
         }
         minutesUsed = try container.decode(Double.self, forKey: .minutesUsed)
-        minutesRemaining = try container.decode(Double.self, forKey: .minutesRemaining)
-        periodKey = try container.decode(String.self, forKey: .periodKey)
+        if let remaining = try container.decodeIfPresent(Double.self, forKey: .minutesRemaining) {
+            minutesRemaining = remaining
+        } else {
+            minutesRemaining = max(0, Double(minutesLimit) - minutesUsed)
+        }
+        periodKey = try container.decodeIfPresent(String.self, forKey: .periodKey) ?? Self.defaultPeriodKey()
         proExpiresAt = try container.decodeIfPresent(String.self, forKey: .proExpiresAt)
+    }
+
+    private static func defaultPeriodKey() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter.string(from: Date())
     }
 
     private enum PlatformKeys: String, CodingKey {
