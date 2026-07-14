@@ -1,4 +1,5 @@
 import Foundation
+import MessageUI
 
 enum EmailError: LocalizedError, Equatable {
     case noRecipients
@@ -89,6 +90,6 @@ final class EmailService {
     var shouldSendAfterTranscription: Bool {
         settings.sendEmailAfterTranscription
             && !settings.emailRecipients.isEmpty
-            && settings.isAutomaticEmailConfigured
+            && MFMailComposeViewController.canSendMail()
     }
 }

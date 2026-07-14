@@ -5,7 +5,6 @@ enum KeychainKey: String {
     case openAIAPIKey = "com.paperorg.notes.openai.apikey"
     case elevenLabsAPIKey = "com.paperorg.notes.elevenlabs.apikey"
     case luxASRAPIKey = "com.paperorg.notes.luxasr.apikey"
-    case smtpPassword = "com.paperorg.notes.smtp.password"
     case proAccessToken = "com.paperorg.notes.pro.access"
     case deviceID = "com.paperorg.notes.device.id"
 }
@@ -47,11 +46,20 @@ final class KeychainService: Sendable {
         ]
         SecItemDelete(query as CFDictionary)
     }
+
+    func deleteLegacySecret(_ account: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: account
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
     
     func deleteAll() {
-        for key in [KeychainKey.openAIAPIKey, .elevenLabsAPIKey, .luxASRAPIKey, .smtpPassword, .proAccessToken, .deviceID] {
+        for key in [KeychainKey.openAIAPIKey, .elevenLabsAPIKey, .luxASRAPIKey, .proAccessToken, .deviceID] {
             delete(for: key)
         }
+        deleteLegacySecret("com.paperorg.notes.smtp.password")
     }
 }
 

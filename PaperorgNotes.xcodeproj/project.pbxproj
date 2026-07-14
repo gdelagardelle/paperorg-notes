@@ -54,7 +54,6 @@
 		ADC9EA453F99A4C9066C2A90 /* PrivacyConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4CCE7823C18246EF50175B /* PrivacyConsentView.swift */; };
 		B2A3392EF299E2B52340BD1A /* NotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B6B8DF7F1EC58D388ACDC88 /* NotesListView.swift */; };
 		B528AA9EBC95FD71061FEFD0 /* MailComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65181023F293D9C4ACE28EEB /* MailComposeView.swift */; };
-		B56F621E4D48F4CF8B8AC067 /* SMTPEmailDeliveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0D2034A23A4CA8E571D5F4 /* SMTPEmailDeliveryService.swift */; };
 		B7398D2BD5EE2B7DC5384443 /* OutputTypePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68BDFF716C1EC2A56F0A160E /* OutputTypePicker.swift */; };
 		C1929CB0E7F507F935A2A0BB /* RecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1762B9D2A80DF2BDFFD225 /* RecordingService.swift */; };
 		C34A594FCC69C325A8897319 /* BackendConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADDE0214C73B37E41F8FEC6D /* BackendConfiguration.swift */; };
@@ -139,7 +138,6 @@
 		65181023F293D9C4ACE28EEB /* MailComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailComposeView.swift; sourceTree = "<group>"; };
 		68B74C5620F1B13BDE12A809 /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
 		68BDFF716C1EC2A56F0A160E /* OutputTypePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputTypePicker.swift; sourceTree = "<group>"; };
-		6C0D2034A23A4CA8E571D5F4 /* SMTPEmailDeliveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMTPEmailDeliveryService.swift; sourceTree = "<group>"; };
 		6D5D04D3AEBE5A039C1C1BBD /* ProBackendClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProBackendClient.swift; sourceTree = "<group>"; };
 		6E44CE8EB8204467D2F453A2 /* AudioPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlaybackService.swift; sourceTree = "<group>"; };
 		74C446E4F10FD42ACD134C39 /* PaperorgNotesWidgetExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PaperorgNotesWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -312,7 +310,6 @@
 			isa = PBXGroup;
 			children = (
 				8E64381808162838B2D811BC /* EmailService.swift */,
-				6C0D2034A23A4CA8E571D5F4 /* SMTPEmailDeliveryService.swift */,
 			);
 			path = Email;
 			sourceTree = "<group>";
@@ -664,7 +661,6 @@
 				958031920000A50C401A194D /* RecordView.swift in Sources */,
 				C1929CB0E7F507F935A2A0BB /* RecordingService.swift in Sources */,
 				13AEF56FF88E35287FDA4CA3 /* ReviewBeforeSendView.swift in Sources */,
-				B56F621E4D48F4CF8B8AC067 /* SMTPEmailDeliveryService.swift in Sources */,
 				F99C6448308444DFDEA91CAC /* SearchView.swift in Sources */,
 				87C1DF8AFD2418DBAF9B3FC2 /* SettingsService.swift in Sources */,
 				525E797077F692277186F223 /* SettingsView.swift in Sources */,

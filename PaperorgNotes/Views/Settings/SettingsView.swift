@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import MessageUI
 
 struct SettingsView: View {
     @Environment(AppEnvironment.self) private var environment
@@ -12,7 +13,6 @@ struct SettingsView: View {
     @State private var openAIKey = ""
     @State private var elevenLabsKey = ""
     @State private var luxASRKey = ""
-    @State private var smtpPassword = ""
     @State private var newVocabularyTerm = ""
     @State private var gdprExportURL: URL?
     @State private var showGDPRExportShare = false
@@ -172,43 +172,13 @@ struct SettingsView: View {
                 Section("Email") {
                     Toggle("Send email after transcription", isOn: $settings.sendEmailAfterTranscription)
                     if settings.sendEmailAfterTranscription {
-                        SettingsSectionHint(text: "Sends automatically in the background when transcription finishes. Requires SMTP settings below.")
-                        if !settings.isAutomaticEmailConfigured {
-                            Text("Add SMTP details to enable automatic sending.")
+                        if MFMailComposeViewController.canSendMail() {
+                            SettingsSectionHint(text: "Opens Mail when transcription finishes, using the account configured on this iPhone. Tap Send in Mail.")
+                        } else {
+                            Text("Add a Mail account in iOS Settings → Apps → Mail.")
                                 .font(.caption)
                                 .foregroundStyle(AppTheme.error)
                         }
-                    }
-
-                    if settings.sendEmailAfterTranscription {
-                        TextField("From address", text: $settings.smtpFromAddress)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .textInputAutocapitalization(.never)
-
-                        TextField("SMTP host", text: $settings.smtpHost)
-                            .textInputAutocapitalization(.never)
-
-                        Stepper("Port: \(settings.smtpPort)", value: $settings.smtpPort, in: 1...65535)
-
-                        TextField("SMTP username", text: $settings.smtpUsername)
-                            .textContentType(.username)
-                            .textInputAutocapitalization(.never)
-
-                        SecureField("SMTP app password", text: $smtpPassword)
-                            .textContentType(.password)
-                            .onChange(of: smtpPassword) { _, value in
-                                settings.smtpPassword = value.isEmpty ? nil : value
-                            }
-
-                        SettingsSectionHint(text: "Use port 465 with an app-specific password. Gmail: smtp.gmail.com. iCloud: smtp.mail.me.com. Outlook: smtp-mail.outlook.com.")
-
-                        HStack {
-                            Button("Gmail") { applySMTPPreset(host: "smtp.gmail.com", port: 465) }
-                            Button("iCloud") { applySMTPPreset(host: "smtp.mail.me.com", port: 465) }
-                            Button("Outlook") { applySMTPPreset(host: "smtp-mail.outlook.com", port: 465) }
-                        }
-                        .font(.caption)
                     }
 
                     Picker("Content", selection: $settings.emailContent) {
@@ -220,9 +190,7 @@ struct SettingsView: View {
                     Toggle("Attach Audio", isOn: $settings.emailAttachAudio)
                     Toggle("Attach PDF", isOn: $settings.emailAttachPDF)
                     Toggle("Attach Markdown", isOn: $settings.emailAttachMarkdown)
-                    if !settings.sendEmailAfterTranscription {
-                        Toggle("Review before send", isOn: $settings.reviewBeforeEmail)
-                    }
+                    Toggle("Review before send", isOn: $settings.reviewBeforeEmail)
                     
                     HStack {
                         TextField("Add email address", text: $newEmail)
@@ -363,12 +331,6 @@ struct SettingsView: View {
         openAIKey = environment.settingsService.openAIAPIKey ?? ""
         elevenLabsKey = environment.settingsService.elevenLabsAPIKey ?? ""
         luxASRKey = environment.settingsService.luxASRAPIKey ?? ""
-        smtpPassword = environment.settingsService.smtpPassword ?? ""
-    }
-
-    private func applySMTPPreset(host: String, port: Int) {
-        environment.settingsService.smtpHost = host
-        environment.settingsService.smtpPort = port
     }
 
     private func addRecipient() {

@@ -28,10 +28,6 @@ final class SettingsService {
         static let customVocabulary = "customVocabulary"
         static let reviewBeforeEmail = "reviewBeforeEmail"
         static let sendEmailAfterTranscription = "sendEmailAfterTranscription"
-        static let smtpHost = "smtpHost"
-        static let smtpPort = "smtpPort"
-        static let smtpUsername = "smtpUsername"
-        static let smtpFromAddress = "smtpFromAddress"
         static let selectedPlan = "selectedPlan"
         static let hasCompletedPlanSelection = "hasCompletedPlanSelection"
         static let proBackendBaseURL = "proBackendBaseURL"
@@ -122,29 +118,6 @@ final class SettingsService {
 
     var sendEmailAfterTranscription: Bool {
         didSet { defaults.set(sendEmailAfterTranscription, forKey: Keys.sendEmailAfterTranscription) }
-    }
-
-    var smtpHost: String {
-        didSet { defaults.set(smtpHost, forKey: Keys.smtpHost) }
-    }
-
-    var smtpPort: Int {
-        didSet { defaults.set(smtpPort, forKey: Keys.smtpPort) }
-    }
-
-    var smtpUsername: String {
-        didSet { defaults.set(smtpUsername, forKey: Keys.smtpUsername) }
-    }
-
-    var smtpFromAddress: String {
-        didSet { defaults.set(smtpFromAddress, forKey: Keys.smtpFromAddress) }
-    }
-
-    var isAutomaticEmailConfigured: Bool {
-        !smtpHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !smtpUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !smtpFromAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && smtpPassword != nil
     }
 
     var selectedPlan: SubscriptionPlan {
@@ -277,10 +250,6 @@ final class SettingsService {
             self.sendEmailAfterTranscription = legacyPolicy == .always
         }
 
-        self.smtpHost = defaults.string(forKey: Keys.smtpHost) ?? ""
-        self.smtpPort = defaults.object(forKey: Keys.smtpPort) as? Int ?? 465
-        self.smtpUsername = defaults.string(forKey: Keys.smtpUsername) ?? ""
-        self.smtpFromAddress = defaults.string(forKey: Keys.smtpFromAddress) ?? ""
         self.selectedPlan = SubscriptionPlan(rawValue: defaults.string(forKey: Keys.selectedPlan) ?? "") ?? .free
         if defaults.object(forKey: Keys.hasCompletedPlanSelection) != nil {
             self.hasCompletedPlanSelection = defaults.bool(forKey: Keys.hasCompletedPlanSelection)
@@ -302,6 +271,8 @@ final class SettingsService {
         }
         self.exportBrandName = defaults.string(forKey: Keys.exportBrandName) ?? "Paperorg Notes"
         self.exportBrandSubtitle = defaults.string(forKey: Keys.exportBrandSubtitle) ?? ""
+
+        keychain.deleteLegacySecret("com.paperorg.notes.smtp.password")
     }
     
     func providerPreferences() -> [AppLanguage: [ProviderID]] {
@@ -366,14 +337,6 @@ final class SettingsService {
         }
     }
 
-    var smtpPassword: String? {
-        get { keychain.retrieve(for: .smtpPassword) }
-        set {
-            if let newValue, !newValue.isEmpty { try? keychain.save(newValue, for: .smtpPassword) }
-            else { keychain.delete(for: .smtpPassword) }
-        }
-    }
-    
     func resetAllData() {
         let domain = Bundle.main.bundleIdentifier ?? ""
         defaults.removePersistentDomain(forName: domain)
@@ -399,11 +362,6 @@ final class SettingsService {
         customVocabulary = []
         reviewBeforeEmail = true
         sendEmailAfterTranscription = false
-        smtpHost = ""
-        smtpPort = 465
-        smtpUsername = ""
-        smtpFromAddress = ""
-        smtpPassword = nil
         selectedPlan = .free
         hasCompletedPlanSelection = false
         cachedProUsage = nil
