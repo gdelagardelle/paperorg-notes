@@ -28,10 +28,12 @@ final class SettingsService {
         static let customVocabulary = "customVocabulary"
         static let reviewBeforeEmail = "reviewBeforeEmail"
         static let sendEmailAfterTranscription = "sendEmailAfterTranscription"
+        static let useOwnMailServerForEmail = "useOwnMailServerForEmail"
         static let smtpHost = "smtpHost"
         static let smtpPort = "smtpPort"
         static let smtpUsername = "smtpUsername"
         static let smtpFromAddress = "smtpFromAddress"
+        static let smtpProviderPreset = "smtpProviderPreset"
         static let selectedPlan = "selectedPlan"
         static let hasCompletedPlanSelection = "hasCompletedPlanSelection"
         static let proBackendBaseURL = "proBackendBaseURL"
@@ -124,6 +126,10 @@ final class SettingsService {
         didSet { defaults.set(sendEmailAfterTranscription, forKey: Keys.sendEmailAfterTranscription) }
     }
 
+    var useOwnMailServerForEmail: Bool {
+        didSet { defaults.set(useOwnMailServerForEmail, forKey: Keys.useOwnMailServerForEmail) }
+    }
+
     var smtpHost: String {
         didSet { defaults.set(smtpHost, forKey: Keys.smtpHost) }
     }
@@ -140,11 +146,22 @@ final class SettingsService {
         didSet { defaults.set(smtpFromAddress, forKey: Keys.smtpFromAddress) }
     }
 
+    var smtpProviderPreset: SMTPProviderPreset {
+        didSet { defaults.set(smtpProviderPreset.rawValue, forKey: Keys.smtpProviderPreset) }
+    }
+
     var isAutomaticEmailConfigured: Bool {
         !smtpHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !smtpUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && !smtpFromAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && smtpPassword != nil
+    }
+
+    var canAutomaticallySendEmail: Bool {
+        if useOwnMailServerForEmail {
+            return isAutomaticEmailConfigured
+        }
+        return true
     }
 
     var selectedPlan: SubscriptionPlan {
@@ -276,10 +293,19 @@ final class SettingsService {
             let legacyPolicy = EmailPolicy(rawValue: defaults.string(forKey: Keys.emailPolicy) ?? "") ?? .ask
             self.sendEmailAfterTranscription = legacyPolicy == .always
         }
-        self.smtpHost = defaults.string(forKey: Keys.smtpHost) ?? ""
+        let storedSMTPHost = defaults.string(forKey: Keys.smtpHost) ?? ""
+        self.useOwnMailServerForEmail = defaults.object(forKey: Keys.useOwnMailServerForEmail) != nil
+            ? defaults.bool(forKey: Keys.useOwnMailServerForEmail)
+            : (!storedSMTPHost.isEmpty && keychain.retrieve(for: .smtpPassword) != nil)
+        self.smtpHost = storedSMTPHost
         self.smtpPort = defaults.object(forKey: Keys.smtpPort) as? Int ?? 465
         self.smtpUsername = defaults.string(forKey: Keys.smtpUsername) ?? ""
         self.smtpFromAddress = defaults.string(forKey: Keys.smtpFromAddress) ?? ""
+        if let storedPreset = SMTPProviderPreset(rawValue: defaults.string(forKey: Keys.smtpProviderPreset) ?? "") {
+            self.smtpProviderPreset = storedPreset
+        } else {
+            self.smtpProviderPreset = Self.inferredSMTPPreset(host: storedSMTPHost)
+        }
 
         self.selectedPlan = SubscriptionPlan(rawValue: defaults.string(forKey: Keys.selectedPlan) ?? "") ?? .free
         if defaults.object(forKey: Keys.hasCompletedPlanSelection) != nil {
@@ -374,6 +400,27 @@ final class SettingsService {
         }
     }
 
+    func applySMTPPreset(_ preset: SMTPProviderPreset) {
+        smtpProviderPreset = preset
+        guard let host = preset.smtpHost else { return }
+        smtpHost = host
+        smtpPort = preset.smtpPort
+    }
+
+    private static func inferredSMTPPreset(host: String) -> SMTPProviderPreset {
+        let normalized = host.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if normalized.contains("outlook") || normalized.contains("office365") {
+            return .outlook
+        }
+        if normalized.contains("gmail") || normalized.contains("google") {
+            return .gmail
+        }
+        if normalized.contains("mail.me.com") || normalized.contains("icloud") {
+            return .appleMail
+        }
+        return normalized.isEmpty ? .appleMail : .custom
+    }
+
     func resetAllData() {
         let domain = Bundle.main.bundleIdentifier ?? ""
         defaults.removePersistentDomain(forName: domain)
@@ -399,10 +446,12 @@ final class SettingsService {
         customVocabulary = []
         reviewBeforeEmail = true
         sendEmailAfterTranscription = false
+        useOwnMailServerForEmail = false
         smtpHost = ""
         smtpPort = 465
         smtpUsername = ""
         smtpFromAddress = ""
+        smtpProviderPreset = .appleMail
         smtpPassword = nil
         selectedPlan = .free
         hasCompletedPlanSelection = false

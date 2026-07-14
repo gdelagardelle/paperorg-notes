@@ -29,7 +29,8 @@ from database import (
     set_user_pro,
     uses_postgres,
 )
-from rate_limit import enforce_rate_limit
+from email_delivery import EmailDeliveryError, email_delivery_configured, email_delivery_source, send_email
+from rate_limit import enforce_rate_limit, enforce_user_rate_limit
 
 app = FastAPI(title="Paperorg Notes Pro API", version="1.0.0")
 
@@ -466,3 +467,84 @@ risks, nextSteps, peopleMentioned, datesMentioned, importantNumbers, followUpEma
     payload = response.json()
     content = payload["choices"][0]["message"]["content"]
     return json.loads(content)
+
+
+def token_user_key(token: dict[str, Any]) -> str:
+    if token.get("source") == "platform":
+        return f"platform:{token['sub']}"
+    return f"device:{token.get('device_id') or token.get('sub')}"
+
+
+@app.get("/v1/email/status")
+def email_status(token: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
+    _ = token
+    return {
+        "available": email_delivery_configured(),
+        "source": email_delivery_source(),
+    }
+
+
+@app.post("/v1/email/send")
+async def email_send(
+    request: Request,
+    subject: str = Form(...),
+    body: str = Form(...),
+    recipients: str = Form(...),
+    audio: Optional[UploadFile] = File(None),
+    pdf: Optional[UploadFile] = File(None),
+    markdown: Optional[UploadFile] = File(None),
+    token: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, str]:
+    if not email_delivery_configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Email delivery is not configured on the server.",
+        )
+
+    enforce_user_rate_limit(
+        token_user_key(token),
+        key_prefix="email-send",
+        max_requests=settings.email_daily_limit,
+        window_seconds=86_400,
+    )
+    enforce_rate_limit(request, key_prefix="email-send-ip", max_requests=120, window_seconds=3600)
+
+    try:
+        recipient_list = json.loads(recipients)
+        if not isinstance(recipient_list, list):
+            raise ValueError("recipients must be a JSON array")
+        recipient_strings = [str(item) for item in recipient_list]
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail="Invalid recipients payload.") from exc
+
+    attachments: list[tuple[str, str, bytes]] = []
+    for upload, default_name, default_type in (
+        (audio, "recording.m4a", "audio/m4a"),
+        (pdf, "note.pdf", "application/pdf"),
+        (markdown, "note.md", "text/markdown"),
+    ):
+        if upload is None:
+            continue
+        data = await upload.read()
+        if not data:
+            continue
+        attachments.append(
+            (
+                upload.filename or default_name,
+                upload.content_type or default_type,
+                data,
+            )
+        )
+
+    try:
+        send_email(
+            user_id=token_user_key(token),
+            recipients=recipient_strings,
+            subject=subject,
+            body=body,
+            attachments=attachments,
+        )
+    except EmailDeliveryError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return {"status": "sent"}

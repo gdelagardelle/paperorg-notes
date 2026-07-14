@@ -1,16 +1,19 @@
 """Paperorg Platform integration for notes-api (Phase C/D).
 
-Three capabilities, each independently env-gated:
+Capabilities, each independently env-gated:
 - Validate Platform-issued RS256 JWTs via the Platform's JWKS
   (PLATFORM_API_URL) — lets iOS builds with USE_PLATFORM_AUTH=YES call transcribe/summarize here with their Platform token.
 - Check/report usage against the Platform ledger, acting as the user
   (their own bearer token is forwarded — no service credential involved).
 - Resolve provider API keys from the Platform credentials vault
   (PLATFORM_INTERNAL_TOKEN), falling back to local env vars.
+- Relay outbound email through the Platform SMTP configured in the admin
+  (PLATFORM_INTERNAL_TOKEN), falling back to local EMAIL_SMTP_* env vars.
 """
 
 from __future__ import annotations
 
+import json
 import time
 import uuid
 from typing import Any, Optional
@@ -26,6 +29,20 @@ _jwks_cache: dict[str, Any] = {"keys": None, "fetched_at": 0.0}
 
 _CREDENTIAL_TTL_SECONDS = 600
 _credential_cache: dict[str, tuple[float, Optional[str]]] = {}
+
+_EMAIL_STATUS_TTL_SECONDS = 120
+_email_status_cache: dict[str, Any] = {"available": None, "fetched_at": 0.0}
+
+_EMAIL_CONFIG_TTL_SECONDS = 600
+_email_config_cache: dict[str, Any] = {"config": None, "fetched_at": 0.0}
+
+
+def _internal_headers() -> dict[str, str]:
+    return {"Authorization": f"Bearer {settings.platform_internal_token}"}
+
+
+def _platform_internal_enabled() -> bool:
+    return bool(settings.platform_api_url and settings.platform_internal_token)
 
 
 def platform_enabled() -> bool:
@@ -145,3 +162,104 @@ def resolve_provider_key(provider: str, env_value: str) -> str:
         secret = None
     _credential_cache[provider] = (time.time(), secret)
     return secret or env_value
+
+
+def platform_email_relay_available() -> bool:
+    """True when the Platform internal email relay is configured."""
+    if not _platform_internal_enabled():
+        return False
+    now = time.time()
+    if (
+        _email_status_cache["available"] is not None
+        and now - _email_status_cache["fetched_at"] < _EMAIL_STATUS_TTL_SECONDS
+    ):
+        return bool(_email_status_cache["available"])
+    available = False
+    try:
+        response = httpx.get(
+            f"{settings.platform_api_url}/internal/v1/email/status",
+            params={"app_id": "notes"},
+            headers=_internal_headers(),
+            timeout=10,
+        )
+        if response.status_code == 200:
+            available = bool(response.json().get("available"))
+    except httpx.HTTPError:
+        available = False
+    _email_status_cache["available"] = available
+    _email_status_cache["fetched_at"] = now
+    return available
+
+
+def resolve_platform_email_config() -> Optional[dict[str, Any]]:
+    """Fetch SMTP/from settings managed in the Platform admin for app_id=notes."""
+    if not _platform_internal_enabled():
+        return None
+    now = time.time()
+    if (
+        _email_config_cache["config"] is not None
+        and now - _email_config_cache["fetched_at"] < _EMAIL_CONFIG_TTL_SECONDS
+    ):
+        return _email_config_cache["config"]
+    config: Optional[dict[str, Any]] = None
+    try:
+        response = httpx.get(
+            f"{settings.platform_api_url}/internal/v1/email/config",
+            params={"app_id": "notes"},
+            headers=_internal_headers(),
+            timeout=10,
+        )
+        if response.status_code == 200:
+            payload = response.json()
+            if payload.get("available") and payload.get("smtp_host") and payload.get("smtp_password"):
+                config = payload
+    except httpx.HTTPError:
+        config = None
+    _email_config_cache["config"] = config
+    _email_config_cache["fetched_at"] = now
+    return config
+
+
+def send_platform_email(
+    *,
+    user_id: str,
+    recipients: list[str],
+    subject: str,
+    body: str,
+    attachments: list[tuple[str, str, bytes]],
+) -> None:
+    """Send email via the Platform relay (SMTP configured in Platform admin)."""
+    if not _platform_internal_enabled():
+        raise RuntimeError("Platform internal token is not configured.")
+
+    data = {
+        "user_id": user_id,
+        "subject": subject,
+        "body": body,
+        "recipients": json.dumps(recipients),
+    }
+    files: list[tuple[str, tuple[str, bytes, str]]] = []
+    attachment_fields = ["audio", "pdf", "markdown"]
+    for index, (filename, mime_type, content) in enumerate(attachments):
+        field_name = attachment_fields[index] if index < len(attachment_fields) else f"attachment_{index}"
+        files.append((field_name, (filename, content, mime_type)))
+
+    try:
+        response = httpx.post(
+            f"{settings.platform_api_url}/internal/v1/email/send",
+            params={"app_id": "notes"},
+            headers=_internal_headers(),
+            data=data,
+            files=files,
+            timeout=120,
+        )
+    except httpx.HTTPError as exc:
+        raise RuntimeError(f"Platform email relay unavailable: {exc}") from exc
+
+    if response.status_code >= 400:
+        detail = response.text
+        try:
+            detail = response.json().get("detail", detail)
+        except ValueError:
+            pass
+        raise RuntimeError(str(detail))

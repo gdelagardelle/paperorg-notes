@@ -172,59 +172,14 @@ struct SettingsView: View {
                 Section("Email") {
                     Toggle("Send email after transcription", isOn: $settings.sendEmailAfterTranscription)
                     if settings.sendEmailAfterTranscription {
-                        SettingsSectionHint(text: "Sends automatically in the background when transcription finishes — no taps needed. Perfect for hands-free use while driving.")
-                        if !settings.isAutomaticEmailConfigured {
-                            Text("Add your mail account below to enable automatic sending.")
+                        SettingsSectionHint(text: "Paperorg sends your note by email automatically when transcription finishes — no mail setup on your phone. Just add who should receive it below.")
+                        if settings.useOwnMailServerForEmail && !settings.isAutomaticEmailConfigured {
+                            Text("Finish your own mail server setup below, or turn that option off to let Paperorg send for you.")
                                 .font(.caption)
                                 .foregroundStyle(AppTheme.error)
                         }
                     }
 
-                    if settings.sendEmailAfterTranscription {
-                        TextField("From address", text: $settings.smtpFromAddress)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .textInputAutocapitalization(.never)
-
-                        TextField("SMTP host", text: $settings.smtpHost)
-                            .textInputAutocapitalization(.never)
-
-                        Stepper("Port: \(settings.smtpPort)", value: $settings.smtpPort, in: 1...65535)
-
-                        TextField("SMTP username", text: $settings.smtpUsername)
-                            .textContentType(.username)
-                            .textInputAutocapitalization(.never)
-
-                        SecureField("SMTP app password", text: $smtpPassword)
-                            .textContentType(.password)
-                            .onChange(of: smtpPassword) { _, value in
-                                settings.smtpPassword = value.isEmpty ? nil : value
-                            }
-
-                        SettingsSectionHint(text: "Use an app password, not your regular login password. Outlook: smtp-mail.outlook.com · Gmail: smtp.gmail.com · iCloud: smtp.mail.me.com")
-
-                        HStack {
-                            Button("Outlook") { applySMTPPreset(host: "smtp-mail.outlook.com", port: 465) }
-                            Button("Gmail") { applySMTPPreset(host: "smtp.gmail.com", port: 465) }
-                            Button("iCloud") { applySMTPPreset(host: "smtp.mail.me.com", port: 465) }
-                        }
-                        .font(.caption)
-                    }
-
-                    Picker("Content", selection: $settings.emailContent) {
-                        ForEach(EmailContent.allCases) { content in
-                            Text(content.displayName).tag(content)
-                        }
-                    }
-                    
-                    Toggle("Attach Audio", isOn: $settings.emailAttachAudio)
-                    Toggle("Attach PDF", isOn: $settings.emailAttachPDF)
-                    Toggle("Attach Markdown", isOn: $settings.emailAttachMarkdown)
-                    Toggle("Review before send", isOn: $settings.reviewBeforeEmail)
-                    if settings.reviewBeforeEmail {
-                        SettingsSectionHint(text: "Only applies when you tap Send Email on a note. Automatic post-recording email always sends without review.")
-                    }
-                    
                     HStack {
                         TextField("Add email address", text: $newEmail)
                             .textContentType(.emailAddress)
@@ -240,7 +195,7 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundStyle(AppTheme.error)
                     }
-                    
+
                     ForEach(settings.emailRecipients, id: \.self) { email in
                         HStack {
                             Text(email)
@@ -250,6 +205,72 @@ struct SettingsView: View {
                             } label: {
                                 Image(systemName: "trash")
                             }
+                        }
+                    }
+
+                    Picker("Content", selection: $settings.emailContent) {
+                        ForEach(EmailContent.allCases) { content in
+                            Text(content.displayName).tag(content)
+                        }
+                    }
+
+                    Toggle("Attach Audio", isOn: $settings.emailAttachAudio)
+                    Toggle("Attach PDF", isOn: $settings.emailAttachPDF)
+                    Toggle("Attach Markdown", isOn: $settings.emailAttachMarkdown)
+                    Toggle("Review before send", isOn: $settings.reviewBeforeEmail)
+                    if settings.reviewBeforeEmail {
+                        SettingsSectionHint(text: "Only applies when you tap Send Email on a note. Automatic post-recording email always sends without review.")
+                    }
+
+                    DisclosureGroup("Advanced: send from my own email") {
+                        Toggle("Use my own mail server", isOn: $settings.useOwnMailServerForEmail)
+
+                        if settings.useOwnMailServerForEmail {
+                            Picker("Mail provider", selection: $settings.smtpProviderPreset) {
+                                ForEach(SMTPProviderPreset.allCases.filter { $0 != .custom }) { preset in
+                                    Text(preset.displayName).tag(preset)
+                                }
+                                Text(SMTPProviderPreset.custom.displayName).tag(SMTPProviderPreset.custom)
+                            }
+                            .onChange(of: settings.smtpProviderPreset) { _, preset in
+                                if preset != .custom {
+                                    settings.applySMTPPreset(preset)
+                                }
+                            }
+
+                            SettingsSectionHint(text: settings.smtpProviderPreset.setupHint)
+
+                            TextField("From address", text: $settings.smtpFromAddress)
+                                .textContentType(.emailAddress)
+                                .keyboardType(.emailAddress)
+                                .textInputAutocapitalization(.never)
+                                .onChange(of: settings.smtpFromAddress) { _, value in
+                                    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    if settings.smtpUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                                       !trimmed.isEmpty {
+                                        settings.smtpUsername = trimmed
+                                    }
+                                }
+
+                            if settings.smtpProviderPreset == .custom {
+                                TextField("SMTP host", text: $settings.smtpHost)
+                                    .textInputAutocapitalization(.never)
+
+                                Stepper("Port: \(settings.smtpPort)", value: $settings.smtpPort, in: 1...65535)
+                            }
+
+                            TextField("Email username", text: $settings.smtpUsername)
+                                .textContentType(.username)
+                                .keyboardType(.emailAddress)
+                                .textInputAutocapitalization(.never)
+
+                            SecureField("App password", text: $smtpPassword)
+                                .textContentType(.password)
+                                .onChange(of: smtpPassword) { _, value in
+                                    settings.smtpPassword = value.isEmpty ? nil : value
+                                }
+                        } else {
+                            SettingsSectionHint(text: "Recommended for most people. Paperorg handles delivery — works with any recipient inbox (Apple Mail, Outlook, Gmail, etc.).")
                         }
                     }
                 }
@@ -365,11 +386,11 @@ struct SettingsView: View {
         elevenLabsKey = environment.settingsService.elevenLabsAPIKey ?? ""
         luxASRKey = environment.settingsService.luxASRAPIKey ?? ""
         smtpPassword = environment.settingsService.smtpPassword ?? ""
-    }
-
-    private func applySMTPPreset(host: String, port: Int) {
-        environment.settingsService.smtpHost = host
-        environment.settingsService.smtpPort = port
+        if environment.settingsService.sendEmailAfterTranscription,
+           environment.settingsService.smtpHost.isEmpty,
+           environment.settingsService.smtpProviderPreset != .custom {
+            environment.settingsService.applySMTPPreset(environment.settingsService.smtpProviderPreset)
+        }
     }
 
     private func addRecipient() {

@@ -33,3 +33,25 @@ def enforce_rate_limit(
             )
         hits.append(now)
         _buckets[key] = hits
+
+
+def enforce_user_rate_limit(
+    user_key: str,
+    *,
+    key_prefix: str,
+    max_requests: int,
+    window_seconds: int,
+) -> None:
+    key = f"{key_prefix}:{user_key}"
+    now = time()
+    window_start = now - window_seconds
+
+    with _lock:
+        hits = [stamp for stamp in _buckets[key] if stamp > window_start]
+        if len(hits) >= max_requests:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Daily email limit reached. Try again tomorrow.",
+            )
+        hits.append(now)
+        _buckets[key] = hits

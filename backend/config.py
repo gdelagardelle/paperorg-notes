@@ -34,5 +34,14 @@ class Settings(BaseSettings):
     # Platform credentials vault (falls back to the env keys above).
     platform_internal_token: str = ""
 
+    # Server-side email relay (used by the iOS app for hands-free auto-send).
+    email_smtp_host: str = ""
+    email_smtp_port: int = 465
+    email_smtp_username: str = ""
+    email_smtp_password: str = ""
+    email_from_address: str = "notes@paperorg.com"
+    email_from_name: str = "Paperorg Notes"
+    email_daily_limit: int = 50
+
 
 settings = Settings()

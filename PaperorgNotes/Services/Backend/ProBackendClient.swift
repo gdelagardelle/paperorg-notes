@@ -256,6 +256,59 @@ final class ProBackendClient {
         return data
     }
 
+    func sendEmail(_ payload: EmailPayload) async throws {
+        try await ensureRegistered()
+        let boundary = UUID().uuidString
+        var body = Data()
+
+        func appendField(_ name: String, _ value: String) {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(value)\r\n".data(using: .utf8)!)
+        }
+
+        func appendFile(_ name: String, filename: String, mimeType: String, data: Data) {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+            body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+            body.append(data)
+            body.append("\r\n".data(using: .utf8)!)
+        }
+
+        appendField("subject", payload.subject)
+        appendField("body", payload.body)
+        if let recipientsData = try? JSONEncoder().encode(payload.recipients),
+           let recipientsJSON = String(data: recipientsData, encoding: .utf8) {
+            appendField("recipients", recipientsJSON)
+        }
+
+        if let audioURL = payload.audioURL,
+           FileManager.default.fileExists(atPath: audioURL.path),
+           let audioData = try? Data(contentsOf: audioURL) {
+            appendFile("audio", filename: audioURL.lastPathComponent, mimeType: "audio/m4a", data: audioData)
+        }
+        if let pdfURL = payload.pdfURL,
+           let pdfData = try? Data(contentsOf: pdfURL) {
+            appendFile("pdf", filename: pdfURL.lastPathComponent, mimeType: "application/pdf", data: pdfData)
+        }
+        if let markdownURL = payload.markdownURL,
+           let markdownData = try? Data(contentsOf: markdownURL) {
+            appendFile("markdown", filename: markdownURL.lastPathComponent, mimeType: "text/markdown", data: markdownData)
+        }
+
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+
+        var request = URLRequest(url: baseURL.appending(path: "/v1/email/send"))
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+        request.timeoutInterval = 120
+        try authorize(&request)
+
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+    }
+
     private func usageURL() -> URL {
         var components = URLComponents(
             url: subscriptionBaseURL.appending(path: "/v1/usage"),

@@ -416,7 +416,7 @@ struct RecordView: View {
                     for: note,
                     exportService: environment.exportService
                 )
-                try await environment.smtpEmailDeliveryService.send(payload)
+                try await environment.emailDeliveryService.send(payload)
             } catch {
                 autoEmailError = error.localizedDescription
             }

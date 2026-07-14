@@ -89,6 +89,23 @@ The backend verifies the signed payload and updates Pro status on renewals, expi
 | `POST /v1/transcribe/elevenlabs` | ElevenLabs Scribe proxy |
 | `POST /v1/transcribe/luxasr` | LuxASR async proxy |
 | `POST /v1/summarize` | GPT-4o-mini structured summary |
+| `GET /v1/email/status` | Whether server-side email relay is configured |
+| `POST /v1/email/send` | Send note email on behalf of the user (multipart) |
+
+## Email relay (hands-free auto-send)
+
+The iOS app sends post-recording emails through notes-api so users only add recipients.
+
+**Production (recommended):** configure SMTP in the **Paperorg Platform admin** for `app_id=notes`. notes-api forwards sends using `PLATFORM_INTERNAL_TOKEN`. See [`docs/PLATFORM_EMAIL_API.md`](../docs/PLATFORM_EMAIL_API.md).
+
+```bash
+PLATFORM_API_URL=https://poplatform.paperorg.com
+PLATFORM_INTERNAL_TOKEN=...
+```
+
+Check: `GET /v1/email/status` → `{"available": true, "source": "platform_relay"}`
+
+**Dev fallback:** set `EMAIL_SMTP_*` locally on notes-api if Platform email is not ready yet.
 
 ## Limits
 

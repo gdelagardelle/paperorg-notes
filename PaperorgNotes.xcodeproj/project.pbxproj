@@ -14,6 +14,7 @@
 		10D073E462BA623872D954B5 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015CA9C9BF4BA1A913E6E87E /* ExportService.swift */; };
 		129CE3D23578AA4B51A0B063 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47612546C77D2EBA71ED4283 /* AppEnvironment.swift */; };
 		13AEF56FF88E35287FDA4CA3 /* ReviewBeforeSendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5DBF0A62BECF4981A7BE7 /* ReviewBeforeSendView.swift */; };
+		161EBF3F40CBF2C70C127481 /* SMTPProviderPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B48DA3432104CD2F9DB7CE /* SMTPProviderPreset.swift */; };
 		180B2284CCCCBFF9B09A60B4 /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B74C5620F1B13BDE12A809 /* DeepLinkHandler.swift */; };
 		184523BFC4362034B7A83B56 /* SummaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111EBE0439A2EDDB89A24C20 /* SummaryService.swift */; };
 		1CEEF14519AA64B9827402C9 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A7124A59F839DA2119477 /* L10n.swift */; };
@@ -65,6 +66,7 @@
 		D4B680849B70B937681292C5 /* EmailService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E64381808162838B2D811BC /* EmailService.swift */; };
 		D85773C5F00AC0F88A50EE83 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DF048A8D3EF11339C56A9C /* SubscriptionService.swift */; };
 		DD2804AF339F8F6A532787B9 /* PaperorgNotesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93893A2E19AAAF5CE666C272 /* PaperorgNotesTests.swift */; };
+		DDBF21C5849F15F8E4C299FA /* EmailDeliveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5D7F7BD7638111E1911DF05 /* EmailDeliveryService.swift */; };
 		E06CE75A5D7421590AF23B8A /* ProBackendClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5D04D3AEBE5A039C1C1BBD /* ProBackendClient.swift */; };
 		EACCB259CA28F2C218B9F54C /* NoteOrganizerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38212408D78D6D74FA32DCC5 /* NoteOrganizerSection.swift */; };
 		F254C58B2F118C4532B9B7F4 /* ExportBrandingSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5129B0C96608861776DCB9EC /* ExportBrandingSettingsSection.swift */; };
@@ -157,6 +159,7 @@
 		9D34CD6703E1B9404B252C40 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		A0A47C931C30D4142808038E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A11A5FEB0631867ABFC14D54 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A5D7F7BD7638111E1911DF05 /* EmailDeliveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailDeliveryService.swift; sourceTree = "<group>"; };
 		ADDE0214C73B37E41F8FEC6D /* BackendConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendConfiguration.swift; sourceTree = "<group>"; };
 		B97FC756EBB626004AB78526 /* PaperorgNotesWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PaperorgNotesWidget.entitlements; sourceTree = "<group>"; };
 		B9A0D92CB81A995CD2A47F03 /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
@@ -176,6 +179,7 @@
 		E5C627A5CB7405AD3E454F04 /* StartRecordingIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartRecordingIntent.swift; sourceTree = "<group>"; };
 		EB19E21168DDA27DF38BDFAC /* OpenAITranscriptionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionParser.swift; sourceTree = "<group>"; };
 		ED20357D5435D4ECE33D822A /* AudioTrimService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTrimService.swift; sourceTree = "<group>"; };
+		F1B48DA3432104CD2F9DB7CE /* SMTPProviderPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMTPProviderPreset.swift; sourceTree = "<group>"; };
 		FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptTextFormatter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -311,6 +315,7 @@
 		3AA2CE636883B8AF263721D1 /* Email */ = {
 			isa = PBXGroup;
 			children = (
+				A5D7F7BD7638111E1911DF05 /* EmailDeliveryService.swift */,
 				8E64381808162838B2D811BC /* EmailService.swift */,
 				6C0D2034A23A4CA8E571D5F4 /* SMTPEmailDeliveryService.swift */,
 			);
@@ -458,6 +463,7 @@
 			children = (
 				9D34CD6703E1B9404B252C40 /* Enums.swift */,
 				76B3C01618A0601C86CA1CF7 /* Note.swift */,
+				F1B48DA3432104CD2F9DB7CE /* SMTPProviderPreset.swift */,
 				15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */,
 				3405E9F6563295A3256E4763 /* Transcript.swift */,
 			);
@@ -634,6 +640,7 @@
 				180B2284CCCCBFF9B09A60B4 /* DeepLinkHandler.swift in Sources */,
 				53A84583C3B43D6875DCA00C /* DeleteNoteUseCase.swift in Sources */,
 				C372E6B396493FA331A1DA18 /* ElevenLabsScribeProvider.swift in Sources */,
+				DDBF21C5849F15F8E4C299FA /* EmailDeliveryService.swift in Sources */,
 				D4B680849B70B937681292C5 /* EmailService.swift in Sources */,
 				47EE42893ACF727B1C51C409 /* EncryptionService.swift in Sources */,
 				AD3AD30C810BF4155A7C4FEC /* Enums.swift in Sources */,
@@ -665,6 +672,7 @@
 				C1929CB0E7F507F935A2A0BB /* RecordingService.swift in Sources */,
 				13AEF56FF88E35287FDA4CA3 /* ReviewBeforeSendView.swift in Sources */,
 				B56F621E4D48F4CF8B8AC067 /* SMTPEmailDeliveryService.swift in Sources */,
+				161EBF3F40CBF2C70C127481 /* SMTPProviderPreset.swift in Sources */,
 				F99C6448308444DFDEA91CAC /* SearchView.swift in Sources */,
 				87C1DF8AFD2418DBAF9B3FC2 /* SettingsService.swift in Sources */,
 				525E797077F692277186F223 /* SettingsView.swift in Sources */,
@@ -720,7 +728,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -874,7 +882,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -897,7 +905,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -950,7 +958,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
