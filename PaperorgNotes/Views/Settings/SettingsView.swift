@@ -20,6 +20,9 @@ struct SettingsView: View {
     @State private var showPaywall = false
     @State private var serverEmailStatus: BackendEmailStatus?
     @State private var serverEmailStatusFailed = false
+    @State private var testEmailAddress = ""
+    @State private var testEmailResult: String?
+    @State private var sendingTestEmail = false
     
     var body: some View {
         @Bindable var settings = environment.settingsService
@@ -263,6 +266,23 @@ struct SettingsView: View {
                         SettingsSectionHint(text: "Only applies when you tap Send Email on a note. Automatic post-recording email always sends without review.")
                     }
 
+                    HStack {
+                        TextField("Test address", text: $testEmailAddress)
+                            .textContentType(.emailAddress)
+                            .keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                        Button(sendingTestEmail ? "Sending…" : "Send test") {
+                            sendTestEmail()
+                        }
+                        .disabled(sendingTestEmail || !isValidEmail(testEmailAddress.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    }
+                    if let testEmailResult {
+                        Text(testEmailResult)
+                            .font(.caption)
+                            .foregroundStyle(testEmailResult.hasPrefix("✓") ? Color.green : AppTheme.error)
+                    }
+
                     DisclosureGroup("Advanced: send from my own email") {
                         Toggle("Use my own mail server", isOn: $settings.useOwnMailServerForEmail)
 
@@ -413,6 +433,30 @@ struct SettingsView: View {
         }
     }
     
+    private func sendTestEmail() {
+        let address = testEmailAddress.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard isValidEmail(address) else { return }
+        sendingTestEmail = true
+        testEmailResult = nil
+        Task {
+            defer { sendingTestEmail = false }
+            do {
+                let payload = EmailPayload(
+                    recipients: [address],
+                    subject: "Paperorg Notes test email",
+                    body: "This is a test email from Paperorg Notes. If you can read this, hands-free email delivery is working.",
+                    audioURL: nil,
+                    pdfURL: nil,
+                    markdownURL: nil
+                )
+                try await environment.emailDeliveryService.send(payload)
+                testEmailResult = "✓ Test email sent to \(address)"
+            } catch {
+                testEmailResult = "Failed: \(error.localizedDescription)"
+            }
+        }
+    }
+
     private func refreshServerEmailStatus() async {
         do {
             serverEmailStatus = try await environment.proBackendClient.emailStatus()
