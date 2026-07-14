@@ -103,6 +103,7 @@ struct MainTabView: View {
     
     var body: some View {
         @Bindable var deepLink = environment.deepLinkHandler
+        let recording = environment.recordingService
         
         TabView(selection: $deepLink.selectedTab) {
             RecordView()
@@ -130,6 +131,15 @@ struct MainTabView: View {
                 .tag(3)
         }
         .tint(AppTheme.accent)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if recording.state != .idle {
+                RecordingInProgressBanner(
+                    state: recording.state,
+                    duration: recording.duration,
+                    onOpenRecordTab: { deepLink.selectedTab = 0 }
+                )
+            }
+        }
         .onAppear {
             // Defer consuming the request until the record tab exists so a
             // cold-launch deep link cannot be lost behind privacy or Face ID.

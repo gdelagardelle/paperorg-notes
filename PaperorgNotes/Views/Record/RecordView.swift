@@ -300,41 +300,51 @@ struct RecordView: View {
         processingError = nil
         
         Task {
-            var finalizedNoteId: UUID?
-            do {
-                let result = try await environment.recordingService.stop()
-                finalizedNoteId = result.noteId
-                let note = try noteForRecordingResult(result.noteId)
-                
-                note.durationSeconds = result.duration
-                note.status = NoteStatus.processing.rawValue
-                try modelContext.save()
-                
-                try await environment.processRecordingUseCase.execute(
-                    note: note,
-                    audioURL: result.audioURL
-                ) { stage in
-                    processingStage = stage
+            await BackgroundTaskRunner.run("StopRecording") {
+                var finalizedNoteId: UUID?
+                do {
+                    let result = try await environment.recordingService.stop()
+                    finalizedNoteId = result.noteId
+                    let note = try noteForRecordingResult(result.noteId)
+                    
+                    note.durationSeconds = result.duration
+                    note.status = NoteStatus.processing.rawValue
+                    try modelContext.save()
+                    
+                    try await environment.processRecordingUseCase.execute(
+                        note: note,
+                        audioURL: result.audioURL
+                    ) { stage in
+                        processingStage = stage
+                    }
+                    
+                    try modelContext.save()
+                    
+                    preparePostRecordingEmail(for: note)
+                    
+                    try? await Task.sleep(nanoseconds: 800_000_000)
+                    showProcessing = false
+                    startQueuedQuickRecordIfPossible()
+                } catch {
+                    processingError = safeProcessingError(error)
+                    if let noteId = finalizedNoteId ?? activeNote?.id,
+                       let note = try? noteForRecordingResult(noteId) {
+                        if note.durationSeconds <= 0,
+                           FileManager.default.fileExists(
+                            atPath: environment.storageService.audioURL(for: noteId).path
+                           ) {
+                            note.durationSeconds = AudioTrimService.duration(
+                                of: environment.storageService.audioURL(for: noteId)
+                            )
+                        }
+                        note.status = NoteStatus.failed.rawValue
+                        note.errorMessage = processingError
+                        note.updatedAt = .now
+                        try? modelContext.save()
+                    }
+                    showProcessing = false
+                    startQueuedQuickRecordIfPossible()
                 }
-                
-                try modelContext.save()
-                
-                preparePostRecordingEmail(for: note)
-                
-                try? await Task.sleep(nanoseconds: 800_000_000)
-                showProcessing = false
-                startQueuedQuickRecordIfPossible()
-            } catch {
-                processingError = safeProcessingError(error)
-                if let noteId = finalizedNoteId ?? activeNote?.id,
-                   let note = try? noteForRecordingResult(noteId) {
-                    note.status = NoteStatus.failed.rawValue
-                    note.errorMessage = processingError
-                    note.updatedAt = .now
-                    try? modelContext.save()
-                }
-                showProcessing = false
-                startQueuedQuickRecordIfPossible()
             }
         }
     }

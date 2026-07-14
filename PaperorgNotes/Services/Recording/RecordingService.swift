@@ -69,6 +69,7 @@ final class RecordingService: NSObject {
             duration = 0
             startTimer()
             persistCheckpoint()
+            persistActiveSession()
         } catch {
             throw RecordingError.setupFailed(error.localizedDescription)
         }
@@ -98,10 +99,11 @@ final class RecordingService: NSObject {
         timer?.invalidate()
         timer = nil
 
-        syncDurationFromTempFile()
+        syncDurationFromSources()
         let finalDuration = duration
         let finalURL = try storage.finalizeRecording(from: temp, noteId: noteId)
         storage.deleteCheckpoint(sessionId: sessionId)
+        clearActiveSession()
         
         resetState()
         
@@ -115,6 +117,7 @@ final class RecordingService: NSObject {
         timer?.invalidate()
         if let temp = tempURL { try? FileManager.default.removeItem(at: temp) }
         storage.deleteCheckpoint(sessionId: sessionId)
+        clearActiveSession()
         resetState()
     }
 
@@ -186,15 +189,17 @@ final class RecordingService: NSObject {
     
     private func startTimer() {
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        let newTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.tick()
             }
         }
+        RunLoop.main.add(newTimer, forMode: .common)
+        timer = newTimer
     }
     
     private func tick() {
-        duration += 0.1
+        syncDurationFromSources()
         recorder?.updateMeters()
         let level = recorder?.averagePower(forChannel: 0) ?? -160
         audioLevel = normalizedLevel(level)
@@ -223,13 +228,21 @@ final class RecordingService: NSObject {
     
     private func persistCheckpoint() {
         guard let noteId = currentNoteId, let temp = tempURL else { return }
-        syncDurationFromTempFile()
+        syncDurationFromSources()
         try? storage.saveCheckpoint(
             sessionId: sessionId,
             noteId: noteId,
             tempAudioPath: temp.path,
             duration: duration
         )
+        persistActiveSession()
+    }
+
+    private func syncDurationFromSources() {
+        if let recorderTime = recorder?.currentTime, recorderTime > duration {
+            duration = recorderTime
+        }
+        syncDurationFromTempFile()
     }
 
     /// UI timers pause when the device sleeps; read the growing m4a on disk for the real length.
@@ -270,22 +283,102 @@ final class RecordingService: NSObject {
                 self?.handleAppForegrounding()
             }
         }
+        center.addObserver(
+            forName: UIApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleAppTermination()
+            }
+        }
+        center.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            Task { @MainActor in
+                self?.handleAudioInterruption(notification)
+            }
+        }
     }
 
     private func handleAppBackgrounding() {
         guard state != .idle else { return }
-        syncDurationFromTempFile()
+        syncDurationFromSources()
         persistCheckpoint()
     }
 
     private func handleAppForegrounding() {
         guard state != .idle else { return }
-        syncDurationFromTempFile()
-        if state == .recording, recorder?.isRecording == false {
-            state = .paused
-            timer?.invalidate()
-            qualityWarning = "Recording was paused while the phone was locked. Tap Resume or Stop."
+        syncDurationFromSources()
+        if state == .recording {
+            if recorder?.isRecording == false {
+                state = .paused
+                timer?.invalidate()
+                qualityWarning = "Recording was paused while the phone was locked. Tap Resume or Stop."
+            } else if timer == nil {
+                startTimer()
+            }
         }
+    }
+
+    private func handleAppTermination() {
+        guard state != .idle else { return }
+        syncDurationFromSources()
+        persistCheckpoint()
+    }
+
+    private func handleAudioInterruption(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+            return
+        }
+
+        switch type {
+        case .began:
+            syncDurationFromSources()
+            persistCheckpoint()
+            if state == .recording {
+                recorder?.pause()
+                state = .paused
+                timer?.invalidate()
+                qualityWarning = "Recording paused (phone call or system interruption). Tap Resume when ready."
+            }
+        case .ended:
+            guard state == .paused,
+                  let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
+                return
+            }
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) {
+                try? configureAudioSession()
+                resume()
+                qualityWarning = nil
+            }
+        @unknown default:
+            break
+        }
+    }
+
+    private static let activeSessionKey = "com.paperorg.notes.activeRecordingSession"
+
+    private func persistActiveSession() {
+        guard let noteId = currentNoteId, let temp = tempURL else { return }
+        let payload = ActiveRecordingSession(
+            noteId: noteId,
+            sessionId: sessionId,
+            tempAudioPath: temp.path,
+            updatedAt: .now
+        )
+        if let data = try? JSONEncoder().encode(payload) {
+            UserDefaults.standard.set(data, forKey: Self.activeSessionKey)
+        }
+    }
+
+    private func clearActiveSession() {
+        UserDefaults.standard.removeObject(forKey: Self.activeSessionKey)
     }
 }
 
@@ -302,4 +395,26 @@ extension RecordingService: AVAudioRecorderDelegate {
             persistCheckpoint()
         }
     }
+
+    nonisolated func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
+        Task { @MainActor in
+            guard state == .recording || state == .paused else { return }
+            syncDurationFromSources()
+            persistCheckpoint()
+            if state == .recording {
+                state = .paused
+                timer?.invalidate()
+            }
+            qualityWarning = flag
+                ? "Recording stopped unexpectedly. Tap Stop to save or Resume to continue."
+                : "Recording failed — a checkpoint was saved. Tap Stop to finalize what we have."
+        }
+    }
+}
+
+private struct ActiveRecordingSession: Codable {
+    let noteId: UUID
+    let sessionId: UUID
+    let tempAudioPath: String
+    let updatedAt: Date
 }

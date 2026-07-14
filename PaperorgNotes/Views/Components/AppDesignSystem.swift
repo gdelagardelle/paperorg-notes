@@ -688,6 +688,44 @@ struct RecordHeroButton: View {
     }
 }
 
+// MARK: - Recording banner
+
+struct RecordingInProgressBanner: View {
+    let state: RecordingState
+    let duration: TimeInterval
+    let onOpenRecordTab: () -> Void
+
+    var body: some View {
+        Button(action: onOpenRecordTab) {
+            HStack(spacing: 10) {
+                Image(systemName: state == .paused ? "pause.circle.fill" : "record.circle")
+                    .foregroundStyle(AppTheme.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(state == .paused ? "Recording paused" : "Recording in progress")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Text("Tap to return to Record and tap Stop when finished")
+                        .font(.caption2)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+                Spacer(minLength: 8)
+                Text(DurationFormatter.format(duration))
+                    .font(.subheadline.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(AppTheme.accent)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(AppTheme.surfaceElevated)
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(AppTheme.accent.opacity(0.35))
+                    .frame(height: 1)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 // MARK: - Button styles
 
 struct AccentButtonStyle: ButtonStyle {
