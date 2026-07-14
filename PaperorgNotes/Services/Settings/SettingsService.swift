@@ -42,6 +42,7 @@ final class SettingsService {
         static let exportBrandName = "exportBrandName"
         static let exportBrandSubtitle = "exportBrandSubtitle"
         static let cachedProUsage = "cachedProUsage"
+        static let platformUserID = "platformUserID"
     }
     
     var defaultLanguage: AppLanguage {
@@ -197,6 +198,16 @@ final class SettingsService {
         usePlatformAuth ? platformAPIBaseURL : proBackendBaseURL
     }
 
+    var platformUserID: String? {
+        didSet {
+            if let platformUserID {
+                defaults.set(platformUserID, forKey: Keys.platformUserID)
+            } else {
+                defaults.removeObject(forKey: Keys.platformUserID)
+            }
+        }
+    }
+
     var cachedProUsage: ProUsageInfo? {
         get {
             guard let data = defaults.data(forKey: Keys.cachedProUsage) else { return nil }
@@ -317,6 +328,7 @@ final class SettingsService {
         } else {
             self.hasCompletedPlanSelection = false
         }
+        self.platformUserID = defaults.string(forKey: Keys.platformUserID)
         self.proBackendBaseURL = defaults.string(forKey: Keys.proBackendBaseURL)
             ?? BackendConfiguration.defaultProBackendURL
         self.platformAPIBaseURL = defaults.string(forKey: Keys.platformAPIBaseURL)
@@ -456,6 +468,7 @@ final class SettingsService {
         selectedPlan = .free
         hasCompletedPlanSelection = false
         cachedProUsage = nil
+        platformUserID = nil
         usePlatformAuth = BackendConfiguration.usePlatformAuthByDefault
         platformAPIBaseURL = BackendConfiguration.defaultPlatformAPIURL
         proBackendBaseURL = BackendConfiguration.defaultProBackendURL

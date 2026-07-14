@@ -42,7 +42,21 @@ final class ProBackendClient {
         let payload = try JSONDecoder().decode(RegisterResponse.self, from: data)
         try keychain.save(payload.accessToken, for: .proAccessToken)
         settings.cachedProUsage = payload.usageInfo
+        if let userID = payload.userID {
+            settings.platformUserID = userID
+        }
         return payload.usageInfo
+    }
+
+    /// Sanitized server email status: who sends, from which address/host.
+    func emailStatus() async throws -> BackendEmailStatus {
+        try await ensureRegistered()
+        var request = URLRequest(url: baseURL.appending(path: "/v1/email/status"))
+        try authorize(&request)
+
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+        return try JSONDecoder().decode(BackendEmailStatus.self, from: data)
     }
 
     func refreshUsage() async throws -> ProUsageInfo {
@@ -353,22 +367,41 @@ final class ProBackendClient {
 
 private struct RegisterResponse: Decodable {
     let accessToken: String
+    let userID: String?
     let usageInfo: ProUsageInfo
 
     enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
+        case userID = "user_id"
         case usage
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         accessToken = try container.decode(String.self, forKey: .accessToken)
+        userID = try container.decodeIfPresent(String.self, forKey: .userID)
         // Platform nests the usage block; the legacy backend inlines it.
         if container.contains(.usage) {
             usageInfo = try container.decode(ProUsageInfo.self, forKey: .usage)
         } else {
             usageInfo = try ProUsageInfo(from: decoder)
         }
+    }
+}
+
+struct BackendEmailStatus: Decodable, Sendable {
+    let available: Bool
+    let source: String
+    let fromAddress: String?
+    let fromName: String?
+    let smtpHost: String?
+
+    enum CodingKeys: String, CodingKey {
+        case available
+        case source
+        case fromAddress = "from_address"
+        case fromName = "from_name"
+        case smtpHost = "smtp_host"
     }
 }
 
