@@ -10,6 +10,7 @@ final class AppEnvironment {
     let storageService: StorageService
     let settingsService: SettingsService
     let emailService: EmailService
+    let smtpEmailDeliveryService: SMTPEmailDeliveryService
     let exportService: ExportService
     let qualityPipeline: QualityPipeline
     let keychainService: KeychainService
@@ -26,6 +27,7 @@ final class AppEnvironment {
         storageService: StorageService,
         settingsService: SettingsService,
         emailService: EmailService,
+        smtpEmailDeliveryService: SMTPEmailDeliveryService,
         exportService: ExportService,
         qualityPipeline: QualityPipeline,
         keychainService: KeychainService,
@@ -39,6 +41,7 @@ final class AppEnvironment {
         self.storageService = storageService
         self.settingsService = settingsService
         self.emailService = emailService
+        self.smtpEmailDeliveryService = smtpEmailDeliveryService
         self.exportService = exportService
         self.qualityPipeline = qualityPipeline
         self.keychainService = keychainService
@@ -67,6 +70,7 @@ final class AppEnvironment {
         let summary = SummaryService(settings: settings, keychain: keychain, proBackend: proBackend)
         let recording = RecordingService(storage: storage)
         let email = EmailService(settings: settings)
+        let smtpEmail = SMTPEmailDeliveryService(settings: settings)
         let export = ExportService(storage: storage)
         let quality = QualityPipeline(orchestrator: orchestrator)
         let deepLink = DeepLinkHandler()
@@ -78,6 +82,7 @@ final class AppEnvironment {
             storageService: storage,
             settingsService: settings,
             emailService: email,
+            smtpEmailDeliveryService: smtpEmail,
             exportService: export,
             qualityPipeline: quality,
             keychainService: keychain,

@@ -16,8 +16,6 @@ struct RecordView: View {
     @State private var showQuickRecordQueued = false
     @State private var autoEmailError: String?
     @State private var showPaywall = false
-    @State private var postRecordingEmailNote: Note?
-    @State private var postRecordingEmailPresentation: EmailPresentation?
     
     private var isRecordingSession: Bool {
         environment.recordingService.state == .recording || environment.recordingService.state == .paused
@@ -89,18 +87,6 @@ struct RecordView: View {
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
-            }
-            .sheet(item: $postRecordingEmailPresentation) { presentation in
-                if let note = postRecordingEmailNote {
-                    switch presentation {
-                    case .review(let payload, _):
-                        ReviewBeforeSendView(note: note, payload: payload) { reviewed in
-                            postRecordingEmailPresentation = .compose(reviewed, UUID())
-                        }
-                    case .compose(let payload, _):
-                        EmailComposeSheet(payload: payload)
-                    }
-                }
             }
         }
     }
@@ -424,21 +410,14 @@ struct RecordView: View {
         guard note.noteStatus == .ready,
               environment.emailService.shouldSendAfterTranscription else { return }
 
-        do {
-            let payload = try environment.emailService.buildPayload(
-                for: note,
-                exportService: environment.exportService
-            )
-            postRecordingEmailNote = note
-            let shouldReview = environment.settingsService.reviewBeforeEmail
-                || note.segments.contains { $0.isUnclear || $0.confidence < 0.6 }
-            postRecordingEmailPresentation = shouldReview
-                ? .review(payload, UUID())
-                : .compose(payload, UUID())
-        } catch {
-            if let error = error as? EmailError {
-                autoEmailError = error.localizedDescription
-            } else {
+        Task {
+            do {
+                let payload = try environment.emailService.buildPayload(
+                    for: note,
+                    exportService: environment.exportService
+                )
+                try await environment.smtpEmailDeliveryService.send(payload)
+            } catch {
                 autoEmailError = error.localizedDescription
             }
         }

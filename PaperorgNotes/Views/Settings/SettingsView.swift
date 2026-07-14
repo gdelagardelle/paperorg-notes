@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import MessageUI
 
 struct SettingsView: View {
     @Environment(AppEnvironment.self) private var environment
@@ -13,6 +12,7 @@ struct SettingsView: View {
     @State private var openAIKey = ""
     @State private var elevenLabsKey = ""
     @State private var luxASRKey = ""
+    @State private var smtpPassword = ""
     @State private var newVocabularyTerm = ""
     @State private var gdprExportURL: URL?
     @State private var showGDPRExportShare = false
@@ -172,11 +172,43 @@ struct SettingsView: View {
                 Section("Email") {
                     Toggle("Send email after transcription", isOn: $settings.sendEmailAfterTranscription)
                     if settings.sendEmailAfterTranscription {
-                        if MFMailComposeViewController.canSendMail() {
-                            SettingsSectionHint(text: "Opens Mail when transcription finishes, using the account configured on this iPhone. Tap Send in Mail.")
-                        } else {
-                            SettingsSectionHint(text: "Opens the share sheet when transcription finishes — choose Outlook, Gmail, or any email app. Recipients are included at the top of the message.")
+                        SettingsSectionHint(text: "Sends automatically in the background when transcription finishes — no taps needed. Perfect for hands-free use while driving.")
+                        if !settings.isAutomaticEmailConfigured {
+                            Text("Add your mail account below to enable automatic sending.")
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.error)
                         }
+                    }
+
+                    if settings.sendEmailAfterTranscription {
+                        TextField("From address", text: $settings.smtpFromAddress)
+                            .textContentType(.emailAddress)
+                            .keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never)
+
+                        TextField("SMTP host", text: $settings.smtpHost)
+                            .textInputAutocapitalization(.never)
+
+                        Stepper("Port: \(settings.smtpPort)", value: $settings.smtpPort, in: 1...65535)
+
+                        TextField("SMTP username", text: $settings.smtpUsername)
+                            .textContentType(.username)
+                            .textInputAutocapitalization(.never)
+
+                        SecureField("SMTP app password", text: $smtpPassword)
+                            .textContentType(.password)
+                            .onChange(of: smtpPassword) { _, value in
+                                settings.smtpPassword = value.isEmpty ? nil : value
+                            }
+
+                        SettingsSectionHint(text: "Use an app password, not your regular login password. Outlook: smtp-mail.outlook.com · Gmail: smtp.gmail.com · iCloud: smtp.mail.me.com")
+
+                        HStack {
+                            Button("Outlook") { applySMTPPreset(host: "smtp-mail.outlook.com", port: 465) }
+                            Button("Gmail") { applySMTPPreset(host: "smtp.gmail.com", port: 465) }
+                            Button("iCloud") { applySMTPPreset(host: "smtp.mail.me.com", port: 465) }
+                        }
+                        .font(.caption)
                     }
 
                     Picker("Content", selection: $settings.emailContent) {
@@ -189,6 +221,9 @@ struct SettingsView: View {
                     Toggle("Attach PDF", isOn: $settings.emailAttachPDF)
                     Toggle("Attach Markdown", isOn: $settings.emailAttachMarkdown)
                     Toggle("Review before send", isOn: $settings.reviewBeforeEmail)
+                    if settings.reviewBeforeEmail {
+                        SettingsSectionHint(text: "Only applies when you tap Send Email on a note. Automatic post-recording email always sends without review.")
+                    }
                     
                     HStack {
                         TextField("Add email address", text: $newEmail)
@@ -329,6 +364,12 @@ struct SettingsView: View {
         openAIKey = environment.settingsService.openAIAPIKey ?? ""
         elevenLabsKey = environment.settingsService.elevenLabsAPIKey ?? ""
         luxASRKey = environment.settingsService.luxASRAPIKey ?? ""
+        smtpPassword = environment.settingsService.smtpPassword ?? ""
+    }
+
+    private func applySMTPPreset(host: String, port: Int) {
+        environment.settingsService.smtpHost = host
+        environment.settingsService.smtpPort = port
     }
 
     private func addRecipient() {

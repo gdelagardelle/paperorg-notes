@@ -7,6 +7,7 @@ enum KeychainKey: String {
     case luxASRAPIKey = "com.paperorg.notes.luxasr.apikey"
     case proAccessToken = "com.paperorg.notes.pro.access"
     case deviceID = "com.paperorg.notes.device.id"
+    case smtpPassword = "com.paperorg.notes.smtp.password"
 }
 
 final class KeychainService: Sendable {
@@ -56,10 +57,9 @@ final class KeychainService: Sendable {
     }
     
     func deleteAll() {
-        for key in [KeychainKey.openAIAPIKey, .elevenLabsAPIKey, .luxASRAPIKey, .proAccessToken, .deviceID] {
+        for key in [KeychainKey.openAIAPIKey, .elevenLabsAPIKey, .luxASRAPIKey, .proAccessToken, .deviceID, .smtpPassword] {
             delete(for: key)
         }
-        deleteLegacySecret("com.paperorg.notes.smtp.password")
     }
 }
 
