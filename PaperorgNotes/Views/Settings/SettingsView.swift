@@ -175,9 +175,7 @@ struct SettingsView: View {
                         if MFMailComposeViewController.canSendMail() {
                             SettingsSectionHint(text: "Opens Mail when transcription finishes, using the account configured on this iPhone. Tap Send in Mail.")
                         } else {
-                            Text("Add a Mail account in iOS Settings → Apps → Mail.")
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.error)
+                            SettingsSectionHint(text: "Opens the share sheet when transcription finishes — choose Outlook, Gmail, or any email app. Recipients are included at the top of the message.")
                         }
                     }
 

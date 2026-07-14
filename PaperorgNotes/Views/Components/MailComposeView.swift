@@ -1,5 +1,56 @@
 import SwiftUI
 import MessageUI
+import UIKit
+
+final class EmailActivityItem: NSObject, UIActivityItemSource {
+    let subject: String
+    let body: String
+
+    init(subject: String, body: String) {
+        self.subject = subject
+        self.body = body
+    }
+
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+        body
+    }
+
+    func activityViewController(
+        _ activityViewController: UIActivityViewController,
+        itemForActivityType activityType: UIActivity.ActivityType?
+    ) -> Any? {
+        body
+    }
+
+    func activityViewController(
+        _ activityViewController: UIActivityViewController,
+        subjectForActivityType activityType: UIActivity.ActivityType?
+    ) -> String {
+        subject
+    }
+}
+
+extension EmailPayload {
+    var shareTextBody: String {
+        guard !recipients.isEmpty else { return body }
+        return "To: \(recipients.joined(separator: ", "))\n\n\(body)"
+    }
+
+    func shareItems() -> [Any] {
+        var items: [Any] = [EmailActivityItem(subject: subject, body: shareTextBody)]
+        if let audioURL,
+           FileManager.default.fileExists(atPath: audioURL.path) {
+            items.append(audioURL)
+        }
+        if let pdfURL {
+            items.append(pdfURL)
+        }
+        if let markdownURL {
+            items.append(markdownURL)
+        }
+        return items
+    }
+}
 
 struct MailComposeView: UIViewControllerRepresentable {
     let payload: EmailPayload
@@ -65,65 +116,13 @@ struct ActivityShareSheet: UIViewControllerRepresentable {
 
 struct EmailComposeSheet: View {
     let payload: EmailPayload
-    @Environment(\.dismiss) private var dismiss
-    @State private var shareItems: [Any] = []
-    @State private var showShareFallback = false
-    
+
     var body: some View {
-        Group {
-            if MFMailComposeViewController.canSendMail() {
-                MailComposeView(payload: payload)
-            } else {
-                NavigationStack {
-                    VStack(spacing: 20) {
-                        Image(systemName: "envelope.badge.fill")
-                            .font(.system(size: 48))
-                            .foregroundStyle(AppTheme.warning)
-                        
-                        Text(L10n.Email.mailNotConfigured)
-                            .font(.title3.bold())
-                        
-                        Text(L10n.Email.mailNotConfiguredHint)
-                            .font(.subheadline)
-                            .foregroundStyle(AppTheme.textSecondary)
-                            .multilineTextAlignment(.center)
-                        
-                        Button(L10n.Email.shareNote) {
-                            shareItems = buildShareItems()
-                            showShareFallback = true
-                        }
-                        .buttonStyle(PrimaryButtonStyle())
-                        .padding(.horizontal)
-                    }
-                    .padding()
-                    .navigationTitle(L10n.Email.sendTitle)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button(L10n.Email.close) { dismiss() }
-                        }
-                    }
-                }
-            }
+        if MFMailComposeViewController.canSendMail() {
+            MailComposeView(payload: payload)
+        } else {
+            ActivityShareSheet(items: payload.shareItems())
         }
-        .sheet(isPresented: $showShareFallback) {
-            ActivityShareSheet(items: shareItems)
-        }
-    }
-    
-    private func buildShareItems() -> [Any] {
-        var items: [Any] = [payload.body]
-        if let audioURL = payload.audioURL,
-           FileManager.default.fileExists(atPath: audioURL.path) {
-            items.append(audioURL)
-        }
-        if let pdfURL = payload.pdfURL {
-            items.append(pdfURL)
-        }
-        if let markdownURL = payload.markdownURL {
-            items.append(markdownURL)
-        }
-        return items
     }
 }
 
