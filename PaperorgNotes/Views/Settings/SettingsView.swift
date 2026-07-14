@@ -18,6 +18,8 @@ struct SettingsView: View {
     @State private var showGDPRExportShare = false
     @State private var gdprExportError: String?
     @State private var showPaywall = false
+    @State private var serverEmailStatus: BackendEmailStatus?
+    @State private var serverEmailStatusFailed = false
     
     var body: some View {
         @Bindable var settings = environment.settingsService
@@ -42,6 +44,20 @@ struct SettingsView: View {
                     } else {
                         SettingsSectionHint(text: String(localized: "settings.free.hint"))
                         Button(L10n.Settings.upgradePro) { showPaywall = true }
+                    }
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(settings.platformUserID != nil ? Color.green : Color.gray.opacity(0.4))
+                            .frame(width: 10, height: 10)
+                        if let userID = settings.platformUserID {
+                            Text("Connected · account \(String(userID.prefix(8)))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("Not connected — connects automatically with Pro")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
 
@@ -173,6 +189,31 @@ struct SettingsView: View {
                     Toggle("Send email after transcription", isOn: $settings.sendEmailAfterTranscription)
                     if settings.sendEmailAfterTranscription {
                         SettingsSectionHint(text: "Paperorg sends your note by email automatically when transcription finishes — no mail setup on your phone. Just add who should receive it below.")
+                        if !settings.useOwnMailServerForEmail {
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill((serverEmailStatus?.available ?? false) ? Color.green : Color.gray.opacity(0.4))
+                                    .frame(width: 10, height: 10)
+                                if let status = serverEmailStatus, status.available {
+                                    Text("Sends as \(status.fromName ?? "Paperorg") <\(status.fromAddress ?? "")>\(status.smtpHost.map { " · via \($0)" } ?? "")")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                } else if serverEmailStatusFailed {
+                                    Text("Could not reach the server — will retry")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                } else if serverEmailStatus != nil {
+                                    Text("Server email not configured yet")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    Text("Checking server email…")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .task { await refreshServerEmailStatus() }
+                        }
                         if settings.useOwnMailServerForEmail && !settings.isAutomaticEmailConfigured {
                             Text("Finish your own mail server setup below, or turn that option off to let Paperorg send for you.")
                                 .font(.caption)
@@ -372,6 +413,15 @@ struct SettingsView: View {
         }
     }
     
+    private func refreshServerEmailStatus() async {
+        do {
+            serverEmailStatus = try await environment.proBackendClient.emailStatus()
+            serverEmailStatusFailed = false
+        } catch {
+            serverEmailStatusFailed = true
+        }
+    }
+
     private func exportAllData() {
         do {
             gdprExportURL = try environment.storageService.exportGDPRArchive(notes: notes)

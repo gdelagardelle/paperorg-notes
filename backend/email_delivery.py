@@ -37,6 +37,24 @@ def _platform_email_config_available() -> bool:
     return config is not None
 
 
+def email_delivery_sender() -> dict:
+    """Sanitized sender info for client display — never username/password."""
+    config = resolve_platform_email_config()
+    if config:
+        return {
+            "from_address": config.get("from_address", ""),
+            "from_name": config.get("from_name", ""),
+            "smtp_host": config.get("smtp_host", ""),
+        }
+    if _local_email_configured():
+        return {
+            "from_address": settings.email_from_address,
+            "from_name": getattr(settings, "email_from_name", "") or "Paperorg Notes",
+            "smtp_host": settings.email_smtp_host,
+        }
+    return {}
+
+
 def email_delivery_configured() -> bool:
     return (
         platform_email_relay_available()

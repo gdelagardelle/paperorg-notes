@@ -29,7 +29,13 @@ from database import (
     set_user_pro,
     uses_postgres,
 )
-from email_delivery import EmailDeliveryError, email_delivery_configured, email_delivery_source, send_email
+from email_delivery import (
+    EmailDeliveryError,
+    email_delivery_configured,
+    email_delivery_sender,
+    email_delivery_source,
+    send_email,
+)
 from rate_limit import enforce_rate_limit, enforce_user_rate_limit
 
 app = FastAPI(title="Paperorg Notes Pro API", version="1.0.0")
@@ -478,10 +484,12 @@ def token_user_key(token: dict[str, Any]) -> str:
 @app.get("/v1/email/status")
 def email_status(token: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
     _ = token
-    return {
+    status_payload: dict[str, Any] = {
         "available": email_delivery_configured(),
         "source": email_delivery_source(),
     }
+    status_payload.update(email_delivery_sender())
+    return status_payload
 
 
 @app.post("/v1/email/send")
