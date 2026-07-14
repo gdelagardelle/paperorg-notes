@@ -291,6 +291,7 @@ final class ProBackendClient {
 
         appendField("subject", payload.subject)
         appendField("body", payload.body)
+        appendField("html_body", payload.htmlBody)
         if let recipientsData = try? JSONEncoder().encode(payload.recipients),
            let recipientsJSON = String(data: recipientsData, encoding: .utf8) {
             appendField("recipients", recipientsJSON)

@@ -193,6 +193,18 @@ struct ReviewBeforeSendView: View {
             recipients: payload.recipients,
             subject: editedSubject,
             body: editedBody,
+            htmlBody: EmailTemplateBuilder.buildHTML(
+                content: EmailNoteContent(
+                    title: editedSubject,
+                    summary: editedBody,
+                    transcript: "",
+                    contentMode: .summaryOnly,
+                    recordedAt: Date(),
+                    durationSeconds: 0,
+                    language: .english,
+                    outputType: .meetingNotes
+                )
+            ),
             audioURL: payload.audioURL.flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil },
             pdfURL: payload.pdfURL.flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil },
             markdownURL: payload.markdownURL.flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil }

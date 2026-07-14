@@ -180,6 +180,7 @@ struct EmailPayload: Sendable {
     let recipients: [String]
     let subject: String
     let body: String
+    let htmlBody: String
     let audioURL: URL?
     let pdfURL: URL?
     let markdownURL: URL?

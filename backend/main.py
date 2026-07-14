@@ -503,6 +503,7 @@ async def email_send(
     request: Request,
     subject: str = Form(...),
     body: str = Form(...),
+    html_body: Optional[str] = Form(None),
     recipients: str = Form(...),
     audio: Optional[UploadFile] = File(None),
     pdf: Optional[UploadFile] = File(None),
@@ -556,6 +557,7 @@ async def email_send(
             recipients=recipient_strings,
             subject=subject,
             body=body,
+            html_body=html_body,
             attachments=attachments,
         )
     except EmailDeliveryError as exc:

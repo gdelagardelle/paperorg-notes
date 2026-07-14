@@ -5,7 +5,7 @@ enum EmailError: LocalizedError, Equatable {
     case disabled
     case emptyContent
     case mailNotAvailable
-    
+
     var errorDescription: String? {
         switch self {
         case .noRecipients:
@@ -30,56 +30,40 @@ final class EmailService {
     
     func buildPayload(for note: Note, exportService: ExportService) throws -> EmailPayload {
         guard !settings.emailRecipients.isEmpty else { throw EmailError.noRecipients }
-        
-        let subject = note.title
-        var body = ""
-        
-        switch settings.emailContent {
-        case .summaryOnly:
-            body = note.displaySummaryShort
-        case .fullTranscript:
-            body = note.displayTranscript
-        case .both:
-            body = """
-            SUMMARY
-            \(note.displaySummaryShort)
-            
-            ---
-            
-            TRANSCRIPT
-            \(note.displayTranscript)
-            """
-        }
-        
+
+        let content = EmailNoteContent.from(note: note, settings: settings)
+        let body = content.plainText
+
         guard !body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw EmailError.emptyContent
         }
-        
+
         var audioURL: URL?
         var pdfURL: URL?
         var markdownURL: URL?
-        
+
         if settings.emailAttachAudio && note.audioDeletedAt == nil,
            let candidate = exportService.audioURL(for: note),
            FileManager.default.fileExists(atPath: candidate.path) {
             audioURL = candidate
         }
-        
+
         if settings.emailAttachPDF {
             pdfURL = try? exportService.exportPDF(
                 note: note,
                 branding: ExportBranding.from(settings: settings, storage: exportService.storage)
             )
         }
-        
+
         if settings.emailAttachMarkdown {
             markdownURL = try? exportService.exportMarkdown(note: note)
         }
-        
+
         return EmailPayload(
             recipients: settings.emailRecipients,
-            subject: subject,
+            subject: note.title,
             body: body,
+            htmlBody: EmailTemplateBuilder.buildHTML(content: content),
             audioURL: audioURL,
             pdfURL: pdfURL,
             markdownURL: markdownURL

@@ -233,28 +233,43 @@ private final class SMTPClient: @unchecked Sendable {
     }
 
     private func buildMessage(payload: EmailPayload) -> String {
-        let boundary = "PaperorgNotes-\(UUID().uuidString)"
+        let outerBoundary = "PaperorgNotes-\(UUID().uuidString)"
+        let altBoundary = "PaperorgNotes-alt-\(UUID().uuidString)"
         var parts: [String] = []
 
         parts.append("From: \(from)")
         parts.append("To: \(payload.recipients.joined(separator: ", "))")
         parts.append("Subject: \(encodeSubject(payload.subject))")
         parts.append("MIME-Version: 1.0")
-        parts.append("Content-Type: multipart/mixed; boundary=\"\(boundary)\"")
+        parts.append("Content-Type: multipart/mixed; boundary=\"\(outerBoundary)\"")
         parts.append("")
 
-        parts.append("--\(boundary)")
+        parts.append("--\(outerBoundary)")
+        parts.append("Content-Type: multipart/alternative; boundary=\"\(altBoundary)\"")
+        parts.append("")
+
+        parts.append("--\(altBoundary)")
         parts.append("Content-Type: text/plain; charset=\"UTF-8\"")
         parts.append("Content-Transfer-Encoding: 8bit")
         parts.append("")
         parts.append(escapeSMTPBody(payload.body))
         parts.append("")
 
+        parts.append("--\(altBoundary)")
+        parts.append("Content-Type: text/html; charset=\"UTF-8\"")
+        parts.append("Content-Transfer-Encoding: 8bit")
+        parts.append("")
+        parts.append(escapeSMTPBody(payload.htmlBody))
+        parts.append("")
+
+        parts.append("--\(altBoundary)--")
+        parts.append("")
+
         if let audioURL = payload.audioURL,
            FileManager.default.fileExists(atPath: audioURL.path),
            let data = try? Data(contentsOf: audioURL) {
             parts.append(attachmentPart(
-                boundary: boundary,
+                boundary: outerBoundary,
                 filename: audioURL.lastPathComponent,
                 mimeType: "audio/m4a",
                 data: data
@@ -264,7 +279,7 @@ private final class SMTPClient: @unchecked Sendable {
         if let pdfURL = payload.pdfURL,
            let data = try? Data(contentsOf: pdfURL) {
             parts.append(attachmentPart(
-                boundary: boundary,
+                boundary: outerBoundary,
                 filename: pdfURL.lastPathComponent,
                 mimeType: "application/pdf",
                 data: data
@@ -274,14 +289,14 @@ private final class SMTPClient: @unchecked Sendable {
         if let markdownURL = payload.markdownURL,
            let data = try? Data(contentsOf: markdownURL) {
             parts.append(attachmentPart(
-                boundary: boundary,
+                boundary: outerBoundary,
                 filename: markdownURL.lastPathComponent,
                 mimeType: "text/markdown",
                 data: data
             ))
         }
 
-        parts.append("--\(boundary)--")
+        parts.append("--\(outerBoundary)--")
         return parts.joined(separator: "\r\n")
     }
 

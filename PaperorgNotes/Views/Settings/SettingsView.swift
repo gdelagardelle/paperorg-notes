@@ -445,6 +445,18 @@ struct SettingsView: View {
                     recipients: [address],
                     subject: "Paperorg Notes test email",
                     body: "This is a test email from Paperorg Notes. If you can read this, hands-free email delivery is working.",
+                    htmlBody: EmailTemplateBuilder.buildHTML(
+                        content: EmailNoteContent(
+                            title: "Paperorg Notes test email",
+                            summary: "This is a test email from Paperorg Notes. If you can read this, hands-free email delivery is working.",
+                            transcript: "",
+                            contentMode: .summaryOnly,
+                            recordedAt: Date(),
+                            durationSeconds: 0,
+                            language: .english,
+                            outputType: .meetingNotes
+                        )
+                    ),
                     audioURL: nil,
                     pdfURL: nil,
                     markdownURL: nil

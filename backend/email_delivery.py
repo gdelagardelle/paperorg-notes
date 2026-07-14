@@ -7,6 +7,7 @@ from email.mime.text import MIMEText
 from typing import Iterable
 
 from config import settings
+from email_template import build_html_email
 from platform_client import (
     platform_email_relay_available,
     resolve_platform_email_config,
@@ -111,13 +112,18 @@ def _send_via_smtp_settings(
     recipients: list[str],
     subject: str,
     body: str,
+    html_body: str,
     attachments: list[tuple[str, str, bytes]],
 ) -> None:
-    message = MIMEMultipart()
+    message = MIMEMultipart("mixed")
     message["From"] = f"{from_name} <{from_address}>"
     message["To"] = ", ".join(recipients)
     message["Subject"] = subject
-    message.attach(MIMEText(body, "plain", "utf-8"))
+
+    alternative = MIMEMultipart("alternative")
+    alternative.attach(MIMEText(body, "plain", "utf-8"))
+    alternative.attach(MIMEText(html_body, "html", "utf-8"))
+    message.attach(alternative)
 
     for filename, mime_type, data in attachments:
         maintype, _, subtype = mime_type.partition("/")
@@ -148,6 +154,7 @@ def send_email(
     recipients: list[str],
     subject: str,
     body: str,
+    html_body: str | None = None,
     attachments: list[tuple[str, str, bytes]],
 ) -> None:
     if not email_delivery_configured():
@@ -158,6 +165,7 @@ def send_email(
     body = body.strip()
     if not body:
         raise EmailDeliveryError("Email body is empty.")
+    rendered_html = (html_body or "").strip() or build_html_email(subject=subject, body=body)
     _validate_attachments(attachments)
 
     if platform_email_relay_available():
@@ -167,6 +175,7 @@ def send_email(
                 recipients=validated,
                 subject=subject,
                 body=body,
+                html_body=rendered_html,
                 attachments=attachments,
             )
             return
@@ -190,6 +199,7 @@ def send_email(
             recipients=validated,
             subject=subject,
             body=body,
+            html_body=rendered_html,
             attachments=attachments,
         )
         return
@@ -207,5 +217,6 @@ def send_email(
         recipients=validated,
         subject=subject,
         body=body,
+        html_body=rendered_html,
         attachments=attachments,
     )

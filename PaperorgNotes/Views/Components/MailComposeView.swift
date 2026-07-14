@@ -77,7 +77,7 @@ struct MailComposeView: UIViewControllerRepresentable {
         vc.mailComposeDelegate = context.coordinator
         vc.setToRecipients(payload.recipients)
         vc.setSubject(payload.subject)
-        vc.setMessageBody(payload.body, isHTML: false)
+        vc.setMessageBody(payload.htmlBody, isHTML: true)
         
         if let audioURL = payload.audioURL,
            FileManager.default.fileExists(atPath: audioURL.path),

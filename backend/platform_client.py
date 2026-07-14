@@ -226,6 +226,7 @@ def send_platform_email(
     recipients: list[str],
     subject: str,
     body: str,
+    html_body: str,
     attachments: list[tuple[str, str, bytes]],
 ) -> None:
     """Send email via the Platform relay (SMTP configured in Platform admin)."""
@@ -236,6 +237,7 @@ def send_platform_email(
         "user_id": user_id,
         "subject": subject,
         "body": body,
+        "html_body": html_body,
         "recipients": json.dumps(recipients),
     }
     files: list[tuple[str, tuple[str, bytes, str]]] = []

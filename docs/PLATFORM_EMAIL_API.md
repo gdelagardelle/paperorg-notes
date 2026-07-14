@@ -38,7 +38,8 @@ Content-Type: multipart/form-data
 Fields:
   user_id     — notes user id (Platform sub or legacy device id)
   subject     — email subject
-  body        — plain text body
+  body        — plain text fallback body
+  html_body   — branded HTML body (preferred for display)
   recipients  — JSON array string, e.g. ["user@example.com"]
 
 Files (optional):
