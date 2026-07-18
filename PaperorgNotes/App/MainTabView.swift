@@ -22,7 +22,7 @@ struct RootView: View {
                 MainTabView()
             }
         }
-        .preferredColorScheme(nil)
+        .preferredColorScheme(.light)
         .task {
             await environment.subscriptionService.refreshEntitlements()
         }

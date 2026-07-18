@@ -671,7 +671,7 @@ struct RecordHeroButton: View {
         switch state {
         case .idle: return "mic.fill"
         case .recording: return "waveform"
-        case .paused: return "pause.fill"
+        case .paused: return "play.fill"
         }
     }
 
@@ -683,7 +683,7 @@ struct RecordHeroButton: View {
         switch state {
         case .idle: return "Start recording"
         case .recording: return "Stop recording"
-        case .paused: return "Stop recording"
+        case .paused: return "Resume recording"
         }
     }
 }

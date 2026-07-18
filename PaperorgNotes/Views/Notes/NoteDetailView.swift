@@ -468,6 +468,7 @@ struct NoteDetailView: View {
                 note.status = NoteStatus.failed.rawValue
                 note.errorMessage = error.localizedDescription
                 try? modelContext.save()
+                isProcessing = false
             }
         }
     }
@@ -491,6 +492,7 @@ struct NoteDetailView: View {
                 note.status = NoteStatus.failed.rawValue
                 note.errorMessage = error.localizedDescription
                 try? modelContext.save()
+                isProcessing = false
             }
         }
     }

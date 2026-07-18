@@ -231,7 +231,7 @@ struct RecordView: View {
         switch environment.recordingService.state {
         case .idle: return "Tap to start recording"
         case .recording: return "Listening… tap to finish"
-        case .paused: return "Paused — resume or stop"
+        case .paused: return "Paused — tap to resume, or use Stop below"
         }
     }
     
@@ -239,8 +239,10 @@ struct RecordView: View {
         switch environment.recordingService.state {
         case .idle:
             startRecording()
-        case .recording, .paused:
+        case .recording:
             stopRecording()
+        case .paused:
+            environment.recordingService.resume()
         }
     }
     

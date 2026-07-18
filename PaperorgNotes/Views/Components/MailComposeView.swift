@@ -130,7 +130,8 @@ struct EmailButton: View {
     let note: Note
     @Environment(AppEnvironment.self) private var environment
     @State private var presentation: EmailPresentation?
-    @State private var emailError: EmailError?
+    @State private var emailErrorMessage: String?
+    @State private var emailErrorShowsSettings = false
     
     private var shouldReviewFirst: Bool {
         environment.settingsService.reviewBeforeEmail
@@ -153,18 +154,18 @@ struct EmailButton: View {
             }
         }
         .alert(L10n.Email.alertTitle, isPresented: Binding(
-            get: { emailError != nil },
-            set: { if !$0 { emailError = nil } }
+            get: { emailErrorMessage != nil },
+            set: { if !$0 { emailErrorMessage = nil } }
         )) {
             Button(L10n.Common.ok, role: .cancel) {}
-            if emailError == .noRecipients {
+            if emailErrorShowsSettings {
                 Button(L10n.Email.openSettings) {
-                    emailError = nil
+                    emailErrorMessage = nil
                     environment.deepLinkHandler.selectedTab = 3
                 }
             }
         } message: {
-            Text(emailError?.localizedDescription ?? "")
+            Text(emailErrorMessage ?? "")
         }
     }
     
@@ -179,10 +180,12 @@ struct EmailButton: View {
             } else {
                 presentation = .compose(payload, UUID())
             }
+        } catch let error as EmailError {
+            emailErrorMessage = error.localizedDescription
+            emailErrorShowsSettings = error == .noRecipients
         } catch {
-            if let error = error as? EmailError {
-                emailError = error
-            }
+            emailErrorMessage = error.localizedDescription
+            emailErrorShowsSettings = false
         }
     }
 }
