@@ -24,6 +24,7 @@ final class RecordingService: NSObject {
     private var tempURL: URL?
     private let storage: StorageService
     private var lowLevelStart: Date?
+    private var isStoppingIntentionally = false
     
     init(storage: StorageService) {
         self.storage = storage
@@ -94,7 +95,13 @@ final class RecordingService: NSObject {
         guard let noteId = currentNoteId, let temp = tempURL else {
             throw RecordingError.notRecording
         }
-        
+
+        isStoppingIntentionally = true
+        defer {
+            if state != .idle {
+                isStoppingIntentionally = false
+            }
+        }
         recorder?.stop()
         timer?.invalidate()
         timer = nil
@@ -113,6 +120,7 @@ final class RecordingService: NSObject {
     }
     
     func cancel() {
+        isStoppingIntentionally = true
         recorder?.stop()
         timer?.invalidate()
         if let temp = tempURL { try? FileManager.default.removeItem(at: temp) }
@@ -179,6 +187,7 @@ final class RecordingService: NSObject {
         recorder = nil
         tempURL = nil
         lowLevelStart = nil
+        isStoppingIntentionally = false
     }
     
     private func configureAudioSession() throws {
@@ -398,6 +407,7 @@ extension RecordingService: AVAudioRecorderDelegate {
 
     nonisolated func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
         Task { @MainActor in
+            guard !isStoppingIntentionally else { return }
             guard state == .recording || state == .paused else { return }
             syncDurationFromSources()
             persistCheckpoint()
