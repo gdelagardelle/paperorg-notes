@@ -294,7 +294,7 @@ def dev_activate(token: dict[str, Any] = Depends(get_current_user)) -> UsageResp
 @app.post("/v1/transcribe/openai")
 async def transcribe_openai(
     file: UploadFile = File(...),
-    language: str = Form("en"),
+    language: Optional[str] = Form(None),
     prompt: Optional[str] = Form(None),
     duration_seconds: float = Form(0),
     token: dict[str, Any] = Depends(get_current_user),
@@ -311,8 +311,9 @@ async def transcribe_openai(
     data: dict[str, Any] = {
         "model": "gpt-4o-transcribe",
         "response_format": "json",
-        "language": language,
     }
+    if language and language != "auto":
+        data["language"] = language
     if prompt:
         data["prompt"] = prompt[:900]
 
@@ -336,7 +337,7 @@ async def transcribe_openai(
 @app.post("/v1/transcribe/elevenlabs")
 async def transcribe_elevenlabs(
     file: UploadFile = File(...),
-    language_code: str = Form("eng"),
+    language_code: Optional[str] = Form(None),
     diarize: bool = Form(False),
     duration_seconds: float = Form(0),
     token: dict[str, Any] = Depends(get_current_user),
@@ -352,10 +353,11 @@ async def transcribe_elevenlabs(
     audio_bytes = await file.read()
     data = {
         "model_id": "scribe_v2",
-        "language_code": language_code,
         "timestamps_granularity": "word",
         "diarize": "true" if diarize else "false",
     }
+    if language_code and language_code != "auto":
+        data["language_code"] = language_code
     files = {"file": (file.filename or "audio.m4a", audio_bytes, file.content_type or "audio/m4a")}
 
     async with httpx.AsyncClient(timeout=300) as client:

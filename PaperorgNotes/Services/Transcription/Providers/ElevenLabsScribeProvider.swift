@@ -30,7 +30,9 @@ final class ElevenLabsScribeProvider: TranscriptionProvider, @unchecked Sendable
         }
         
         appendField("model_id", "scribe_v2")
-        appendField("language_code", request.language.elevenLabsCode)
+        if let languageCode = request.language.elevenLabsCode {
+            appendField("language_code", languageCode)
+        }
         appendField("timestamps_granularity", "word")
         appendField("diarize", request.enableDiarization ? "true" : "false")
         
@@ -59,10 +61,17 @@ final class ElevenLabsScribeProvider: TranscriptionProvider, @unchecked Sendable
         let segments = buildSegments(from: parsed)
         let fullText = parsed.text ?? segments.map(\.text).joined(separator: " ")
         let avg = segments.map(\.confidence).reduce(0, +) / Double(max(segments.count, 1))
+        let resolvedLanguage = request.autoDetect
+            ? AppLanguageDetector.resolve(
+                elevenLabsCode: parsed.language_code,
+                transcript: fullText,
+                fallback: request.fallbackLanguage
+            )
+            : request.language
         
         return TranscriptionResult(
             providerId: identifier,
-            language: request.language,
+            language: resolvedLanguage,
             segments: segments,
             fullText: fullText,
             averageConfidence: avg,
@@ -122,6 +131,7 @@ final class ElevenLabsScribeProvider: TranscriptionProvider, @unchecked Sendable
 private struct ElevenLabsResponse: Decodable {
     let text: String?
     let words: [ElevenLabsWord]?
+    let language_code: String?
 }
 
 private struct ElevenLabsWord: Decodable {

@@ -125,7 +125,13 @@ final class ProTranscriptionRouter {
 
         return TranscriptionResult(
             providerId: ProviderID.openai.rawValue,
-            language: request.language,
+            language: request.autoDetect
+                ? AppLanguageDetector.resolve(
+                    openAICode: parsed.language,
+                    transcript: parsed.text,
+                    fallback: request.fallbackLanguage
+                )
+                : request.language,
             segments: segments,
             fullText: parsed.text,
             averageConfidence: 0.85,
@@ -141,7 +147,13 @@ final class ProTranscriptionRouter {
         let avg = segments.map(\.confidence).reduce(0, +) / Double(max(segments.count, 1))
         return TranscriptionResult(
             providerId: ProviderID.elevenlabs.rawValue,
-            language: request.language,
+            language: request.autoDetect
+                ? AppLanguageDetector.resolve(
+                    elevenLabsCode: parsed.language_code,
+                    transcript: fullText,
+                    fallback: request.fallbackLanguage
+                )
+                : request.language,
             segments: segments,
             fullText: fullText,
             averageConfidence: avg,
@@ -239,6 +251,7 @@ final class ProTranscriptionRouter {
 private struct ElevenLabsResponse: Decodable {
     let text: String?
     let words: [ElevenLabsWord]?
+    let language_code: String?
 }
 
 private struct ElevenLabsWord: Decodable {

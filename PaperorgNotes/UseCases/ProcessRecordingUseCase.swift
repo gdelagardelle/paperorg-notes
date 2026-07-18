@@ -45,7 +45,7 @@ final class ProcessRecordingUseCase {
         let startedAt = Date()
         var debugEvents = [
             "Started: \(ISO8601DateFormatter().string(from: startedAt))",
-            "Language: \(note.appLanguage.displayName)",
+            "Language: \(note.appLanguage.isAutoDetect ? "Auto-detect" : note.appLanguage.displayName)",
             "Audio duration: \(String(format: "%.1f", note.durationSeconds)) seconds",
             "Audio bytes: \((try? Data(contentsOf: audioURL).count) ?? 0)",
             "Diarization: disabled"
@@ -66,9 +66,16 @@ final class ProcessRecordingUseCase {
                 audioURL: audioURL,
                 language: note.appLanguage,
                 enableDiarization: false,
-                prompt: settingsService.transcriptionPrompt()
+                prompt: settingsService.transcriptionPrompt(),
+                fallbackLanguage: settingsService.defaultLanguage
             )
             let initialResult = try await transcriptionService.transcribe(request)
+            let resolvedLanguage = initialResult.language
+            if note.appLanguage.isAutoDetect {
+                note.language = resolvedLanguage.rawValue
+            }
+            note.detectedLanguage = resolvedLanguage.rawValue
+            debugEvents.append("Detected language: \(resolvedLanguage.displayName)")
             debugEvents.append("Transcription provider: \(initialResult.providerId)")
             debugEvents.append("Transcription time: \(initialResult.processingTimeMs) ms")
             if let attemptLog = initialResult.metadata["attemptLog"] {
@@ -85,7 +92,7 @@ final class ProcessRecordingUseCase {
             let finalTranscript = try await qualityPipeline.process(
                 initialResult: initialResult,
                 audioURL: audioURL,
-                expectedLanguage: note.appLanguage,
+                expectedLanguage: resolvedLanguage,
                 prompt: settingsService.transcriptionPrompt()
             )
             debugEvents.append("Overall confidence: \(String(format: "%.2f", finalTranscript.qualityReport.overallConfidence))")
@@ -94,10 +101,11 @@ final class ProcessRecordingUseCase {
             let summary = try await generateSummary(
                 for: note,
                 transcript: finalTranscript.fullText,
+                language: resolvedLanguage,
                 onStageChange: advance
             )
             debugEvents.append(summary.usedFallback ? "Summary: fallback" : "Summary: generated")
-            replaceResults(on: note, transcript: finalTranscript, summary: summary)
+            replaceResults(on: note, transcript: finalTranscript, summary: summary, language: resolvedLanguage)
 
             if settingsService.deleteAudioAfterTranscription || !settingsService.keepAudioFiles {
                 storageService.deleteAudio(for: note.id)
@@ -154,7 +162,7 @@ final class ProcessRecordingUseCase {
         try save(note)
 
         do {
-            let summary = try await generateSummary(for: note, transcript: transcript) { stage in
+            let summary = try await generateSummary(for: note, transcript: transcript, language: note.appLanguage) { stage in
                 note.processingStage = stage.rawValue
                 onStageChange(stage)
             }
@@ -174,16 +182,16 @@ final class ProcessRecordingUseCase {
         }
     }
     
-    private func replaceResults(on note: Note, transcript: FinalTranscript, summary: SummaryGeneration) {
+    private func replaceResults(on note: Note, transcript: FinalTranscript, summary: SummaryGeneration, language: AppLanguage) {
         clearTranscriptionResults(note)
-        applyTranscript(transcript, to: note)
+        applyTranscript(transcript, to: note, language: language)
         replaceSummary(on: note, summary: summary)
     }
 
-    private func applyTranscript(_ finalTranscript: FinalTranscript, to note: Note) {
+    private func applyTranscript(_ finalTranscript: FinalTranscript, to note: Note, language: AppLanguage) {
         note.rawTranscript = finalTranscript.fullText
         note.primaryProvider = finalTranscript.primaryProvider
-        note.detectedLanguage = note.language
+        note.detectedLanguage = language.rawValue
         note.qualityReportJSON = try? JSONEncoder().encode(finalTranscript.qualityReport)
         note.segments = finalTranscript.segments.map { TranscriptSegmentModel(from: $0, note: note) }
     }
@@ -191,6 +199,7 @@ final class ProcessRecordingUseCase {
     private func generateSummary(
         for note: Note,
         transcript: String,
+        language: AppLanguage,
         onStageChange: @escaping (ProcessingStage) -> Void
     ) async throws -> SummaryGeneration {
         if note.noteOutputType == .rawTranscript {
@@ -201,7 +210,7 @@ final class ProcessRecordingUseCase {
         return try await summaryService.generate(
             transcript: transcript,
             outputType: note.noteOutputType,
-            language: note.appLanguage
+            language: language
         )
     }
 

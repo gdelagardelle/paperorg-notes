@@ -5,6 +5,7 @@ enum OpenAITranscriptionParser {
         let text: String
         let duration: Double?
         let segments: [Segment]?
+        let language: String?
     }
 
     struct Segment {
@@ -25,7 +26,8 @@ enum OpenAITranscriptionParser {
                 return Response(
                     text: text,
                     duration: object["duration"] as? Double,
-                    segments: parseSegments(from: object)
+                    segments: parseSegments(from: object),
+                    language: object["language"] as? String
                 )
             }
         }
@@ -34,7 +36,7 @@ enum OpenAITranscriptionParser {
             .trimmingCharacters(in: .whitespacesAndNewlines),
            !text.isEmpty,
            !text.hasPrefix("{") {
-            return Response(text: text, duration: nil, segments: nil)
+            return Response(text: text, duration: nil, segments: nil, language: nil)
         }
 
         throw TranscriptionError.providerError("Could not parse transcription response.")

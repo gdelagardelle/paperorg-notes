@@ -81,7 +81,7 @@ struct LanguagePicker: View {
     
     var body: some View {
         Menu {
-            ForEach(AppLanguage.allCases) { language in
+            ForEach(AppLanguage.recordPickerLanguages) { language in
                 Button("\(language.flag) \(language.displayName)") {
                     selection = language
                 }

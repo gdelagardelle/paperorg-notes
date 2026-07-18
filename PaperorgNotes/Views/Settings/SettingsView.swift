@@ -69,10 +69,18 @@ struct SettingsView: View {
                 }
 
                 Section(L10n.Settings.languageSection) {
+                    Toggle(L10n.Settings.autoDetectLanguage, isOn: $settings.autoDetectLanguage)
+
                     Picker(L10n.Settings.defaultLanguage, selection: $settings.defaultLanguage) {
-                        ForEach(AppLanguage.allCases) { lang in
+                        ForEach(AppLanguage.spokenLanguages) { lang in
                             Text("\(lang.flag) \(lang.displayName)").tag(lang)
                         }
+                    }
+
+                    if settings.autoDetectLanguage {
+                        Text(L10n.Settings.autoDetectLanguageHint)
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textSecondary)
                     }
                 }
                 

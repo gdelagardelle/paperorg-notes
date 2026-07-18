@@ -96,10 +96,17 @@ final class OpenAITranscriptionProvider: TranscriptionProvider, @unchecked Senda
         }
         
         let avgConfidence = segments.map(\.confidence).reduce(0, +) / Double(max(segments.count, 1))
+        let resolvedLanguage = request.autoDetect
+            ? AppLanguageDetector.resolve(
+                openAICode: parsed.language,
+                transcript: parsed.text,
+                fallback: request.fallbackLanguage
+            )
+            : request.language
         
         return TranscriptionResult(
             providerId: identifier,
-            language: request.language,
+            language: resolvedLanguage,
             segments: segments,
             fullText: parsed.text,
             averageConfidence: avgConfidence,

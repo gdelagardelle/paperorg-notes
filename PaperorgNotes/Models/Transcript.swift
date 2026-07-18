@@ -40,19 +40,24 @@ struct TranscriptionRequest: Sendable {
     let enableDiarization: Bool
     let prompt: String?
     let segmentTimeRange: ClosedRange<Double>?
+    let fallbackLanguage: AppLanguage
+    
+    var autoDetect: Bool { language.isAutoDetect }
     
     init(
         audioURL: URL,
         language: AppLanguage,
         enableDiarization: Bool = true,
         prompt: String? = nil,
-        segmentTimeRange: ClosedRange<Double>? = nil
+        segmentTimeRange: ClosedRange<Double>? = nil,
+        fallbackLanguage: AppLanguage = .english
     ) {
         self.audioURL = audioURL
         self.language = language
         self.enableDiarization = enableDiarization
         self.prompt = prompt
         self.segmentTimeRange = segmentTimeRange
+        self.fallbackLanguage = fallbackLanguage
     }
 }
 
@@ -198,6 +203,9 @@ enum TranscriptionError: LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .noProviderAvailable(let lang):
+            if lang.isAutoDetect {
+                return "No transcription provider available for automatic language detection."
+            }
             return "No transcription provider available for \(lang.displayName)."
         case .providerNotConsented(let provider):
             return "Consent required before using \(provider.displayName)."

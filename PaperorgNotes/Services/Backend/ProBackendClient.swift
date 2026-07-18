@@ -139,6 +139,8 @@ final class ProBackendClient {
 
         if let languageCode = transcriptionRequest.language.openAITranscriptionCode {
             appendField("language", languageCode)
+        } else if transcriptionRequest.autoDetect {
+            appendField("language", "auto")
         }
         appendField("duration_seconds", String(format: "%.2f", durationSeconds))
         if let prompt = transcriptionRequest.prompt, !prompt.isEmpty {
@@ -180,7 +182,11 @@ final class ProBackendClient {
             body.append("\(value)\r\n".data(using: .utf8)!)
         }
 
-        appendField("language_code", transcriptionRequest.language.elevenLabsCode)
+        if let languageCode = transcriptionRequest.language.elevenLabsCode {
+            appendField("language_code", languageCode)
+        } else if transcriptionRequest.autoDetect {
+            appendField("language_code", "auto")
+        }
         appendField("diarize", transcriptionRequest.enableDiarization ? "true" : "false")
         appendField("duration_seconds", String(format: "%.2f", durationSeconds))
 

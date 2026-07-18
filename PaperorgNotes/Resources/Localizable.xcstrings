@@ -2956,6 +2956,72 @@
         }
       }
     },
+    "language.auto_detect" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch erkennen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-detect"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Détection auto"
+          }
+        }
+      }
+    },
+    "settings.language.auto_detect" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprache automatisch erkennen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detect language automatically"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Détecter la langue automatiquement"
+          }
+        }
+      }
+    },
+    "settings.language.auto_detect_hint" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paperorg erkennt die gesprochene Sprache nach der Aufnahme. Die Standardsprache wird verwendet, wenn die Erkennung unsicher ist."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paperorg detects the spoken language after recording. The default language is used if detection is uncertain."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paperorg détecte la langue parlée après l'enregistrement. La langue par défaut est utilisée si la détection est incertaine."
+          }
+        }
+      }
+    },
     "settings.language.default" : {
       "extractionState" : "stale",
       "localizations" : {

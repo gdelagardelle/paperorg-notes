@@ -59,6 +59,11 @@ final class ProviderRegistry {
     }
     
     func orderedProviders(for language: AppLanguage) -> [any TranscriptionProvider] {
+        if language.isAutoDetect {
+            let order: [ProviderID] = [.openai, .elevenlabs]
+            return order.compactMap { providers[$0.rawValue] }
+        }
+
         let prefs = settings.providerPreferences()
         let order = prefs[language] ?? Self.defaultPreferences[language] ?? [.openai]
         return order.compactMap { providers[$0.rawValue] }

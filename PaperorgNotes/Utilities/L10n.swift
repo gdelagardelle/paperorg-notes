@@ -18,6 +18,8 @@ enum L10n {
         static let proSelected = String(localized: "settings.pro.selected")
         static let languageSection = String(localized: "settings.language.section")
         static let defaultLanguage = String(localized: "settings.language.default")
+        static let autoDetectLanguage = String(localized: "settings.language.auto_detect")
+        static let autoDetectLanguageHint = String(localized: "settings.language.auto_detect_hint")
         static let transcriptionSection = String(localized: "settings.transcription.section")
         static let pdfBrandingSection = String(localized: "settings.pdf.section")
         static let pdfBrandingHint = String(localized: "settings.pdf.hint")

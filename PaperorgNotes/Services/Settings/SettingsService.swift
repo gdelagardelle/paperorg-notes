@@ -277,7 +277,8 @@ final class SettingsService {
         self.keychain = keychain
         self.defaults = defaults
         
-        self.defaultLanguage = AppLanguage(rawValue: defaults.string(forKey: Keys.defaultLanguage) ?? "") ?? .luxembourgish
+        let storedLanguage = AppLanguage(rawValue: defaults.string(forKey: Keys.defaultLanguage) ?? "") ?? .luxembourgish
+        self.defaultLanguage = storedLanguage.isAutoDetect ? .luxembourgish : storedLanguage
         self.autoDetectLanguage = defaults.object(forKey: Keys.autoDetectLanguage) as? Bool ?? true
         self.defaultOutputType = OutputType(rawValue: defaults.string(forKey: Keys.defaultOutputType) ?? "") ?? .meetingNotes
         self.summaryLength = SummaryLength(rawValue: defaults.string(forKey: Keys.summaryLength) ?? "") ?? .detailed

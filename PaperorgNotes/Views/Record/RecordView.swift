@@ -20,30 +20,58 @@ struct RecordView: View {
     private var isRecordingSession: Bool {
         environment.recordingService.state == .recording || environment.recordingService.state == .paused
     }
+
+    private var recordLanguageOptions: [AppLanguage] {
+        environment.settingsService.autoDetectLanguage
+            ? AppLanguage.recordPickerLanguages
+            : AppLanguage.spokenLanguages
+    }
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
+            List {
+                Section {
                     AppBrandHeader()
-                    
+                }
+                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 0, trailing: 20))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+
+                Section {
                     setupCard
+                }
+                .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+
+                Section {
                     recordHeroCard
-                    
-                    if let warning = environment.recordingService.qualityWarning {
+                }
+                .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+
+                if let warning = environment.recordingService.qualityWarning {
+                    Section {
                         qualityWarningBanner(warning)
                     }
-                    
-                    recentSection
+                    .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 32)
+
+                recentSection
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
             .background(AppScreenBackground())
             .navigationBarHidden(true)
             .onAppear {
-                selectedLanguage = environment.settingsService.defaultLanguage
+                if environment.settingsService.autoDetectLanguage {
+                    selectedLanguage = .autoDetect
+                } else {
+                    selectedLanguage = environment.settingsService.defaultLanguage
+                }
                 selectedOutputType = environment.settingsService.defaultOutputType
                 environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
                 relinkActiveNoteIfRecording()
@@ -101,7 +129,7 @@ struct RecordView: View {
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(AppLanguage.allCases) { language in
+                        ForEach(recordLanguageOptions) { language in
                             SelectionChip(
                                 title: "\(language.flag) \(language.displayName)",
                                 isSelected: selectedLanguage == language,
@@ -195,9 +223,7 @@ struct RecordView: View {
     }
     
     private var recentSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            AppSectionHeader(title: "Recent notes", subtitle: "Pick up where you left off")
-            
+        Section {
             if recentNotes.prefix(5).isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "waveform.badge.mic")
@@ -214,17 +240,30 @@ struct RecordView: View {
                 .frame(maxWidth: .infinity)
                 .surfaceCard(padding: 28)
             } else {
-                VStack(spacing: 10) {
-                    ForEach(recentNotes.prefix(5)) { note in
-                        DeletableNoteLink(note: note) {
+                ForEach(Array(recentNotes.prefix(5))) { note in
+                    NavigationLink {
+                        NoteDetailView(note: note)
+                    } label: {
+                        NoteCardRow(note: note, style: .compact)
+                    }
+                    .buttonStyle(.plain)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) {
                             deleteRecentNote(note)
-                        } content: {
-                            NoteCardRow(note: note, style: .compact)
+                        } label: {
+                            Label(L10n.NoteDetail.delete, systemImage: "trash")
                         }
                     }
                 }
             }
+        } header: {
+            AppSectionHeader(title: "Recent notes", subtitle: "Pick up where you left off")
+                .textCase(nil)
+                .padding(.top, 12)
         }
+        .listRowInsets(EdgeInsets(top: 5, leading: 20, bottom: 5, trailing: 20))
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
     }
     
     private var recordStatusText: String {

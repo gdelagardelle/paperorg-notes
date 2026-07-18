@@ -3,6 +3,7 @@ import Foundation
 // MARK: - App Language
 
 enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
+    case autoDetect = "auto"
     case luxembourgish = "lb"
     case german = "de"
     case french = "fr"
@@ -10,9 +11,37 @@ enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
     case portuguese = "pt"
     
     var id: String { rawValue }
+
+    var isAutoDetect: Bool { self == .autoDetect }
+
+    /// Languages shown when picking a spoken language (excludes auto).
+    static var spokenLanguages: [AppLanguage] {
+        allCases.filter { !$0.isAutoDetect }
+    }
+
+    /// Record screen: auto first, then spoken languages.
+    static var recordPickerLanguages: [AppLanguage] {
+        [.autoDetect] + spokenLanguages
+    }
+
+    static func fromTranscriptionCode(_ code: String) -> AppLanguage? {
+        let normalized = code.lowercased()
+        if normalized == "auto" { return .autoDetect }
+        if let exact = AppLanguage(rawValue: normalized) { return exact }
+        switch normalized {
+        case "ltz": return .luxembourgish
+        case "deu": return .german
+        case "fra": return .french
+        case "eng": return .english
+        case "por": return .portuguese
+        default:
+            return AppLanguage(rawValue: String(normalized.prefix(2)))
+        }
+    }
     
     var displayName: String {
         switch self {
+        case .autoDetect: return String(localized: "language.auto_detect")
         case .luxembourgish: return "Lëtzebuergesch"
         case .german: return "Deutsch"
         case .french: return "Français"
@@ -23,6 +52,7 @@ enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
     
     var flag: String {
         switch self {
+        case .autoDetect: return "🌐"
         case .luxembourgish: return "🇱🇺"
         case .german: return "🇩🇪"
         case .french: return "🇫🇷"
@@ -31,31 +61,34 @@ enum AppLanguage: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
     
-    /// ISO 639-3 code for ElevenLabs
-    var elevenLabsCode: String {
-        switch self {
-        case .luxembourgish: return "ltz"
-        case .german: return "deu"
-        case .french: return "fra"
-        case .english: return "eng"
-        case .portuguese: return "por"
-        }
-    }
-    
-    /// ISO 639-1 code for OpenAI — nil when the model does not support the language code.
+    /// ISO 639-1 code for OpenAI — nil when the model should auto-detect or infer from prompt.
     var openAITranscriptionCode: String? {
         switch self {
-        case .luxembourgish: return nil
+        case .autoDetect, .luxembourgish: return nil
         default: return rawValue
         }
     }
     
     var openAITranscriptionPromptHint: String? {
         switch self {
+        case .autoDetect:
+            return nil
         case .luxembourgish:
             return "Transcribe in Lëtzebuergesch (Luxembourgish)."
         default:
             return nil
+        }
+    }
+
+    /// ISO 639-3 code for ElevenLabs — nil to let Scribe auto-detect.
+    var elevenLabsCode: String? {
+        switch self {
+        case .autoDetect: return nil
+        case .luxembourgish: return "ltz"
+        case .german: return "deu"
+        case .french: return "fra"
+        case .english: return "eng"
+        case .portuguese: return "por"
         }
     }
 }
@@ -131,6 +164,8 @@ enum ProcessingStage: String, Codable, Sendable, CaseIterable {
         switch self {
         case .savingAudio:
             return "Finalizing your recording file."
+        case .transcribing where language.isAutoDetect:
+            return "Detecting the spoken language and transcribing your recording."
         case .transcribing where language == .luxembourgish:
             return "LuxASR processes audio on Uni Luxembourg servers. This usually takes 30 seconds to a few minutes depending on length."
         case .transcribing:
