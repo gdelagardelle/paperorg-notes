@@ -161,6 +161,11 @@ final class SummaryService {
 
     private func languageOutputInstruction(for language: AppLanguage) -> String {
         switch language {
+        case .autoDetect:
+            return """
+            MANDATORY: Write every generated natural-language value in the same language as the transcript.
+            Preserve proper names and direct quotations unchanged.
+            """
         case .luxembourgish:
             return """
             MANDATORY: Write every generated natural-language value exclusively in Lëtzebuergesch:

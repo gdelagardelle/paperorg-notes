@@ -62,6 +62,20 @@ final class ProcessRecordingUseCase {
         do {
             advance(.transcribing)
             storageService.prepareAudioForReading(noteId: note.id)
+
+            let measuredDuration = AudioTrimService.playableDuration(of: audioURL)
+            if measuredDuration > 0 {
+                note.durationSeconds = measuredDuration
+            }
+            debugEvents.append("Measured audio duration: \(String(format: "%.1f", note.durationSeconds)) seconds")
+
+            let audioBytes = (try? Data(contentsOf: audioURL).count) ?? 0
+            guard note.durationSeconds >= 0.5, audioBytes > 1024 else {
+                throw TranscriptionError.providerError(
+                    "Recording is too short or silent. Hold the mic closer and speak for at least a few seconds."
+                )
+            }
+
             let request = TranscriptionRequest(
                 audioURL: audioURL,
                 language: note.appLanguage,
@@ -95,6 +109,10 @@ final class ProcessRecordingUseCase {
                 expectedLanguage: resolvedLanguage,
                 prompt: settingsService.transcriptionPrompt()
             )
+            let trimmedTranscript = finalTranscript.fullText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard trimmedTranscript.count >= 3 else {
+                throw TranscriptionError.emptyResult
+            }
             debugEvents.append("Overall confidence: \(String(format: "%.2f", finalTranscript.qualityReport.overallConfidence))")
             debugEvents.append("Low-confidence segments: \(finalTranscript.qualityReport.lowConfidenceSegmentIds.count)")
 
@@ -207,10 +225,11 @@ final class ProcessRecordingUseCase {
         }
         
         onStageChange(.summarizing)
+        let summaryLanguage = language.isAutoDetect ? settingsService.defaultLanguage : language
         return try await summaryService.generate(
             transcript: transcript,
             outputType: note.noteOutputType,
-            language: language
+            language: summaryLanguage
         )
     }
 

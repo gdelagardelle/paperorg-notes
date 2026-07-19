@@ -22,6 +22,19 @@ enum AudioTrimService {
         return seconds.isFinite && seconds > 0 ? seconds : 0
     }
 
+    /// Prefer AVAudioPlayer — it reflects playable audio, not inflated container metadata.
+    static func playableDuration(of url: URL) -> TimeInterval {
+        if FileManager.default.fileExists(atPath: url.path),
+           let data = try? Data(contentsOf: url),
+           !data.isEmpty,
+           let player = try? AVAudioPlayer(data: data),
+           player.duration.isFinite,
+           player.duration > 0 {
+            return player.duration
+        }
+        return duration(of: url)
+    }
+
     static func trim(sourceURL: URL, start: TimeInterval, end: TimeInterval) async throws -> URL {
         guard end > start, start >= 0 else { throw AudioTrimError.invalidRange }
 

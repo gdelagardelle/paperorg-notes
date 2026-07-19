@@ -8,14 +8,18 @@ enum AppLanguageDetector {
         transcript: String,
         fallback: AppLanguage
     ) -> AppLanguage {
+        let trimmed = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.count >= 12 else { return fallback }
+
         if let elevenLabsCode, let language = fromElevenLabs(elevenLabsCode) {
             return language
         }
         if let openAICode,
-           let language = AppLanguage.fromTranscriptionCode(openAICode) {
+           let language = AppLanguage.fromTranscriptionCode(openAICode),
+           !language.isAutoDetect {
             return language
         }
-        return fromTranscript(transcript, fallback: fallback)
+        return fromTranscript(trimmed, fallback: fallback)
     }
 
     static func fromElevenLabs(_ code: String) -> AppLanguage? {

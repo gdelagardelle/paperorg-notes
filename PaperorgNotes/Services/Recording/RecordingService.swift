@@ -97,30 +97,37 @@ final class RecordingService: NSObject {
         }
 
         isStoppingIntentionally = true
-        defer {
-            if state != .idle {
-                isStoppingIntentionally = false
-            }
-        }
+        defer { isStoppingIntentionally = false }
+
         recorder?.stop()
         timer?.invalidate()
         timer = nil
 
-        syncDurationFromSources()
-        let finalDuration = duration
+        // Delegate callbacks are scheduled async — keep the intentional flag set until they run.
+        await Task.yield()
+        await Task.yield()
+
+        if let recorderTime = recorder?.currentTime, recorderTime > 0 {
+            duration = max(duration, recorderTime)
+        }
+
         let finalURL = try storage.finalizeRecording(from: temp, noteId: noteId)
         storage.deleteCheckpoint(sessionId: sessionId)
         clearActiveSession()
-        
+
+        let playableDuration = AudioTrimService.playableDuration(of: finalURL)
+        let finalDuration = playableDuration > 0 ? playableDuration : duration
+
         resetState()
-        
+
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-        
+
         return (noteId, finalURL, finalDuration)
     }
     
     func cancel() {
         isStoppingIntentionally = true
+        defer { isStoppingIntentionally = false }
         recorder?.stop()
         timer?.invalidate()
         if let temp = tempURL { try? FileManager.default.removeItem(at: temp) }
@@ -149,7 +156,7 @@ final class RecordingService: NSObject {
     func existingRecording(for noteId: UUID) -> RecoveredRecording? {
         let audioURL = storage.audioURL(for: noteId)
         guard FileManager.default.fileExists(atPath: audioURL.path) else { return nil }
-        let measuredDuration = AudioTrimService.duration(of: audioURL)
+        let measuredDuration = AudioTrimService.playableDuration(of: audioURL)
         guard measuredDuration > 0 else { return nil }
         return RecoveredRecording(noteId: noteId, audioURL: audioURL, duration: measuredDuration)
     }
@@ -166,7 +173,7 @@ final class RecordingService: NSObject {
         do {
             let audioURL = try storage.finalizeRecording(from: temporaryURL, noteId: checkpoint.noteId)
             storage.deleteCheckpoint(sessionId: checkpoint.sessionId)
-            let measuredDuration = AudioTrimService.duration(of: audioURL)
+            let measuredDuration = AudioTrimService.playableDuration(of: audioURL)
             let duration = max(checkpoint.duration, measuredDuration)
             return RecoveredRecording(
                 noteId: checkpoint.noteId,
@@ -187,7 +194,6 @@ final class RecordingService: NSObject {
         recorder = nil
         tempURL = nil
         lowLevelStart = nil
-        isStoppingIntentionally = false
     }
     
     private func configureAudioSession() throws {
@@ -251,13 +257,16 @@ final class RecordingService: NSObject {
         if let recorderTime = recorder?.currentTime, recorderTime > duration {
             duration = recorderTime
         }
-        syncDurationFromTempFile()
+        // Partial AAC files often report bogus duration metadata while still recording.
+        if state != .recording {
+            syncDurationFromTempFile()
+        }
     }
 
     /// UI timers pause when the device sleeps; read the growing m4a on disk for the real length.
     private func syncDurationFromTempFile() {
         guard let temp = tempURL, FileManager.default.fileExists(atPath: temp.path) else { return }
-        let measured = AudioTrimService.duration(of: temp)
+        let measured = AudioTrimService.playableDuration(of: temp)
         if measured > duration {
             duration = measured
         }

@@ -194,6 +194,7 @@ struct RecordView: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .disabled(showProcessing)
                     
                     Button(action: stopRecording) {
                         RecordControlButton(
@@ -203,6 +204,7 @@ struct RecordView: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .disabled(showProcessing)
                 }
             }
         }
@@ -335,6 +337,9 @@ struct RecordView: View {
     }
     
     private func stopRecording() {
+        guard environment.recordingService.state != .idle else { return }
+        guard !showProcessing else { return }
+
         pulseAnimation = false
         showProcessing = true
         processingStage = .savingAudio
@@ -374,7 +379,7 @@ struct RecordView: View {
                            FileManager.default.fileExists(
                             atPath: environment.storageService.audioURL(for: noteId).path
                            ) {
-                            note.durationSeconds = AudioTrimService.duration(
+                            note.durationSeconds = AudioTrimService.playableDuration(
                                 of: environment.storageService.audioURL(for: noteId)
                             )
                         }
