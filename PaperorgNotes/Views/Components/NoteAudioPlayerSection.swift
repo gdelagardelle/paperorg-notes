@@ -79,29 +79,13 @@ struct AudioTrimSheet: View {
     @State private var trimStart: TimeInterval = 0
     @State private var trimEnd: TimeInterval = 0
     @State private var isSaving = false
+    @State private var isDurationLoaded = false
     @State private var errorMessage: String?
 
     private let minClipLength: TimeInterval = 0.5
 
-    private var canTrim: Bool { totalDuration >= minClipLength }
-
-    private var maxTrimStart: TimeInterval {
-        max(0, trimEnd - minClipLength)
-    }
-
-    private var minTrimEnd: TimeInterval {
-        min(totalDuration, trimStart + minClipLength)
-    }
-
-    private var trimStartRange: ClosedRange<Double> {
-        let upper = max(maxTrimStart, 0)
-        return 0...upper
-    }
-
-    private var trimEndRange: ClosedRange<Double> {
-        let lower = min(minTrimEnd, totalDuration)
-        let upper = max(totalDuration, lower)
-        return lower...upper
+    private var canTrim: Bool {
+        isDurationLoaded && totalDuration >= minClipLength && safeTrimStartRange != nil && safeTrimEndRange != nil
     }
 
     var body: some View {
@@ -113,15 +97,27 @@ struct AudioTrimSheet: View {
                         .foregroundStyle(AppTheme.textSecondary)
                 }
 
-                if canTrim {
+                if !isDurationLoaded {
+                    Section {
+                        ProgressView("Loading recording…")
+                    }
+                } else if canTrim, let startRange = safeTrimStartRange, let endRange = safeTrimEndRange {
                     Section("Keep from") {
-                        Slider(value: trimStartBinding, in: trimStartRange, step: 0.1)
+                        Slider(
+                            value: trimStartBinding(in: startRange),
+                            in: startRange,
+                            step: sliderStep(for: startRange)
+                        )
                         Text(DurationFormatter.format(trimStart))
                             .font(.caption.monospacedDigit())
                     }
 
                     Section("Keep until") {
-                        Slider(value: trimEndBinding, in: trimEndRange, step: 0.1)
+                        Slider(
+                            value: trimEndBinding(in: endRange),
+                            in: endRange,
+                            step: sliderStep(for: endRange)
+                        )
                         Text(DurationFormatter.format(trimEnd))
                             .font(.caption.monospacedDigit())
                     }
@@ -161,32 +157,76 @@ struct AudioTrimSheet: View {
                         .disabled(isSaving || !canTrim)
                 }
             }
-            .onAppear {
-                AudioFileReader.prepareForReading(audioURL)
-                let playable = AudioTrimService.playableDuration(of: audioURL)
-                totalDuration = playable > 0 ? playable : AudioTrimService.duration(of: audioURL)
-                trimStart = 0
-                trimEnd = totalDuration
-                clampTrimValues()
+            .task(id: audioURL) {
+                await loadDuration()
             }
         }
     }
 
-    private var trimStartBinding: Binding<Double> {
+    @MainActor
+    private func loadDuration() async {
+        isDurationLoaded = false
+        trimStart = 0
+        trimEnd = 0
+        totalDuration = 0
+
+        AudioFileReader.prepareForReading(audioURL)
+        let playable = AudioTrimService.playableDuration(of: audioURL)
+        totalDuration = playable > 0 ? playable : AudioTrimService.duration(of: audioURL)
+        trimStart = 0
+        trimEnd = totalDuration
+        clampTrimValues()
+        isDurationLoaded = true
+    }
+
+    private var maxTrimStart: TimeInterval {
+        max(0, trimEnd - minClipLength)
+    }
+
+    private var minTrimEnd: TimeInterval {
+        min(totalDuration, trimStart + minClipLength)
+    }
+
+    private var safeTrimStartRange: ClosedRange<Double>? {
+        let upper = max(maxTrimStart, 0)
+        let range = 0.0...upper
+        return isUsableSliderRange(range) ? range : nil
+    }
+
+    private var safeTrimEndRange: ClosedRange<Double>? {
+        let lower = min(minTrimEnd, totalDuration)
+        let upper = max(totalDuration, lower)
+        let range = lower...upper
+        return isUsableSliderRange(range) ? range : nil
+    }
+
+    private func isUsableSliderRange(_ range: ClosedRange<Double>) -> Bool {
+        guard range.lowerBound <= range.upperBound else { return false }
+        let span = range.upperBound - range.lowerBound
+        guard span >= 0.01 else { return false }
+        return sliderStep(for: range) <= span
+    }
+
+    private func sliderStep(for range: ClosedRange<Double>) -> Double {
+        let span = max(range.upperBound - range.lowerBound, 0.001)
+        return min(0.1, span / 10)
+    }
+
+    private func trimStartBinding(in range: ClosedRange<Double>) -> Binding<Double> {
         Binding(
-            get: { trimStart },
+            get: { min(max(trimStart, range.lowerBound), range.upperBound) },
             set: { newValue in
-                trimStart = min(max(newValue, trimStartRange.lowerBound), trimStartRange.upperBound)
+                trimStart = min(max(newValue, range.lowerBound), range.upperBound)
                 clampTrimValues()
             }
         )
     }
 
-    private var trimEndBinding: Binding<Double> {
+    private func trimEndBinding(in range: ClosedRange<Double>) -> Binding<Double> {
         Binding(
-            get: { trimEnd },
+            get: { min(max(trimEnd, range.lowerBound), range.upperBound) },
             set: { newValue in
-                trimEnd = min(max(newValue, trimEndRange.lowerBound), trimEndRange.upperBound)
+                trimEnd = min(max(newValue, range.lowerBound), range.upperBound)
                 clampTrimValues()
             }
         )

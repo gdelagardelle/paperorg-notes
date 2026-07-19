@@ -150,6 +150,7 @@ struct NoteDetailView: View {
             AudioTrimSheet(audioURL: environment.storageService.audioURL(for: note.id)) { start, end in
                 Task { await applyTrim(start: start, end: end) }
             }
+            .id(note.id)
         }
     }
     
