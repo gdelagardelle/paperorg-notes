@@ -81,6 +81,29 @@ struct AudioTrimSheet: View {
     @State private var isSaving = false
     @State private var errorMessage: String?
 
+    private let minClipLength: TimeInterval = 0.5
+
+    private var canTrim: Bool { totalDuration >= minClipLength }
+
+    private var maxTrimStart: TimeInterval {
+        max(0, trimEnd - minClipLength)
+    }
+
+    private var minTrimEnd: TimeInterval {
+        min(totalDuration, trimStart + minClipLength)
+    }
+
+    private var trimStartRange: ClosedRange<Double> {
+        let upper = max(maxTrimStart, 0)
+        return 0...upper
+    }
+
+    private var trimEndRange: ClosedRange<Double> {
+        let lower = min(minTrimEnd, totalDuration)
+        let upper = max(totalDuration, lower)
+        return lower...upper
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -90,15 +113,15 @@ struct AudioTrimSheet: View {
                         .foregroundStyle(AppTheme.textSecondary)
                 }
 
-                if totalDuration > 0 {
+                if canTrim {
                     Section("Keep from") {
-                        Slider(value: $trimStart, in: 0...max(trimEnd - 0.5, 0.5), step: 0.1)
+                        Slider(value: trimStartBinding, in: trimStartRange, step: 0.1)
                         Text(DurationFormatter.format(trimStart))
                             .font(.caption.monospacedDigit())
                     }
 
                     Section("Keep until") {
-                        Slider(value: $trimEnd, in: min(trimStart + 0.5, totalDuration)...totalDuration, step: 0.1)
+                        Slider(value: trimEndBinding, in: trimEndRange, step: 0.1)
                         Text(DurationFormatter.format(trimEnd))
                             .font(.caption.monospacedDigit())
                     }
@@ -106,6 +129,16 @@ struct AudioTrimSheet: View {
                     Section {
                         Text("New length: \(DurationFormatter.format(trimEnd - trimStart))")
                             .font(.subheadline.weight(.semibold))
+                    }
+                } else if totalDuration > 0 {
+                    Section {
+                        Text("This recording is too short to trim.")
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
+                } else {
+                    Section {
+                        Text("Could not read the recording duration.")
+                            .foregroundStyle(AppTheme.textSecondary)
                     }
                 }
 
@@ -125,17 +158,61 @@ struct AudioTrimSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { saveTrim() }
-                        .disabled(isSaving || totalDuration <= 0)
+                        .disabled(isSaving || !canTrim)
                 }
             }
             .onAppear {
-                totalDuration = AudioTrimService.duration(of: audioURL)
+                AudioFileReader.prepareForReading(audioURL)
+                let playable = AudioTrimService.playableDuration(of: audioURL)
+                totalDuration = playable > 0 ? playable : AudioTrimService.duration(of: audioURL)
+                trimStart = 0
                 trimEnd = totalDuration
+                clampTrimValues()
             }
         }
     }
 
+    private var trimStartBinding: Binding<Double> {
+        Binding(
+            get: { trimStart },
+            set: { newValue in
+                trimStart = min(max(newValue, trimStartRange.lowerBound), trimStartRange.upperBound)
+                clampTrimValues()
+            }
+        )
+    }
+
+    private var trimEndBinding: Binding<Double> {
+        Binding(
+            get: { trimEnd },
+            set: { newValue in
+                trimEnd = min(max(newValue, trimEndRange.lowerBound), trimEndRange.upperBound)
+                clampTrimValues()
+            }
+        )
+    }
+
+    private func clampTrimValues() {
+        guard totalDuration > 0 else {
+            trimStart = 0
+            trimEnd = 0
+            return
+        }
+
+        trimEnd = min(max(trimEnd, minClipLength), totalDuration)
+        trimStart = min(max(trimStart, 0), max(0, trimEnd - minClipLength))
+
+        if trimEnd - trimStart < minClipLength {
+            trimEnd = min(totalDuration, trimStart + minClipLength)
+            trimStart = max(0, trimEnd - minClipLength)
+        }
+    }
+
     private func saveTrim() {
+        guard canTrim, trimEnd > trimStart else {
+            errorMessage = AudioTrimError.invalidRange.localizedDescription
+            return
+        }
         isSaving = true
         errorMessage = nil
         onSave(trimStart, trimEnd)

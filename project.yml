@@ -67,7 +67,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.notes
         MARKETING_VERSION: "1.0.0"
-        CURRENT_PROJECT_VERSION: "10"
+        CURRENT_PROJECT_VERSION: "11"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -97,7 +97,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.notes.widget
         MARKETING_VERSION: "1.0.0"
-        CURRENT_PROJECT_VERSION: "10"
+        CURRENT_PROJECT_VERSION: "11"
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_ENTITLEMENTS: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
         SKIP_INSTALL: YES

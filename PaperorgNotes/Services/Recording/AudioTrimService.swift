@@ -39,7 +39,7 @@ enum AudioTrimService {
         guard end > start, start >= 0 else { throw AudioTrimError.invalidRange }
 
         let asset = AVURLAsset(url: sourceURL)
-        let assetDuration = duration(of: sourceURL)
+        let assetDuration = playableDuration(of: sourceURL)
         guard assetDuration > 0, end <= assetDuration + 0.05 else { throw AudioTrimError.invalidRange }
 
         guard let export = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
