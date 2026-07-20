@@ -19,7 +19,6 @@
 		184523BFC4362034B7A83B56 /* SummaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111EBE0439A2EDDB89A24C20 /* SummaryService.swift */; };
 		1CEEF14519AA64B9827402C9 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A7124A59F839DA2119477 /* L10n.swift */; };
 		1FABB45AE68F51D913B6899A /* AppLanguageDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC42AEF61E146375D7FF123D /* AppLanguageDetector.swift */; };
-		22142197A36C3EABFE30A36F /* QuickRecordIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = DADAF46013D606390CB4BF51 /* QuickRecordIntent.swift */; };
 		38D2C7623F3074A64BFE1846 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E563644B575641930A1E21 /* KeychainService.swift */; };
 		3A9C435B67B50413336FBEA5 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A087642002F869CCB02526 /* AppTheme.swift */; };
 		3AB2E53851565A8E0772D71F /* Transcript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3405E9F6563295A3256E4763 /* Transcript.swift */; };
@@ -55,6 +54,7 @@
 		AA416AB7CAD44329FD134834 /* SubscriptionPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */; };
 		AD3AD30C810BF4155A7C4FEC /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D34CD6703E1B9404B252C40 /* Enums.swift */; };
 		ADC9EA453F99A4C9066C2A90 /* PrivacyConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4CCE7823C18246EF50175B /* PrivacyConsentView.swift */; };
+		ADD2EECA433DF2B4E19B3A2B /* QuickRecordSharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96C7CBD0EF7A5A63DF8FC5 /* QuickRecordSharedStore.swift */; };
 		B2A3392EF299E2B52340BD1A /* NotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B6B8DF7F1EC58D388ACDC88 /* NotesListView.swift */; };
 		B528AA9EBC95FD71061FEFD0 /* MailComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65181023F293D9C4ACE28EEB /* MailComposeView.swift */; };
 		B56F621E4D48F4CF8B8AC067 /* SMTPEmailDeliveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0D2034A23A4CA8E571D5F4 /* SMTPEmailDeliveryService.swift */; };
@@ -120,6 +120,7 @@
 		111EBE0439A2EDDB89A24C20 /* SummaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryService.swift; sourceTree = "<group>"; };
 		15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionPlan.swift; sourceTree = "<group>"; };
 		182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionProvider.swift; sourceTree = "<group>"; };
+		1E96C7CBD0EF7A5A63DF8FC5 /* QuickRecordSharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecordSharedStore.swift; sourceTree = "<group>"; };
 		1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteNoteUseCase.swift; sourceTree = "<group>"; };
 		23130EAFD410A3FED41D40AC /* ProUsageCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProUsageCard.swift; sourceTree = "<group>"; };
 		24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanSelectionView.swift; sourceTree = "<group>"; };
@@ -182,7 +183,6 @@
 		D2CB1C8B9F80F34734755D2C /* QualityPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QualityPipeline.swift; sourceTree = "<group>"; };
 		D682905B816444B9E87CD2FC /* PaperorgNotesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesApp.swift; sourceTree = "<group>"; };
 		D6DF048A8D3EF11339C56A9C /* SubscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
-		DADAF46013D606390CB4BF51 /* QuickRecordIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecordIntent.swift; sourceTree = "<group>"; };
 		DE0C06053A99804E1AA8110D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E5C627A5CB7405AD3E454F04 /* StartRecordingIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartRecordingIntent.swift; sourceTree = "<group>"; };
 		EB19E21168DDA27DF38BDFAC /* OpenAITranscriptionParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionParser.swift; sourceTree = "<group>"; };
@@ -268,6 +268,7 @@
 				68B74C5620F1B13BDE12A809 /* DeepLinkHandler.swift */,
 				565A7124A59F839DA2119477 /* L10n.swift */,
 				EB19E21168DDA27DF38BDFAC /* OpenAITranscriptionParser.swift */,
+				1E96C7CBD0EF7A5A63DF8FC5 /* QuickRecordSharedStore.swift */,
 				FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */,
 			);
 			path = Utilities;
@@ -372,7 +373,6 @@
 				B97FC756EBB626004AB78526 /* PaperorgNotesWidget.entitlements */,
 				89C47221B81917C0FD802E52 /* PaperorgNotesWidget.swift */,
 				829314BC54DCB82DDAC7E449 /* PaperorgNotesWidgetBundle.swift */,
-				DADAF46013D606390CB4BF51 /* QuickRecordIntent.swift */,
 			);
 			path = PaperorgNotesWidget;
 			sourceTree = "<group>";
@@ -683,6 +683,7 @@
 				6AE3CD48C33A80509A37F80C /* ProUsageCard.swift in Sources */,
 				51E2E8EC0F74C349152E75BF /* ProcessRecordingUseCase.swift in Sources */,
 				5659B8363936129D5E6448BA /* QualityPipeline.swift in Sources */,
+				ADD2EECA433DF2B4E19B3A2B /* QuickRecordSharedStore.swift in Sources */,
 				958031920000A50C401A194D /* RecordView.swift in Sources */,
 				C1929CB0E7F507F935A2A0BB /* RecordingService.swift in Sources */,
 				13AEF56FF88E35287FDA4CA3 /* ReviewBeforeSendView.swift in Sources */,
@@ -717,7 +718,6 @@
 			files = (
 				53DC4B6EAD4747272CC3EB7B /* PaperorgNotesWidget.swift in Sources */,
 				96EE2A629E724164161E4373 /* PaperorgNotesWidgetBundle.swift in Sources */,
-				22142197A36C3EABFE30A36F /* QuickRecordIntent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -744,7 +744,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -898,7 +898,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -921,7 +921,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -974,7 +974,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

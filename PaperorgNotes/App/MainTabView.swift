@@ -44,6 +44,7 @@ struct RootView: View {
                 isUnlocked = false
             }
         }
+        .onOpenURL { environment.deepLinkHandler.handle($0) }
     }
 
     private func recoverInterruptedProcessing() {

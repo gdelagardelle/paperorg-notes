@@ -20,7 +20,7 @@ final class DeepLinkHandler {
 
     func consumeAppGroupQuickRecordFlag() {
         let defaults = appGroupDefaults
-        if defaults.bool(forKey: AppConstants.UserDefaultsKeys.pendingQuickRecord) {
+        if defaults.bool(forKey: QuickRecordSharedStore.pendingKey) {
             pendingQuickRecord = true
             selectedTab = 0
         }
@@ -29,22 +29,21 @@ final class DeepLinkHandler {
     func markQuickRecordPending(clearingPreferences: Bool = false) {
         pendingQuickRecord = true
         selectedTab = 0
+        QuickRecordSharedStore.markPending()
         let defaults = appGroupDefaults
         if clearingPreferences {
             defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordLanguage)
             defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordOutputType)
         }
-        defaults.set(true, forKey: AppConstants.UserDefaultsKeys.pendingQuickRecord)
-        defaults.set(Date().timeIntervalSince1970, forKey: AppConstants.UserDefaultsKeys.quickRecordRequestedAt)
     }
 
     func clearQuickRecordFlag() {
         pendingQuickRecord = false
         let defaults = appGroupDefaults
-        defaults.set(false, forKey: AppConstants.UserDefaultsKeys.pendingQuickRecord)
+        defaults.set(false, forKey: QuickRecordSharedStore.pendingKey)
         defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordLanguage)
         defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordOutputType)
-        defaults.removeObject(forKey: AppConstants.UserDefaultsKeys.quickRecordRequestedAt)
+        defaults.removeObject(forKey: QuickRecordSharedStore.requestedAtKey)
     }
 
     func quickRecordPreferences() -> (language: AppLanguage?, outputType: OutputType?) {
@@ -58,7 +57,7 @@ final class DeepLinkHandler {
 
     /// Extra settle time after a widget/Siri launch so the app is fully active before recording starts.
     func quickRecordLaunchDelay() -> TimeInterval {
-        let requestedAt = appGroupDefaults.double(forKey: AppConstants.UserDefaultsKeys.quickRecordRequestedAt)
+        let requestedAt = appGroupDefaults.double(forKey: QuickRecordSharedStore.requestedAtKey)
         guard requestedAt > 0 else { return 0 }
         let elapsed = Date().timeIntervalSince1970 - requestedAt
         return max(0, 0.75 - elapsed)

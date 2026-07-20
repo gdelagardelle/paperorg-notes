@@ -1,6 +1,11 @@
-import AppIntents
 import SwiftUI
 import WidgetKit
+
+private enum WidgetBrand {
+    static let background = Color.white
+    static let textPrimary = Color(red: 0.078, green: 0.137, blue: 0.239)
+    static let recordURL = URL(string: "paperorgnotes://record")!
+}
 
 struct QuickRecordEntry: TimelineEntry {
     let date: Date
@@ -22,33 +27,48 @@ struct QuickRecordProvider: TimelineProvider {
 }
 
 struct QuickRecordWidgetView: View {
+    @Environment(\.widgetFamily) private var family
     var entry: QuickRecordEntry
 
     var body: some View {
-        Button(intent: QuickRecordIntent()) {
-            VStack(spacing: 10) {
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 28, weight: .semibold))
-                Text("Record")
-                    .font(.headline)
-                Text("Paperorg Notes")
-                    .font(.caption2)
-                    .opacity(0.8)
+        Link(destination: WidgetBrand.recordURL) {
+            Group {
+                switch family {
+                case .accessoryCircular:
+                    accessoryContent
+                default:
+                    standardContent
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .containerBackground(for: .widget) {
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.10, green: 0.42, blue: 0.42),
-                        Color(red: 0.14, green: 0.50, blue: 0.48)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            }
-            .foregroundStyle(.white)
         }
-        .buttonStyle(.plain)
+        .containerBackground(for: .widget) {
+            WidgetBrand.background
+        }
+    }
+
+    private var standardContent: some View {
+        VStack(spacing: 10) {
+            Image("LaunchLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 52, height: 52)
+
+            Text("Record")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(WidgetBrand.textPrimary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+    }
+
+    private var accessoryContent: some View {
+        ZStack {
+            Image("LaunchLogo")
+                .resizable()
+                .scaledToFit()
+                .padding(6)
+        }
     }
 }
 
@@ -58,6 +78,7 @@ struct PaperorgNotesWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: QuickRecordProvider()) { entry in
             QuickRecordWidgetView(entry: entry)
+                .widgetURL(WidgetBrand.recordURL)
         }
         .configurationDisplayName("Quick Record")
         .description("Start a voice note instantly.")

@@ -67,7 +67,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.notes
         MARKETING_VERSION: "1.0.0"
-        CURRENT_PROJECT_VERSION: "14"
+        CURRENT_PROJECT_VERSION: "15"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -82,6 +82,8 @@ targets:
     platform: iOS
     sources:
       - path: PaperorgNotesWidget
+    resources:
+      - path: PaperorgNotes/Resources/Assets.xcassets/LaunchLogo.imageset
     entitlements:
       path: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
       properties:
@@ -97,7 +99,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.notes.widget
         MARKETING_VERSION: "1.0.0"
-        CURRENT_PROJECT_VERSION: "14"
+        CURRENT_PROJECT_VERSION: "15"
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_ENTITLEMENTS: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
         SKIP_INSTALL: YES
