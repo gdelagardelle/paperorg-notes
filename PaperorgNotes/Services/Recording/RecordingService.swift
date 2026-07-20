@@ -18,20 +18,29 @@ final class RecordingService: NSObject {
     private(set) var qualityWarning: String?
     private(set) var currentNoteId: UUID?
     private(set) var sessionId: UUID = UUID()
-    
+
     private var recorder: AVAudioRecorder?
     private var timer: Timer?
     private var tempURL: URL?
     private let storage: StorageService
     private var lowLevelStart: Date?
     private var isStoppingIntentionally = false
-    
+    private var recorderHasFinished = false
+    private var stopFinishContinuation: CheckedContinuation<Void, Never>?
+
+    private static let recorderSettings: [String: Any] = [
+        AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
+        AVSampleRateKey: 44100,
+        AVNumberOfChannelsKey: 1,
+        AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+    ]
+
     init(storage: StorageService) {
         self.storage = storage
         super.init()
         observeAppLifecycle()
     }
-    
+
     func requestPermission() async -> Bool {
         await withCheckedContinuation { continuation in
             AVAudioApplication.requestRecordPermission { granted in
@@ -39,77 +48,102 @@ final class RecordingService: NSObject {
             }
         }
     }
-    
+
     func start(noteId: UUID) async throws {
         guard state == .idle else { throw RecordingError.alreadyRecording }
-        
+
         let granted = await requestPermission()
         guard granted else { throw RecordingError.permissionDenied }
-        
+
         try configureAudioSession()
-        
+
         sessionId = UUID()
         currentNoteId = noteId
+        recorderHasFinished = false
         tempURL = storage.recordingsDirectory.appendingPathComponent("temp-\(sessionId.uuidString).m4a")
-        
-        let settings: [String: Any] = [
-            AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 44100,
-            AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-        ]
-        
+
         guard let url = tempURL else { throw RecordingError.setupFailed("Invalid temp URL") }
-        
+
         do {
-            recorder = try AVAudioRecorder(url: url, settings: settings)
+            recorder = try AVAudioRecorder(url: url, settings: Self.recorderSettings)
             recorder?.delegate = self
             recorder?.isMeteringEnabled = true
-            recorder?.record()
+            guard recorder?.prepareToRecord() == true else {
+                throw RecordingError.setupFailed("Could not prepare the recorder.")
+            }
+            guard recorder?.record() == true else {
+                throw RecordingError.setupFailed("Could not start recording.")
+            }
             state = .recording
             duration = 0
+            qualityWarning = nil
             startTimer()
             persistCheckpoint()
             persistActiveSession()
         } catch {
+            recorder = nil
+            tempURL = nil
+            currentNoteId = nil
             throw RecordingError.setupFailed(error.localizedDescription)
         }
     }
-    
+
     func pause() {
-        guard state == .recording else { return }
+        guard state == .recording, !recorderHasFinished else { return }
         recorder?.pause()
         state = .paused
         timer?.invalidate()
+        syncDurationFromRecorder()
         persistCheckpoint()
     }
-    
+
     func resume() {
         guard state == .paused else { return }
-        recorder?.record()
+        guard !recorderHasFinished else {
+            qualityWarning = "Recording already ended. Tap Stop to save."
+            return
+        }
+
+        do {
+            try configureAudioSession()
+        } catch {
+            qualityWarning = "Could not restore the audio session. Tap Stop to save."
+            return
+        }
+
+        guard recorder?.record() == true else {
+            recorderHasFinished = true
+            qualityWarning = "Could not resume recording. Tap Stop to save what was captured."
+            return
+        }
+
         state = .recording
+        qualityWarning = nil
         startTimer()
     }
-    
+
     func stop() async throws -> (noteId: UUID, audioURL: URL, duration: TimeInterval) {
         guard let noteId = currentNoteId, let temp = tempURL else {
             throw RecordingError.notRecording
         }
 
         isStoppingIntentionally = true
-        defer { isStoppingIntentionally = false }
-
-        recorder?.stop()
         timer?.invalidate()
         timer = nil
 
-        // Delegate callbacks are scheduled async — keep the intentional flag set until they run.
-        await Task.yield()
-        await Task.yield()
-
-        if let recorderTime = recorder?.currentTime, recorderTime > 0 {
-            duration = max(duration, recorderTime)
+        if recorder?.isRecording == true {
+            await withCheckedContinuation { continuation in
+                stopFinishContinuation = continuation
+                recorder?.stop()
+            }
+        } else {
+            recorder?.stop()
         }
+
+        isStoppingIntentionally = false
+        stopFinishContinuation = nil
+
+        syncDurationFromRecorder()
 
         let finalURL = try storage.finalizeRecording(from: temp, noteId: noteId)
         storage.deleteCheckpoint(sessionId: sessionId)
@@ -124,25 +158,24 @@ final class RecordingService: NSObject {
 
         return (noteId, finalURL, finalDuration)
     }
-    
+
     func cancel() {
         isStoppingIntentionally = true
-        defer { isStoppingIntentionally = false }
         recorder?.stop()
         timer?.invalidate()
         if let temp = tempURL { try? FileManager.default.removeItem(at: temp) }
         storage.deleteCheckpoint(sessionId: sessionId)
         clearActiveSession()
+        isStoppingIntentionally = false
+        stopFinishContinuation = nil
         resetState()
     }
 
     /// Finalizes recordings left behind by an interrupted app session.
-    /// Callers can use the returned note IDs to reconcile the corresponding SwiftData notes.
     func recoverInterruptedRecordings() -> [RecoveredRecording] {
         storage.loadPendingCheckpoints().compactMap { recover(checkpoint: $0) }
     }
 
-    /// Attempts to locate or finalize audio for a specific note (checkpoint temp file or saved m4a).
     func recoverRecording(for noteId: UUID) -> RecoveredRecording? {
         if let existing = existingRecording(for: noteId) {
             return existing
@@ -174,7 +207,7 @@ final class RecordingService: NSObject {
             let audioURL = try storage.finalizeRecording(from: temporaryURL, noteId: checkpoint.noteId)
             storage.deleteCheckpoint(sessionId: checkpoint.sessionId)
             let measuredDuration = AudioTrimService.playableDuration(of: audioURL)
-            let duration = max(checkpoint.duration, measuredDuration)
+            let duration = measuredDuration > 0 ? measuredDuration : checkpoint.duration
             return RecoveredRecording(
                 noteId: checkpoint.noteId,
                 audioURL: audioURL,
@@ -184,7 +217,7 @@ final class RecordingService: NSObject {
             return nil
         }
     }
-    
+
     private func resetState() {
         state = .idle
         duration = 0
@@ -194,14 +227,19 @@ final class RecordingService: NSObject {
         recorder = nil
         tempURL = nil
         lowLevelStart = nil
+        recorderHasFinished = false
     }
-    
+
     private func configureAudioSession() throws {
         let session = AVAudioSession.sharedInstance()
-        try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP])
-        try session.setActive(true)
+        try session.setCategory(
+            .playAndRecord,
+            mode: .spokenAudio,
+            options: [.defaultToSpeaker, .allowBluetoothHFP, .duckOthers]
+        )
+        try session.setActive(true, options: .notifyOthersOnDeactivation)
     }
-    
+
     private func startTimer() {
         timer?.invalidate()
         let newTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
@@ -212,23 +250,23 @@ final class RecordingService: NSObject {
         RunLoop.main.add(newTimer, forMode: .common)
         timer = newTimer
     }
-    
+
     private func tick() {
-        syncDurationFromSources()
+        syncDurationFromRecorder()
         recorder?.updateMeters()
         let level = recorder?.averagePower(forChannel: 0) ?? -160
         audioLevel = normalizedLevel(level)
         evaluateQuality(level: level)
-        
+
         if Int(duration * 10) % 50 == 0 {
             persistCheckpoint()
         }
     }
-    
+
     private func normalizedLevel(_ db: Float) -> Float {
         max(0, min(1, (db + 60) / 60))
     }
-    
+
     private func evaluateQuality(level: Float) {
         if level < -50 {
             if lowLevelStart == nil { lowLevelStart = .now }
@@ -237,13 +275,15 @@ final class RecordingService: NSObject {
             }
         } else {
             lowLevelStart = nil
-            qualityWarning = nil
+            if !recorderHasFinished {
+                qualityWarning = nil
+            }
         }
     }
-    
+
     private func persistCheckpoint() {
         guard let noteId = currentNoteId, let temp = tempURL else { return }
-        syncDurationFromSources()
+        syncDurationFromRecorder()
         try? storage.saveCheckpoint(
             sessionId: sessionId,
             noteId: noteId,
@@ -253,22 +293,10 @@ final class RecordingService: NSObject {
         persistActiveSession()
     }
 
-    private func syncDurationFromSources() {
-        if let recorderTime = recorder?.currentTime, recorderTime > duration {
+    /// Use the recorder clock only — never probe partial temp AAC files while a session is open.
+    private func syncDurationFromRecorder() {
+        if let recorderTime = recorder?.currentTime, recorderTime.isFinite, recorderTime > duration {
             duration = recorderTime
-        }
-        // Partial AAC files often report bogus duration metadata while still recording.
-        if state != .recording {
-            syncDurationFromTempFile()
-        }
-    }
-
-    /// UI timers pause when the device sleeps; read the growing m4a on disk for the real length.
-    private func syncDurationFromTempFile() {
-        guard let temp = tempURL, FileManager.default.fileExists(atPath: temp.path) else { return }
-        let measured = AudioTrimService.playableDuration(of: temp)
-        if measured > duration {
-            duration = measured
         }
     }
 
@@ -323,27 +351,46 @@ final class RecordingService: NSObject {
 
     private func handleAppBackgrounding() {
         guard state != .idle else { return }
-        syncDurationFromSources()
+        syncDurationFromRecorder()
         persistCheckpoint()
     }
 
     private func handleAppForegrounding() {
         guard state != .idle else { return }
-        syncDurationFromSources()
-        if state == .recording {
-            if recorder?.isRecording == false {
-                state = .paused
-                timer?.invalidate()
-                qualityWarning = "Recording was paused while the phone was locked. Tap Resume or Stop."
-            } else if timer == nil {
+        syncDurationFromRecorder()
+
+        guard state == .recording, !recorderHasFinished else {
+            if state == .recording, timer == nil {
                 startTimer()
             }
+            return
         }
+
+        if recorder?.isRecording == true {
+            if timer == nil { startTimer() }
+            return
+        }
+
+        do {
+            try configureAudioSession()
+            if recorder?.record() == true {
+                if timer == nil { startTimer() }
+                qualityWarning = nil
+                return
+            }
+        } catch {
+            // Fall through to paused state below.
+        }
+
+        state = .paused
+        timer?.invalidate()
+        qualityWarning = "Recording was interrupted. Tap Stop to save, or Resume to continue."
+        persistCheckpoint()
     }
 
     private func handleAppTermination() {
         guard state != .idle else { return }
-        syncDurationFromSources()
+        syncDurationFromRecorder()
         persistCheckpoint()
     }
 
@@ -356,24 +403,22 @@ final class RecordingService: NSObject {
 
         switch type {
         case .began:
-            syncDurationFromSources()
+            syncDurationFromRecorder()
             persistCheckpoint()
-            if state == .recording {
+            if state == .recording, !recorderHasFinished {
                 recorder?.pause()
                 state = .paused
                 timer?.invalidate()
                 qualityWarning = "Recording paused (phone call or system interruption). Tap Resume when ready."
             }
         case .ended:
-            guard state == .paused,
+            guard state == .paused, !recorderHasFinished,
                   let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
                 return
             }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
-                try? configureAudioSession()
                 resume()
-                qualityWarning = nil
             }
         @unknown default:
             break
@@ -416,17 +461,27 @@ extension RecordingService: AVAudioRecorderDelegate {
 
     nonisolated func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
         Task { @MainActor in
-            guard !isStoppingIntentionally else { return }
+            if isStoppingIntentionally {
+                syncDurationFromRecorder()
+                stopFinishContinuation?.resume()
+                stopFinishContinuation = nil
+                return
+            }
+
             guard state == .recording || state == .paused else { return }
-            syncDurationFromSources()
+
+            recorderHasFinished = true
+            syncDurationFromRecorder()
             persistCheckpoint()
+
             if state == .recording {
                 state = .paused
                 timer?.invalidate()
             }
+
             qualityWarning = flag
-                ? "Recording stopped unexpectedly. Tap Stop to save or Resume to continue."
-                : "Recording failed — a checkpoint was saved. Tap Stop to finalize what we have."
+                ? "Recording stopped unexpectedly. Tap Stop to save."
+                : "Recording failed — tap Stop to save what was captured."
         }
     }
 }

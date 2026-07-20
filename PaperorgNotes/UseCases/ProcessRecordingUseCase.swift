@@ -76,9 +76,13 @@ final class ProcessRecordingUseCase {
                 )
             }
 
+            let transcriptionLanguage = note.appLanguage.isAutoDetect
+                ? settingsService.defaultLanguage
+                : note.appLanguage
+
             let request = TranscriptionRequest(
                 audioURL: audioURL,
-                language: note.appLanguage,
+                language: transcriptionLanguage,
                 enableDiarization: false,
                 prompt: settingsService.transcriptionPrompt(),
                 fallbackLanguage: settingsService.defaultLanguage

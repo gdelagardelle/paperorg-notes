@@ -563,8 +563,7 @@ struct RecordHeroButton: View {
     private var iconName: String {
         switch state {
         case .idle: return "mic.fill"
-        case .recording: return "waveform"
-        case .paused: return "play.fill"
+        case .recording, .paused: return "stop.fill"
         }
     }
 
@@ -575,8 +574,7 @@ struct RecordHeroButton: View {
     private var accessibilityLabel: String {
         switch state {
         case .idle: return "Start recording"
-        case .recording: return "Stop recording"
-        case .paused: return "Resume recording"
+        case .recording, .paused: return "Stop recording"
         }
     }
 }

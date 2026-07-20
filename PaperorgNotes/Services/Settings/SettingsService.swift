@@ -279,7 +279,8 @@ final class SettingsService {
         
         let storedLanguage = AppLanguage(rawValue: defaults.string(forKey: Keys.defaultLanguage) ?? "") ?? .luxembourgish
         self.defaultLanguage = storedLanguage.isAutoDetect ? .luxembourgish : storedLanguage
-        self.autoDetectLanguage = defaults.object(forKey: Keys.autoDetectLanguage) as? Bool ?? true
+        self.autoDetectLanguage = false
+        defaults.set(false, forKey: Keys.autoDetectLanguage)
         self.defaultOutputType = OutputType(rawValue: defaults.string(forKey: Keys.defaultOutputType) ?? "") ?? .meetingNotes
         self.summaryLength = SummaryLength(rawValue: defaults.string(forKey: Keys.summaryLength) ?? "") ?? .detailed
         self.keepAudioFiles = defaults.object(forKey: Keys.keepAudioFiles) as? Bool ?? true
@@ -441,7 +442,7 @@ final class SettingsService {
         keychain.deleteAll()
         
         defaultLanguage = .luxembourgish
-        autoDetectLanguage = true
+        autoDetectLanguage = false
         defaultOutputType = .meetingNotes
         summaryLength = .detailed
         keepAudioFiles = true

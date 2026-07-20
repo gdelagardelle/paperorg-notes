@@ -22,9 +22,7 @@ struct RecordView: View {
     }
 
     private var recordLanguageOptions: [AppLanguage] {
-        environment.settingsService.autoDetectLanguage
-            ? AppLanguage.recordPickerLanguages
-            : AppLanguage.spokenLanguages
+        AppLanguage.spokenLanguages
     }
     
     var body: some View {
@@ -67,11 +65,7 @@ struct RecordView: View {
             .background(AppScreenBackground())
             .navigationBarHidden(true)
             .onAppear {
-                if environment.settingsService.autoDetectLanguage {
-                    selectedLanguage = .autoDetect
-                } else {
-                    selectedLanguage = environment.settingsService.defaultLanguage
-                }
+                selectedLanguage = environment.settingsService.defaultLanguage
                 selectedOutputType = environment.settingsService.defaultOutputType
                 environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
                 relinkActiveNoteIfRecording()
@@ -272,7 +266,7 @@ struct RecordView: View {
         switch environment.recordingService.state {
         case .idle: return "Tap to start recording"
         case .recording: return "Listening… tap to finish"
-        case .paused: return "Paused — tap to resume, or use Stop below"
+        case .paused: return "Paused — tap Stop to finish, or Resume to continue"
         }
     }
     
@@ -280,10 +274,8 @@ struct RecordView: View {
         switch environment.recordingService.state {
         case .idle:
             startRecording()
-        case .recording:
+        case .recording, .paused:
             stopRecording()
-        case .paused:
-            environment.recordingService.resume()
         }
     }
     
