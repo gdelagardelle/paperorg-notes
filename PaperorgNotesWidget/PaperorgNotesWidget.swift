@@ -52,7 +52,7 @@ struct QuickRecordWidgetView: View {
             Image("LaunchLogo")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 52, height: 52)
+                .frame(width: 64, height: 64)
 
             Text("Record")
                 .font(.subheadline.weight(.semibold))
