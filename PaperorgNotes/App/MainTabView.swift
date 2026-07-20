@@ -47,7 +47,14 @@ struct RootView: View {
     }
 
     private func recoverInterruptedProcessing() {
-        let recoveredRecordings = environment.recordingService.recoverInterruptedRecordings()
+        // Never finalize checkpoints while a live recording session is open.
+        // Widget launches fire scenePhase .active right after auto-start, which used to
+        // move the in-progress temp file and stop the recorder after ~1 second.
+        guard environment.recordingService.state == .idle else { return }
+
+        let recoveredRecordings = environment.recordingService.recoverInterruptedRecordings(
+            excludingSessionId: environment.recordingService.sessionId
+        )
         let recoveredByNoteID = Dictionary(
             uniqueKeysWithValues: recoveredRecordings.map { ($0.noteId, $0) }
         )
@@ -60,7 +67,9 @@ struct RootView: View {
 
             let needsRecovery = note.noteStatus == .draft
                 && (note.durationSeconds <= 0 || !audioExists(for: note.id))
-            if needsRecovery, let recovered = environment.recordingService.recoverRecording(for: note.id) {
+            if needsRecovery,
+               note.id != environment.recordingService.currentNoteId,
+               let recovered = environment.recordingService.recoverRecording(for: note.id) {
                 applyRecovery(recovered, to: note)
             }
         }

@@ -172,11 +172,19 @@ final class RecordingService: NSObject {
     }
 
     /// Finalizes recordings left behind by an interrupted app session.
-    func recoverInterruptedRecordings() -> [RecoveredRecording] {
-        storage.loadPendingCheckpoints().compactMap { recover(checkpoint: $0) }
+    func recoverInterruptedRecordings(excludingSessionId activeSessionId: UUID? = nil) -> [RecoveredRecording] {
+        storage.loadPendingCheckpoints().compactMap { checkpoint in
+            if checkpoint.sessionId == activeSessionId { return nil }
+            if state != .idle,
+               checkpoint.sessionId == sessionId || checkpoint.noteId == currentNoteId {
+                return nil
+            }
+            return recover(checkpoint: checkpoint)
+        }
     }
 
     func recoverRecording(for noteId: UUID) -> RecoveredRecording? {
+        if state != .idle, noteId == currentNoteId { return nil }
         if let existing = existingRecording(for: noteId) {
             return existing
         }

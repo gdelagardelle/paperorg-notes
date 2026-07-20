@@ -1,5 +1,6 @@
-import WidgetKit
+import AppIntents
 import SwiftUI
+import WidgetKit
 
 struct QuickRecordEntry: TimelineEntry {
     let date: Date
@@ -9,11 +10,11 @@ struct QuickRecordProvider: TimelineProvider {
     func placeholder(in context: Context) -> QuickRecordEntry {
         QuickRecordEntry(date: .now)
     }
-    
+
     func getSnapshot(in context: Context, completion: @escaping (QuickRecordEntry) -> Void) {
         completion(QuickRecordEntry(date: .now))
     }
-    
+
     func getTimeline(in context: Context, completion: @escaping (Timeline<QuickRecordEntry>) -> Void) {
         let entry = QuickRecordEntry(date: .now)
         completion(Timeline(entries: [entry], policy: .never))
@@ -22,9 +23,9 @@ struct QuickRecordProvider: TimelineProvider {
 
 struct QuickRecordWidgetView: View {
     var entry: QuickRecordEntry
-    
+
     var body: some View {
-        Link(destination: URL(string: "paperorgnotes://record")!) {
+        Button(intent: QuickRecordIntent()) {
             VStack(spacing: 10) {
                 Image(systemName: "mic.fill")
                     .font(.system(size: 28, weight: .semibold))
@@ -47,12 +48,13 @@ struct QuickRecordWidgetView: View {
             }
             .foregroundStyle(.white)
         }
+        .buttonStyle(.plain)
     }
 }
 
 struct PaperorgNotesWidget: Widget {
     let kind = "QuickRecordWidget"
-    
+
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: QuickRecordProvider()) { entry in
             QuickRecordWidgetView(entry: entry)

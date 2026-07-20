@@ -15,6 +15,7 @@ struct StartRecordingIntent: AppIntent {
     func perform() async throws -> some IntentResult {
         let defaults = UserDefaults(suiteName: AppConstants.appGroupID) ?? .standard
         defaults.set(true, forKey: AppConstants.UserDefaultsKeys.pendingQuickRecord)
+        defaults.set(Date().timeIntervalSince1970, forKey: AppConstants.UserDefaultsKeys.quickRecordRequestedAt)
         if let language {
             defaults.set(language.id, forKey: AppConstants.UserDefaultsKeys.quickRecordLanguage)
         } else {

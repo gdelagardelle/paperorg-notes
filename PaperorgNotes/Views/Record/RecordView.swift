@@ -4,6 +4,7 @@ import SwiftData
 struct RecordView: View {
     @Environment(AppEnvironment.self) private var environment
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \Note.createdAt, order: .reverse) private var recentNotes: [Note]
     
     @State private var selectedLanguage: AppLanguage = .luxembourgish
@@ -16,6 +17,7 @@ struct RecordView: View {
     @State private var showQuickRecordQueued = false
     @State private var autoEmailError: String?
     @State private var showPaywall = false
+    @State private var quickRecordTask: Task<Void, Never>?
     
     private var isRecordingSession: Bool {
         environment.recordingService.state == .recording || environment.recordingService.state == .paused
@@ -69,14 +71,22 @@ struct RecordView: View {
                 selectedOutputType = environment.settingsService.defaultOutputType
                 environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
                 relinkActiveNoteIfRecording()
-                handleQuickRecordRequestIfNeeded()
+                scheduleQuickRecordIfNeeded()
+            }
+            .onDisappear {
+                quickRecordTask?.cancel()
             }
             .onChange(of: environment.recordingService.state) { _, newState in
                 pulseAnimation = newState == .recording
             }
             .onChange(of: environment.deepLinkHandler.pendingQuickRecord) { _, pending in
                 if pending {
-                    handleQuickRecordRequestIfNeeded()
+                    scheduleQuickRecordIfNeeded()
+                }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    scheduleQuickRecordIfNeeded()
                 }
             }
             .sheet(isPresented: $showProcessing) {
@@ -292,32 +302,36 @@ struct RecordView: View {
             return
         }
 
-        let noteId = UUID()
-        
         Task {
             do {
-                try await environment.recordingService.start(noteId: noteId)
-                let note = Note(
-                    id: noteId,
-                    audioFileName: "\(noteId.uuidString).m4a",
-                    language: selectedLanguage,
-                    outputType: selectedOutputType,
-                    status: .draft
-                )
-                modelContext.insert(note)
-                activeNote = note
-                do {
-                    try modelContext.save()
-                } catch {
-                    environment.recordingService.cancel()
-                    modelContext.delete(note)
-                    throw RecordingError.saveFailed("Could not create the recording. Please try again.")
-                }
-                pulseAnimation = true
+                try await performStartRecording()
             } catch {
                 processingError = error.localizedDescription
             }
         }
+    }
+
+    private func performStartRecording() async throws {
+        let noteId = UUID()
+
+        try await environment.recordingService.start(noteId: noteId)
+        let note = Note(
+            id: noteId,
+            audioFileName: "\(noteId.uuidString).m4a",
+            language: selectedLanguage,
+            outputType: selectedOutputType,
+            status: .draft
+        )
+        modelContext.insert(note)
+        activeNote = note
+        do {
+            try modelContext.save()
+        } catch {
+            environment.recordingService.cancel()
+            modelContext.delete(note)
+            throw RecordingError.saveFailed("Could not create the recording. Please try again.")
+        }
+        pulseAnimation = true
     }
     
     private func togglePause() {
@@ -387,6 +401,10 @@ struct RecordView: View {
         }
     }
 
+    private func startQueuedQuickRecordIfPossible() {
+        scheduleQuickRecordIfNeeded()
+    }
+
     private func noteForRecordingResult(_ noteId: UUID) throws -> Note {
         if let activeNote, activeNote.id == noteId {
             return activeNote
@@ -420,28 +438,62 @@ struct RecordView: View {
         activeNote = try? modelContext.fetch(descriptor).first
     }
 
-    private func handleQuickRecordRequestIfNeeded() {
+    private func scheduleQuickRecordIfNeeded() {
+        guard environment.deepLinkHandler.pendingQuickRecord else { return }
+        guard scenePhase == .active else { return }
+
+        quickRecordTask?.cancel()
+        quickRecordTask = Task {
+            let delay = environment.deepLinkHandler.quickRecordLaunchDelay()
+            if delay > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            }
+            guard !Task.isCancelled else { return }
+            await handleQuickRecordRequestIfNeeded()
+        }
+    }
+
+    @MainActor
+    private func handleQuickRecordRequestIfNeeded() async {
         guard environment.deepLinkHandler.pendingQuickRecord else { return }
         guard environment.recordingService.state == .idle, !showProcessing else {
             showQuickRecordQueued = true
             return
         }
-        
+
         let prefs = environment.deepLinkHandler.quickRecordPreferences()
-        environment.deepLinkHandler.clearQuickRecordFlag()
-        if let language = prefs.language {
+        if let language = prefs.language, !language.isAutoDetect {
             selectedLanguage = language
         }
         if let outputType = prefs.outputType {
             selectedOutputType = outputType
         }
-        
-        startRecording()
+
+        await startRecordingFromQuickRecord()
     }
 
-    private func startQueuedQuickRecordIfPossible() {
-        guard environment.deepLinkHandler.pendingQuickRecord else { return }
-        handleQuickRecordRequestIfNeeded()
+    private func startRecordingFromQuickRecord() async {
+        if environment.settingsService.selectedPlan == .pro,
+           !environment.subscriptionService.isProActive {
+            environment.deepLinkHandler.clearQuickRecordFlag()
+            showPaywall = true
+            return
+        }
+
+        if !environment.settingsService.usesProBackend,
+           environment.settingsService.openAIAPIKey?.isEmpty != false {
+            environment.deepLinkHandler.clearQuickRecordFlag()
+            processingError = "Add your OpenAI API key in Settings → Transcription, or upgrade to Paperorg Pro."
+            return
+        }
+
+        do {
+            try await performStartRecording()
+            environment.deepLinkHandler.clearQuickRecordFlag()
+        } catch {
+            environment.deepLinkHandler.clearQuickRecordFlag()
+            processingError = error.localizedDescription
+        }
     }
     
     private func preparePostRecordingEmail(for note: Note) {

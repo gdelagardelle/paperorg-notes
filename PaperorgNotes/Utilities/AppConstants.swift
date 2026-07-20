@@ -8,6 +8,7 @@ enum AppConstants {
         static let quickRecordLanguage = "quickRecordLanguage"
         static let quickRecordOutputType = "quickRecordOutputType"
         static let pendingQuickRecord = "pendingQuickRecord"
+        static let quickRecordRequestedAt = "quickRecordRequestedAt"
     }
     
     static var recordDeepLink: URL {
