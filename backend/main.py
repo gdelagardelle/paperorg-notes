@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
@@ -480,7 +481,26 @@ risks, nextSteps, peopleMentioned, datesMentioned, importantNumbers, followUpEma
 
     payload = response.json()
     content = payload["choices"][0]["message"]["content"]
-    return json.loads(content)
+    try:
+        return parse_summary_json(content)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=502, detail=f"Summary JSON parse failed: {exc}") from exc
+
+
+def parse_summary_json(content: str) -> dict[str, Any]:
+    text = content.strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text)
+        text = text.strip()
+    parsed = json.loads(text)
+    if not isinstance(parsed, dict):
+        raise json.JSONDecodeError("Expected JSON object", text, 0)
+    short = parsed.get("shortSummary") or parsed.get("short_summary") or parsed.get("summary")
+    detailed = parsed.get("detailedSummary") or parsed.get("detailed_summary")
+    if not (short or detailed):
+        raise json.JSONDecodeError("Missing summary fields", text, 0)
+    return parsed
 
 
 def token_user_key(token: dict[str, Any]) -> str:

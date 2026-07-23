@@ -101,6 +101,35 @@ final class QualityPipelineTests: XCTestCase {
     }
 }
 
+final class SummaryJSONParserTests: XCTestCase {
+    func testDecodesCamelCaseSummary() throws {
+        let json = """
+        {"title":"Team sync","shortSummary":"We discussed launch timing.","detailedSummary":"Detailed notes here.","keyIdeas":[],"decisions":[],"actionItems":[]}
+        """.data(using: .utf8)!
+        let output = try SummaryJSONParser.decode(json).normalized()
+        XCTAssertEqual(output.shortSummary, "We discussed launch timing.")
+    }
+
+    func testDecodesSnakeCaseSummary() throws {
+        let json = """
+        {"title":"Memo","short_summary":"Kuerz Zesummenfassung.","detailed_summary":"Méi laang Zesummenfassung.","key_ideas":["Idee 1"]}
+        """.data(using: .utf8)!
+        let output = try SummaryJSONParser.decode(json).normalized()
+        XCTAssertEqual(output.shortSummary, "Kuerz Zesummenfassung.")
+        XCTAssertEqual(output.keyIdeas, ["Idee 1"])
+    }
+
+    func testDecodesMarkdownWrappedSummary() throws {
+        let json = """
+        ```json
+        {"shortSummary":"Wrapped summary.","detailedSummary":"Wrapped details."}
+        ```
+        """.data(using: .utf8)!
+        let output = try SummaryJSONParser.decode(json).normalized()
+        XCTAssertEqual(output.shortSummary, "Wrapped summary.")
+    }
+}
+
 final class StructuredOutputTests: XCTestCase {
     func testStructuredOutputEmpty() {
         let output = StructuredOutput.empty(for: .meetingNotes)

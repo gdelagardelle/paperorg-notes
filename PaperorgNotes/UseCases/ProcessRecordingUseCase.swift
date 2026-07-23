@@ -127,6 +127,9 @@ final class ProcessRecordingUseCase {
                 onStageChange: advance
             )
             debugEvents.append(summary.usedFallback ? "Summary: fallback" : "Summary: generated")
+            if let output = summary.output {
+                debugEvents.append("Summary short chars: \(output.shortSummary.count)")
+            }
             replaceResults(on: note, transcript: finalTranscript, summary: summary, language: resolvedLanguage)
 
             if settingsService.deleteAudioAfterTranscription || !settingsService.keepAudioFiles {

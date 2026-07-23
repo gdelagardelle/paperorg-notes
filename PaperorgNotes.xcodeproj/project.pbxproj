@@ -10,6 +10,7 @@
 		026EFC7E07DD0201D8FBD951 /* NoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E171CA6AC03EC4611DD5EB2 /* NoteDetailView.swift */; };
 		02ECA3A767DDA35414C2E876 /* TranscriptionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC82CA43248D13335C7DBE96 /* TranscriptionProvider.swift */; };
 		04CFA2851125FEF94203EB4F /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B3C01618A0601C86CA1CF7 /* Note.swift */; };
+		096775B1BC1B9864EE899B23 /* SummaryJSONParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1720A754F02F5E075400BFF0 /* SummaryJSONParser.swift */; };
 		09B3CC195AEDAE6321FAAAC5 /* AudioFileReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82977FFEA0CD98DC14761648 /* AudioFileReader.swift */; };
 		10D073E462BA623872D954B5 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015CA9C9BF4BA1A913E6E87E /* ExportService.swift */; };
 		129CE3D23578AA4B51A0B063 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47612546C77D2EBA71ED4283 /* AppEnvironment.swift */; };
@@ -120,6 +121,7 @@
 		10F451B9CE45F448ED5357EA /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 		111EBE0439A2EDDB89A24C20 /* SummaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryService.swift; sourceTree = "<group>"; };
 		15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionPlan.swift; sourceTree = "<group>"; };
+		1720A754F02F5E075400BFF0 /* SummaryJSONParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryJSONParser.swift; sourceTree = "<group>"; };
 		182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionProvider.swift; sourceTree = "<group>"; };
 		1E96C7CBD0EF7A5A63DF8FC5 /* QuickRecordSharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecordSharedStore.swift; sourceTree = "<group>"; };
 		1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteNoteUseCase.swift; sourceTree = "<group>"; };
@@ -271,6 +273,7 @@
 				565A7124A59F839DA2119477 /* L10n.swift */,
 				EB19E21168DDA27DF38BDFAC /* OpenAITranscriptionParser.swift */,
 				1E96C7CBD0EF7A5A63DF8FC5 /* QuickRecordSharedStore.swift */,
+				1720A754F02F5E075400BFF0 /* SummaryJSONParser.swift */,
 				FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */,
 			);
 			path = Utilities;
@@ -709,6 +712,7 @@
 				5AF12EEBB8AC0DC80C04A015 /* StoreRecoveryView.swift in Sources */,
 				AA416AB7CAD44329FD134834 /* SubscriptionPlan.swift in Sources */,
 				D85773C5F00AC0F88A50EE83 /* SubscriptionService.swift in Sources */,
+				096775B1BC1B9864EE899B23 /* SummaryJSONParser.swift in Sources */,
 				184523BFC4362034B7A83B56 /* SummaryService.swift in Sources */,
 				3AB2E53851565A8E0772D71F /* Transcript.swift in Sources */,
 				84629E42036542CD62B474F2 /* TranscriptTextFormatter.swift in Sources */,
