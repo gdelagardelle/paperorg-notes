@@ -43,6 +43,7 @@ final class SettingsService {
         static let exportBrandSubtitle = "exportBrandSubtitle"
         static let cachedProUsage = "cachedProUsage"
         static let platformUserID = "platformUserID"
+        static let hasSeenIncludedMinutesUpgradePrompt = "hasSeenIncludedMinutesUpgradePrompt"
     }
     
     var defaultLanguage: AppLanguage {
@@ -208,6 +209,10 @@ final class SettingsService {
         }
     }
 
+    var hasSeenIncludedMinutesUpgradePrompt: Bool {
+        didSet { defaults.set(hasSeenIncludedMinutesUpgradePrompt, forKey: Keys.hasSeenIncludedMinutesUpgradePrompt) }
+    }
+
     var cachedProUsage: ProUsageInfo? {
         get {
             guard let data = defaults.data(forKey: Keys.cachedProUsage) else { return nil }
@@ -227,6 +232,22 @@ final class SettingsService {
             return cachedProUsage?.isPro == true
         }
         return selectedPlan == .pro && cachedProUsage?.isPro == true
+    }
+
+    var usesIncludedBackend: Bool {
+        guard let usage = cachedProUsage else { return false }
+        return !usage.isPro && usage.minutesLimit > 0
+    }
+
+    var usesBackendProcessing: Bool {
+        usesProBackend || usesIncludedBackend
+    }
+
+    func shouldSuggestIncludedMinutesUpgrade(afterCompletedNotes noteCount: Int) -> Bool {
+        guard usesIncludedBackend,
+              !hasSeenIncludedMinutesUpgradePrompt,
+              let usage = cachedProUsage else { return false }
+        return usage.minutesUsed >= 20 || noteCount >= 3
     }
 
     var freeVocabularyLimit: Int { 20 }
@@ -331,6 +352,7 @@ final class SettingsService {
             self.hasCompletedPlanSelection = false
         }
         self.platformUserID = defaults.string(forKey: Keys.platformUserID)
+        self.hasSeenIncludedMinutesUpgradePrompt = defaults.bool(forKey: Keys.hasSeenIncludedMinutesUpgradePrompt)
         self.proBackendBaseURL = defaults.string(forKey: Keys.proBackendBaseURL)
             ?? BackendConfiguration.defaultProBackendURL
         self.platformAPIBaseURL = defaults.string(forKey: Keys.platformAPIBaseURL)
@@ -470,6 +492,7 @@ final class SettingsService {
         selectedPlan = .free
         hasCompletedPlanSelection = false
         cachedProUsage = nil
+        hasSeenIncludedMinutesUpgradePrompt = false
         platformUserID = nil
         usePlatformAuth = BackendConfiguration.usePlatformAuthByDefault
         platformAPIBaseURL = BackendConfiguration.defaultPlatformAPIURL

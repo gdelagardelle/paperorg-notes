@@ -21,7 +21,7 @@ final class SummaryService {
             return .notRequested
         }
 
-        if settings.usesProBackend {
+        if settings.usesBackendProcessing {
             return try await generateViaProBackend(
                 transcript: transcript,
                 outputType: outputType,

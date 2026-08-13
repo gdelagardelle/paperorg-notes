@@ -48,6 +48,22 @@ enum L10n {
         static let renews = String(localized: "pro.usage.renews")
     }
 
+    enum Included {
+        static let title = String(localized: "included.title")
+        static let detail = String(localized: "included.detail")
+        static let signInLabel = String(localized: "included.sign_in_label")
+        static let useOwnKeys = String(localized: "included.use_own_keys")
+        static let upgrade = String(localized: "included.upgrade")
+        static let connecting = String(localized: "included.connecting")
+        static let unavailable = String(localized: "included.unavailable")
+        static let signInFailed = String(localized: "included.sign_in_failed")
+        static let active = String(localized: "included.active")
+
+        static func remaining(_ minutes: Int) -> String {
+            String(localized: "included.remaining \(minutes)")
+        }
+    }
+
     enum Common {
         static let ok = String(localized: "common.ok")
         static let cancel = String(localized: "common.cancel")

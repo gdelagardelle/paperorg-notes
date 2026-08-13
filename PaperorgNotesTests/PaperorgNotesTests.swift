@@ -227,5 +227,56 @@ final class ProUsageInfoDecodingTests: XCTestCase {
         XCTAssertEqual(usage.periodKey, "2026-07")
         XCTAssertNil(usage.proExpiresAt)
     }
+
+    @MainActor
+    func testIncludedMinutesRouteBackendProcessingWithoutPro() {
+        let suiteName = "SettingsServiceIncludedMinutesRoute"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        settings.cachedProUsage = ProUsageInfo(
+            isPro: false,
+            minutesLimit: 30,
+            minutesUsed: 0,
+            minutesRemaining: 30,
+            periodKey: "2026-08",
+            proExpiresAt: nil
+        )
+
+        XCTAssertTrue(settings.usesIncludedBackend)
+        XCTAssertTrue(settings.usesBackendProcessing)
+        XCTAssertFalse(settings.usesProBackend)
+    }
+
+    @MainActor
+    func testIncludedMinutesUpgradePromptThresholds() {
+        let suiteName = "SettingsServiceIncludedMinutesPrompt"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        settings.cachedProUsage = ProUsageInfo(
+            isPro: false,
+            minutesLimit: 30,
+            minutesUsed: 19.9,
+            minutesRemaining: 10.1,
+            periodKey: "2026-08",
+            proExpiresAt: nil
+        )
+
+        XCTAssertFalse(settings.shouldSuggestIncludedMinutesUpgrade(afterCompletedNotes: 2))
+        XCTAssertTrue(settings.shouldSuggestIncludedMinutesUpgrade(afterCompletedNotes: 3))
+        settings.hasSeenIncludedMinutesUpgradePrompt = false
+        settings.cachedProUsage = ProUsageInfo(
+            isPro: false,
+            minutesLimit: 30,
+            minutesUsed: 20,
+            minutesRemaining: 10,
+            periodKey: "2026-08",
+            proExpiresAt: nil
+        )
+        XCTAssertTrue(settings.shouldSuggestIncludedMinutesUpgrade(afterCompletedNotes: 0))
+    }
 }
 #endif

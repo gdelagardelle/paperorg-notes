@@ -18,6 +18,7 @@ struct SettingsView: View {
     @State private var showGDPRExportShare = false
     @State private var gdprExportError: String?
     @State private var showPaywall = false
+    @State private var showIncludedMinutesAccess = false
     @State private var serverEmailStatus: BackendEmailStatus?
     @State private var serverEmailStatusFailed = false
     @State private var testEmailAddress = ""
@@ -39,6 +40,15 @@ struct SettingsView: View {
                             }
                         }
                         SettingsSectionHint(text: L10n.Settings.proHint)
+                    } else if settings.usesIncludedBackend,
+                              let usage = settings.cachedProUsage {
+                        Label(L10n.Included.active, systemImage: "clock.badge.checkmark")
+                            .foregroundStyle(AppTheme.accent)
+                        ProUsageCard(usage: usage) {
+                            Task { await environment.subscriptionService.refreshEntitlements() }
+                        }
+                        SettingsSectionHint(text: L10n.Included.detail)
+                        Button(L10n.Settings.upgradePro) { showPaywall = true }
                     } else if settings.selectedPlan == .pro {
                         Text(L10n.Settings.proSelected)
                             .font(.caption)
@@ -46,6 +56,7 @@ struct SettingsView: View {
                         Button(L10n.Settings.subscribePro) { showPaywall = true }
                     } else {
                         SettingsSectionHint(text: String(localized: "settings.free.hint"))
+                        Button(L10n.Included.title) { showIncludedMinutesAccess = true }
                         Button(L10n.Settings.upgradePro) { showPaywall = true }
                     }
                     HStack(spacing: 8) {
@@ -416,6 +427,11 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
+            }
+            .sheet(isPresented: $showIncludedMinutesAccess) {
+                IncludedMinutesAccessView {
+                    showPaywall = true
+                }
             }
             .sheet(isPresented: $showGDPRExportShare) {
                 if let gdprExportURL {

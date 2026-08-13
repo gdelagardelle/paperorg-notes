@@ -1993,6 +1993,83 @@
         }
       }
     },
+    "included.active" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Inklusive Minuten aktiv" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Included minutes active" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Minutes incluses actives" } }
+      }
+    },
+    "included.connecting" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Konto wird verbunden…" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connecting your account…" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Connexion de votre compte…" } }
+      }
+    },
+    "included.detail" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Melden Sie sich mit Apple an, um Ihre inklusive Transkription und KI-Zusammenfassungen zu nutzen. Ihr monatliches Guthaben ist an Ihr Konto gebunden, nicht an dieses Gerät." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign in with Apple to use your included transcription and AI summaries. Your monthly allowance follows your account, not this device." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Connectez-vous avec Apple pour utiliser vos transcriptions et résumés IA inclus. Votre quota mensuel est lié à votre compte, et non à cet appareil." } }
+      }
+    },
+    "included.remaining %lld" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld Minuten diesen Monat übrig" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld minutes remaining this month" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "%lld minutes restantes ce mois-ci" } }
+      }
+    },
+    "included.sign_in_failed" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Apple-Anmeldung konnte nicht abgeschlossen werden. Versuchen Sie es erneut oder verwenden Sie eigene API-Schlüssel." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apple sign-in could not be completed. Try again or use your own API keys." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "La connexion avec Apple n’a pas pu être terminée. Réessayez ou utilisez vos propres clés API." } }
+      }
+    },
+    "included.sign_in_label" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Mit Apple anmelden, um inklusive Minuten zu nutzen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign in with Apple for included minutes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Se connecter avec Apple pour les minutes incluses" } }
+      }
+    },
+    "included.title" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "30 Minuten pro Monat inklusive" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "30 minutes included each month" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "30 minutes incluses chaque mois" } }
+      }
+    },
+    "included.unavailable" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Inklusive Minuten sind noch nicht verfügbar. Sie können eigene API-Schlüssel verwenden oder Pro ausprobieren." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Included minutes are not available yet. You can use your own API keys or try Pro." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Les minutes incluses ne sont pas encore disponibles. Vous pouvez utiliser vos propres clés API ou essayer Pro." } }
+      }
+    },
+    "included.upgrade" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "In Einstellungen auf Pro upgraden" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Upgrade to Pro in Settings" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Passer à Pro dans Réglages" } }
+      }
+    },
+    "included.use_own_keys" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Stattdessen eigene API-Schlüssel verwenden" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Use your own API keys instead" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Utiliser vos propres clés API" } }
+      }
+    },
+    "plan.free.feature.included_minutes" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "30 Minuten/Monat mit Apple-Anmeldung" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "30 minutes/month with Sign in with Apple" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "30 minutes/mois avec Connexion avec Apple" } }
+      }
+    },
     "plan.free.feature.vocabulary" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2037,6 +2114,97 @@
             "value" : "Gratuit"
           }
         }
+      }
+    },
+    "paywall.debug_try_pro" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Pro kostenlos testen (Simulator)" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try Pro Free (Simulator)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Essayer Pro gratuitement (simulateur)" } }
+      }
+    },
+    "paywall.feature.email" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Automatische E-Mail nach der Transkription" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Automatic email after transcription" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "E-mail automatique après la transcription" } }
+      }
+    },
+    "paywall.feature.languages" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Alle Notizstile und Sprachen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "All note styles and languages" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Tous les styles de notes et toutes les langues" } }
+      }
+    },
+    "paywall.feature.luxembourgish" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Priorisierte Lëtzebuergesch-Transkription" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Luxembourgish priority transcription" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Transcription luxembourgeoise prioritaire" } }
+      }
+    },
+    "paywall.feature.retention" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Erweiterte Audioaufbewahrung" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Extended audio retention" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Conservation audio prolongée" } }
+      }
+    },
+    "paywall.feature.vocabulary" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Unbegrenztes eigenes Vokabular" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unlimited custom vocabulary" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vocabulaire personnalisé illimité" } }
+      }
+    },
+    "paywall.navigation_title" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Upgrade" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Upgrade" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Passer à Pro" } }
+      }
+    },
+    "paywall.refresh" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Status aktualisieren" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Refresh Status" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Actualiser l’état" } }
+      }
+    },
+    "paywall.renewal" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Das Abo verlängert sich monatlich. Jederzeit in den App-Store-Einstellungen kündbar." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscription renews monthly. Cancel anytime in App Store settings." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "L’abonnement se renouvelle chaque mois. Annulez à tout moment dans les réglages de l’App Store." } }
+      }
+    },
+    "paywall.restore" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Käufe wiederherstellen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Restore Purchases" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Restaurer les achats" } }
+      }
+    },
+    "paywall.subscribe %@" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Für %@/Monat abonnieren" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscribe for %@/month" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "S’abonner pour %@/mois" } }
+      }
+    },
+    "paywall.subtitle" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Transkription und KI-Zusammenfassungen inklusive — keine OpenAI- oder ElevenLabs-Einrichtung." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Transcription and AI summaries included — no OpenAI or ElevenLabs setup." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Transcription et résumés IA inclus — aucune configuration OpenAI ou ElevenLabs." } }
+      }
+    },
+    "paywall.title" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Paperorg Pro" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Paperorg Pro" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Paperorg Pro" } }
       }
     },
     "plan.pro.fallback_price" : {

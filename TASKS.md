@@ -6,9 +6,9 @@ Goal: introduce verified Apple identity exchange without granting included
 provider access while the feature flag is off.
 
 Files: `backend/main.py`, `backend/auth_utils.py`, `backend/database.py`,
-`backend/config.py`, `backend/requirements.txt`, `backend/tests/test_free_included_minutes.py`.
+`backend/config.py`, `backend/requirements.txt`, `backend/tests/test_apple_identity.py`.
 
-Acceptance: `pytest backend/tests/test_free_included_minutes.py -q` proves a
+Acceptance: `pytest backend/tests/test_apple_identity.py -q` proves a
 verified Apple subject is stable across devices and flag-off Free access is
 still denied.
 

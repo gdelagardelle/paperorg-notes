@@ -29,3 +29,15 @@ The client-sent duration is no longer used for provider accounting. A minimal
 M4A `mvhd` reader rejects uploads whose duration cannot be determined before a
 provider call. The summary endpoint is additionally rate limited for Free
 accounts. Protected backend tests: 14 passed; gitleaks: no leaks.
+
+## Tasks 3–4 — iOS access, conversion, and localization
+
+Same-model fallback review. The iOS app exposes included usage only after a
+successful Apple account exchange returned a non-Pro allowance. It retains the
+existing BYOK fallback, shows the allowance remaining, and presents Pro once
+after three completed notes or 20 used minutes. The entitlement is generated
+from `project.yml`; new conversion/paywall strings have English, French, and
+German translations. Xcode iPhone 16/iOS 18.5 tests passed: 16 passed, 1
+expected simulator Keychain skip, 0 failed. A physical-device Sign in with
+Apple and production-backend smoke test remains a release requirement; the
+feature flag is deliberately disabled by default.

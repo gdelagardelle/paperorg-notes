@@ -42,6 +42,8 @@ targets:
       properties:
         com.apple.security.application-groups:
           - group.com.paperorg.notes
+        com.apple.developer.applesignin:
+          - Default
     info:
       path: PaperorgNotes/Resources/Info.plist
       properties:

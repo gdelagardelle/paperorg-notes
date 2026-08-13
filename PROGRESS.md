@@ -16,3 +16,11 @@
   flag is enabled; device-only accounts remain excluded. Uploaded M4A metadata
   now determines metered duration; the client duration form field is ignored.
   Protected backend tests: 14 passed; gitleaks: no leaks.
+- 2026-08-13 tasks 3–4: added the Sign in with Apple entitlement, Free
+  account access sheet, backend routing, live remaining-minutes card, and a
+  one-time Pro prompt at three completed notes or 20 consumed minutes. New
+  conversion copy is present in English, French, and German; the generated
+  project includes the new view. iPhone 16/iOS 18.5 Xcode tests: 16 passed,
+  1 intentionally skipped, 0 failed. The protected backend suite remains 14
+  passed. No deploy; `FREE_INCLUDED_MINUTES_ENABLED` remains opt-in until the
+  release checklist is completed.

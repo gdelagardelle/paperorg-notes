@@ -48,6 +48,25 @@ final class ProBackendClient {
         return payload.usageInfo
     }
 
+    @discardableResult
+    func signInWithApple(identityToken: String) async throws -> ProUsageInfo {
+        var request = URLRequest(url: subscriptionBaseURL.appending(path: "/v1/auth/apple"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode([
+            "identity_token": identityToken,
+            "device_id": settings.deviceID
+        ])
+
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+        let payload = try JSONDecoder().decode(RegisterResponse.self, from: data)
+        try keychain.save(payload.accessToken, for: .proAccessToken)
+        settings.cachedProUsage = payload.usageInfo
+        settings.platformUserID = payload.userID
+        return payload.usageInfo
+    }
+
     /// Sanitized server email status: who sends, from which address/host.
     func emailStatus() async throws -> BackendEmailStatus {
         try await ensureRegistered()

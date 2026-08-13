@@ -17,6 +17,7 @@ struct RecordView: View {
     @State private var showQuickRecordQueued = false
     @State private var autoEmailError: String?
     @State private var showPaywall = false
+    @State private var showIncludedMinutesAccess = false
     @State private var quickRecordTask: Task<Void, Never>?
     
     private var isRecordingSession: Bool {
@@ -43,6 +44,16 @@ struct RecordView: View {
                 .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
+
+                if let usage = environment.settingsService.cachedProUsage,
+                   environment.settingsService.usesIncludedBackend {
+                    Section {
+                        includedMinutesCard(usage)
+                    }
+                    .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                }
 
                 Section {
                     recordHeroCard
@@ -119,6 +130,11 @@ struct RecordView: View {
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
+            }
+            .sheet(isPresented: $showIncludedMinutesAccess) {
+                IncludedMinutesAccessView {
+                    showPaywall = true
+                }
             }
         }
     }
@@ -296,9 +312,9 @@ struct RecordView: View {
             return
         }
 
-        if !environment.settingsService.usesProBackend,
+        if !environment.settingsService.usesBackendProcessing,
            environment.settingsService.openAIAPIKey?.isEmpty != false {
-            processingError = "Add your OpenAI API key in Settings → Transcription, or upgrade to Paperorg Pro."
+            showIncludedMinutesAccess = true
             return
         }
 
@@ -376,6 +392,7 @@ struct RecordView: View {
                     
                     try? await Task.sleep(nanoseconds: 800_000_000)
                     showProcessing = false
+                    presentIncludedMinutesUpgradeIfNeeded()
                     startQueuedQuickRecordIfPossible()
                 } catch {
                     processingError = safeProcessingError(error)
@@ -403,6 +420,32 @@ struct RecordView: View {
 
     private func startQueuedQuickRecordIfPossible() {
         scheduleQuickRecordIfNeeded()
+    }
+
+    private func includedMinutesCard(_ usage: ProUsageInfo) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(L10n.Included.active, systemImage: "clock.badge.checkmark")
+                .font(.subheadline.bold())
+                .foregroundStyle(AppTheme.textPrimary)
+            ProgressView(value: usage.usageProgress)
+                .tint(usage.usageProgress > 0.85 ? AppTheme.error : AppTheme.accent)
+            Text(L10n.Included.remaining(Int(usage.minutesRemaining.rounded(.down))))
+                .font(.caption)
+                .foregroundStyle(AppTheme.textSecondary)
+            if usage.minutesUsed >= 20 {
+                Button(L10n.Included.upgrade) { showPaywall = true }
+                    .buttonStyle(SecondaryButtonStyle())
+            }
+        }
+        .surfaceCard(padding: 16, cornerRadius: 16)
+    }
+
+    private func presentIncludedMinutesUpgradeIfNeeded() {
+        guard environment.settingsService.shouldSuggestIncludedMinutesUpgrade(
+            afterCompletedNotes: recentNotes.count
+        ) else { return }
+        environment.settingsService.hasSeenIncludedMinutesUpgradePrompt = true
+        showPaywall = true
     }
 
     private func noteForRecordingResult(_ noteId: UUID) throws -> Note {
@@ -480,10 +523,10 @@ struct RecordView: View {
             return
         }
 
-        if !environment.settingsService.usesProBackend,
+        if !environment.settingsService.usesBackendProcessing,
            environment.settingsService.openAIAPIKey?.isEmpty != false {
             environment.deepLinkHandler.clearQuickRecordFlag()
-            processingError = "Add your OpenAI API key in Settings → Transcription, or upgrade to Paperorg Pro."
+            showIncludedMinutesAccess = true
             return
         }
 

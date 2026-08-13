@@ -20,6 +20,7 @@ struct PlanSelectionView: View {
                     price: L10n.Plan.freePrice,
                     features: [
                         String(localized: "plan.free.feature.record"),
+                        String(localized: "plan.free.feature.included_minutes"),
                         String(localized: "plan.free.feature.openai"),
                         String(localized: "plan.free.feature.elevenlabs"),
                         String(localized: "plan.free.feature.vocabulary")
@@ -130,25 +131,25 @@ struct PaywallView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Paperorg Pro")
+                        Text(String(localized: "paywall.title"))
                             .font(.largeTitle.bold())
-                        Text("Transcription and AI summaries included — no OpenAI or ElevenLabs setup.")
+                        Text(String(localized: "paywall.subtitle"))
                             .foregroundStyle(AppTheme.textSecondary)
                     }
 
                     VStack(alignment: .leading, spacing: 10) {
-                        featureRow("600 minutes per month included")
-                        featureRow("Luxembourgish priority transcription")
-                        featureRow("All note styles and languages")
-                        featureRow("Automatic email after transcription")
-                        featureRow("Unlimited custom vocabulary")
-                        featureRow("Extended audio retention")
+                        featureRow(String(localized: "plan.pro.feature.minutes"))
+                        featureRow(String(localized: "paywall.feature.luxembourgish"))
+                        featureRow(String(localized: "paywall.feature.languages"))
+                        featureRow(String(localized: "paywall.feature.email"))
+                        featureRow(String(localized: "paywall.feature.vocabulary"))
+                        featureRow(String(localized: "paywall.feature.retention"))
                     }
                     .surfaceCard()
 
                     if let usage = environment.subscriptionService.usageInfo, usage.isPro {
                         Label(
-                            "\(Int(usage.minutesRemaining)) minutes remaining this month",
+                            L10n.Included.remaining(Int(usage.minutesRemaining.rounded(.down))),
                             systemImage: "clock.fill"
                         )
                         .font(.subheadline)
@@ -171,7 +172,7 @@ struct PaywallView: View {
                             }
                         }
                     } label: {
-                        Text("Try Pro Free (Simulator)")
+                        Text(String(localized: "paywall.debug_try_pro"))
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(AccentButtonStyle())
@@ -196,31 +197,31 @@ struct PaywallView: View {
                     .buttonStyle(AccentButtonStyle())
                     .disabled(environment.subscriptionService.purchaseInProgress)
 
-                    Button("Restore Purchases") {
+                    Button(String(localized: "paywall.restore")) {
                         Task { await environment.subscriptionService.restorePurchases() }
                     }
                     .buttonStyle(SecondaryButtonStyle())
 
                     if environment.settingsService.usePlatformAuth,
                        !environment.subscriptionService.isProActive {
-                        Button("Refresh Status") {
+                        Button(String(localized: "paywall.refresh")) {
                             Task { await environment.subscriptionService.refreshEntitlements() }
                         }
                         .buttonStyle(SecondaryButtonStyle())
                     }
 
-                    Text("Subscription renews monthly. Cancel anytime in App Store settings.")
+                    Text(String(localized: "paywall.renewal"))
                         .font(.caption)
                         .foregroundStyle(AppTheme.textSecondary)
                 }
                 .padding(24)
             }
             .background(AppScreenBackground())
-            .navigationTitle("Upgrade")
+            .navigationTitle(String(localized: "paywall.navigation_title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
+                    Button(L10n.Common.cancel) { dismiss() }
                 }
             }
             .task {
@@ -233,9 +234,9 @@ struct PaywallView: View {
 
     private var purchaseButtonTitle: String {
         if let product = environment.subscriptionService.products.first {
-            return "Subscribe for \(product.displayPrice)/month"
+            return String(localized: "paywall.subscribe \(product.displayPrice)")
         }
-        return "Subscribe to Pro"
+        return String(localized: "settings.pro.subscribe")
     }
 
     private func featureRow(_ text: String) -> some View {

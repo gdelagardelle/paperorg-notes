@@ -42,6 +42,8 @@ struct PrivacyConsentView: View {
                 
                 Button(L10n.Privacy.continue) {
                     settings.hasAcceptedPrivacyPolicy = true
+                    settings.selectedPlan = .free
+                    settings.hasCompletedPlanSelection = true
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .disabled(!agreed)

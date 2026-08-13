@@ -86,7 +86,7 @@ final class TranscriptionOrchestrator {
     }
     
     func transcribe(_ request: TranscriptionRequest) async throws -> TranscriptionResult {
-        if registry.settings.usesProBackend {
+        if registry.settings.usesBackendProcessing {
             return try await proRouter.transcribe(request)
         }
 
@@ -146,7 +146,7 @@ final class TranscriptionOrchestrator {
         request: TranscriptionRequest,
         excludingProvider: String
     ) async throws -> TranscriptionResult {
-        if registry.settings.usesProBackend {
+        if registry.settings.usesBackendProcessing {
             return try await proRouter.transcribe(request)
         }
 
