@@ -21,9 +21,9 @@ Goal: enforce 30 calendar-month minutes for verified Free identities using
 server-determined audio duration, with the flag off by default.
 
 Files: `backend/main.py`, `backend/config.py`, `backend/audio_duration.py`,
-`backend/tests/test_free_included_minutes.py`.
+`backend/tests/test_free_included_quota.py`.
 
-Acceptance: `pytest backend/tests/test_free_included_minutes.py -q` proves
+Acceptance: `pytest backend/tests/test_free_included_quota.py -q` proves
 both flag states, 30-minute boundary, and rejection of untrusted duration.
 
 Blast radius: all server transcription requests; flag off preserves Pro-only

@@ -11,3 +11,8 @@
   fallback review: protected backend suite 9 passed; `gitleaks detect` found
   no leaks. No deployment. Dispatches: 4 (3 failed infrastructure/gate runs,
   1 stale repair attempt).
+- 2026-08-13 task 2: same-model fallback implementation — verified Apple
+  accounts receive 30 calendar-month minutes only when the backend feature
+  flag is enabled; device-only accounts remain excluded. Uploaded M4A metadata
+  now determines metered duration; the client duration form field is ignored.
+  Protected backend tests: 14 passed; gitleaks: no leaks.

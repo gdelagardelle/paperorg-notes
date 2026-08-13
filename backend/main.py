@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from app_store import AppStoreVerificationError, verify_pro_subscription
 from app_store_notifications import handle_signed_notification
+from audio_duration import AudioDurationError, duration_seconds
 from auth_utils import (
     create_access_token,
     get_current_user,
@@ -124,16 +125,39 @@ def require_device_token(token: dict[str, Any]) -> dict[str, Any]:
     return token
 
 
-def require_pro_user(token: dict[str, Any]):
-    if token.get("source") == "platform":
-        if "notes.pro" not in token.get("ent", []):
+def user_has_free_included_minutes(user) -> bool:
+    return (
+        settings.free_included_minutes_enabled
+        and not user_is_pro(user)
+        and bool(user["apple_subject"])
+    )
+
+
+def require_processing_user(principal: dict[str, Any]):
+    if principal.get("source") == "platform":
+        if "notes.pro" not in principal.get("ent", []):
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
                 detail="Paperorg Pro subscription required.",
             )
-        return {"id": token["sub"], "platform": True, "bearer": token["bearer"]}
-    user = get_local_user(token)
-    if not user_is_pro(user):
+        return {"id": principal["sub"], "platform": True, "bearer": principal["bearer"]}
+    user = get_local_user(principal)
+    if user_is_pro(user):
+        return user
+    if principal.get("source") == "apple" and user_has_free_included_minutes(user):
+        return user
+    raise HTTPException(
+        status_code=status.HTTP_402_PAYMENT_REQUIRED,
+        detail="Sign in with Apple for included minutes, add your own key, or subscribe to Pro.",
+    )
+
+
+def require_pro_user(principal: dict[str, Any]):
+    """Compatibility wrapper for endpoints that remain Pro-only."""
+    user = require_processing_user(principal)
+    if isinstance(user, dict) and user.get("platform"):
+        return user
+    if not (isinstance(user, dict) and user.get("platform")) and not user_is_pro(user):
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail="Paperorg Pro subscription required.",
@@ -150,13 +174,19 @@ def enforce_usage_limit(user, audio_minutes: float) -> None:
                 detail="Monthly limit reached. Resets next month.",
             )
         return
+    limit = (
+        settings.pro_minutes_per_month
+        if user_is_pro(user)
+        else settings.free_minutes_per_month
+        if user_has_free_included_minutes(user)
+        else 0
+    )
     used = get_usage_minutes(user["id"])
-    if used + audio_minutes > settings.pro_minutes_per_month:
+    if limit <= 0 or used + audio_minutes > limit:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=(
-                f"Monthly limit reached ({settings.pro_minutes_per_month} minutes). "
-                "Resets next month or upgrade when available."
+                f"Monthly limit reached ({limit} minutes). Resets next month or upgrade to Pro."
             ),
         )
 
@@ -251,7 +281,13 @@ def usage(principal: dict[str, Any] = Depends(get_current_user)) -> UsageRespons
 def build_usage_response(user) -> UsageResponse:
     is_pro = user_is_pro(user)
     used = get_usage_minutes(user["id"])
-    limit = settings.pro_minutes_per_month if is_pro else 0
+    limit = (
+        settings.pro_minutes_per_month
+        if is_pro
+        else settings.free_minutes_per_month
+        if user_has_free_included_minutes(user)
+        else 0
+    )
     return UsageResponse(
         is_pro=is_pro,
         minutes_limit=limit,
@@ -347,18 +383,19 @@ async def transcribe_openai(
     file: UploadFile = File(...),
     language: Optional[str] = Form(None),
     prompt: Optional[str] = Form(None),
-    duration_seconds: float = Form(0),
-    token: dict[str, Any] = Depends(get_current_user),
+    principal: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
-    user = require_pro_user(token)
+    user = require_processing_user(principal)
     openai_key = resolve_provider_key("openai", settings.openai_api_key)
     if not openai_key:
         raise HTTPException(status_code=503, detail="OpenAI not configured on server.")
 
-    minutes = duration_seconds / 60 if duration_seconds > 0 else 1
-    enforce_usage_limit(user, minutes)
-
     audio_bytes = await file.read()
+    try:
+        minutes = duration_seconds(audio_bytes) / 60
+    except AudioDurationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    enforce_usage_limit(user, minutes)
     data: dict[str, Any] = {
         "model": "gpt-4o-transcribe",
         "response_format": "json",
@@ -390,18 +427,19 @@ async def transcribe_elevenlabs(
     file: UploadFile = File(...),
     language_code: Optional[str] = Form(None),
     diarize: bool = Form(False),
-    duration_seconds: float = Form(0),
-    token: dict[str, Any] = Depends(get_current_user),
+    principal: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
-    user = require_pro_user(token)
+    user = require_processing_user(principal)
     elevenlabs_key = resolve_provider_key("elevenlabs", settings.elevenlabs_api_key)
     if not elevenlabs_key:
         raise HTTPException(status_code=503, detail="ElevenLabs not configured on server.")
 
-    minutes = duration_seconds / 60 if duration_seconds > 0 else 1
-    enforce_usage_limit(user, minutes)
-
     audio_bytes = await file.read()
+    try:
+        minutes = duration_seconds(audio_bytes) / 60
+    except AudioDurationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    enforce_usage_limit(user, minutes)
     data = {
         "model_id": "scribe_v2",
         "timestamps_granularity": "word",
@@ -431,15 +469,15 @@ async def transcribe_luxasr(
     file: UploadFile = File(...),
     language: str = Form("lb"),
     prompt: Optional[str] = Form(None),
-    duration_seconds: float = Form(0),
-    token: dict[str, Any] = Depends(get_current_user),
+    principal: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
-    user = require_pro_user(token)
-
-    minutes = duration_seconds / 60 if duration_seconds > 0 else 1
-    enforce_usage_limit(user, minutes)
-
+    user = require_processing_user(principal)
     audio_bytes = await file.read()
+    try:
+        minutes = duration_seconds(audio_bytes) / 60
+    except AudioDurationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    enforce_usage_limit(user, minutes)
     headers = {"Content-Type": file.content_type or "audio/m4a", "X-Filename": file.filename or "audio.m4a"}
     luxasr_key = resolve_provider_key("luxasr", settings.luxasr_api_key)
     if luxasr_key:
@@ -479,9 +517,13 @@ async def transcribe_luxasr(
 @app.post("/v1/summarize")
 async def summarize(
     body: SummarizeRequest,
-    token: dict[str, Any] = Depends(get_current_user),
+    principal: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
-    user = require_pro_user(token)
+    user = require_processing_user(principal)
+    if not user_is_pro(user):
+        enforce_user_rate_limit(
+            user["id"], key_prefix="free-summary", max_requests=12, window_seconds=3600
+        )
     openai_key = resolve_provider_key("openai", settings.openai_api_key)
     if not openai_key:
         raise HTTPException(status_code=503, detail="OpenAI not configured on server.")

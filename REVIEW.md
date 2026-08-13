@@ -19,3 +19,13 @@ warnings), diff check passed, and `gitleaks detect --source . --no-banner
 Finding [S]: a concurrent first sign-in for the same Apple subject may race on
 the unique database index and return an error. Defer a conflict-retry path to
 the quota task; it cannot create duplicate entitled users.
+
+## Task 2 — included quota enforcement
+
+Same-model fallback review. The 30-minute limit is selected only for a
+non-Pro user with a stored Apple subject while the feature flag is enabled;
+device-only and flag-off paths keep their existing paid-or-BYOK behavior.
+The client-sent duration is no longer used for provider accounting. A minimal
+M4A `mvhd` reader rejects uploads whose duration cannot be determined before a
+provider call. The summary endpoint is additionally rate limited for Free
+accounts. Protected backend tests: 14 passed; gitleaks: no leaks.
