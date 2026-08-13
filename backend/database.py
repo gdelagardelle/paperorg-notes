@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,6 +17,7 @@ _SQLITE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     device_id TEXT UNIQUE NOT NULL,
+    apple_subject TEXT,
     is_pro INTEGER NOT NULL DEFAULT 0,
     pro_expires_at TEXT,
     created_at TEXT NOT NULL,
@@ -55,6 +57,7 @@ _POSTGRES_SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     device_id TEXT UNIQUE NOT NULL,
+    apple_subject TEXT,
     is_pro BOOLEAN NOT NULL DEFAULT FALSE,
     pro_expires_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL,
@@ -155,6 +158,16 @@ def init_db() -> None:
     schema = _POSTGRES_SCHEMA if uses_postgres() else _SQLITE_SCHEMA
     with connect() as conn:
         conn.executescript(schema)
+        if uses_postgres():
+            conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS apple_subject TEXT")
+        else:
+            columns = conn.execute("PRAGMA table_info(users)").fetchall()
+            if "apple_subject" not in {row["name"] for row in columns}:
+                conn.execute("ALTER TABLE users ADD COLUMN apple_subject TEXT")
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS users_apple_subject_unique "
+            "ON users (apple_subject)"
+        )
 
 
 def check_connection() -> bool:
@@ -192,6 +205,61 @@ def get_or_create_user(device_id: str) -> RowLike:
         return conn.execute(
             "SELECT * FROM users WHERE device_id = ?",
             (device_id,),
+        ).fetchone()
+
+
+def get_user_by_id(user_id: str) -> Optional[RowLike]:
+    with connect() as conn:
+        return conn.execute(
+            "SELECT * FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+
+
+def get_or_create_apple_user(apple_subject: str, device_id: str) -> RowLike:
+    """Resolve an Apple account, adopting a legacy device row when available."""
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT * FROM users WHERE apple_subject = ?",
+            (apple_subject,),
+        ).fetchone()
+        if row:
+            return row
+
+        device_user = conn.execute(
+            "SELECT * FROM users WHERE device_id = ?",
+            (device_id,),
+        ).fetchone()
+        now = utc_now()
+        if device_user and device_user["apple_subject"] is None:
+            conn.execute(
+                "UPDATE users SET apple_subject = ?, updated_at = ? WHERE id = ?",
+                (apple_subject, now, device_user["id"]),
+            )
+            return conn.execute(
+                "SELECT * FROM users WHERE id = ?", (device_user["id"],)
+            ).fetchone()
+
+        user_id = str(uuid.uuid4())
+        stored_device_id = device_id if not device_user else f"apple:{user_id}"
+        conn.execute(
+            """
+            INSERT INTO users
+                (id, device_id, apple_subject, is_pro, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                user_id,
+                stored_device_id,
+                apple_subject,
+                False if uses_postgres() else 0,
+                now,
+                now,
+            ),
+        )
+        return conn.execute(
+            "SELECT * FROM users WHERE apple_subject = ?",
+            (apple_subject,),
         ).fetchone()
 
 

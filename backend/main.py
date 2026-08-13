@@ -11,7 +11,11 @@ from pydantic import BaseModel, Field
 
 from app_store import AppStoreVerificationError, verify_pro_subscription
 from app_store_notifications import handle_signed_notification
-from auth_utils import create_access_token, get_current_user
+from auth_utils import (
+    create_access_token,
+    get_current_user,
+    verify_apple_identity_token,
+)
 from platform_client import (
     platform_minutes_remaining,
     report_platform_usage,
@@ -22,6 +26,8 @@ from database import (
     add_usage_minutes,
     check_connection,
     get_or_create_user,
+    get_or_create_apple_user,
+    get_user_by_id,
     get_usage_minutes,
     init_db,
     link_subscription,
@@ -44,6 +50,10 @@ app = FastAPI(title="Paperorg Notes Pro API", version="1.0.0")
 
 class RegisterRequest(BaseModel):
     device_id: str = Field(min_length=8, max_length=128)
+
+
+class AppleAuthRequest(RegisterRequest):
+    identity_token: str = Field(min_length=1)
 
 
 class RegisterResponse(BaseModel):
@@ -122,7 +132,7 @@ def require_pro_user(token: dict[str, Any]):
                 detail="Paperorg Pro subscription required.",
             )
         return {"id": token["sub"], "platform": True, "bearer": token["bearer"]}
-    user = get_or_create_user(token["device_id"])
+    user = get_local_user(token)
     if not user_is_pro(user):
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
@@ -177,10 +187,10 @@ def ready() -> dict[str, str]:
 def register(body: RegisterRequest, request: Request) -> RegisterResponse:
     enforce_rate_limit(request, key_prefix="register", max_requests=20, window_seconds=3600)
     user = get_or_create_user(body.device_id)
-    token = create_access_token(user["id"], user["device_id"])
+    access_value = create_access_token(user["id"], user["device_id"])
     usage = build_usage_response(user)
     return RegisterResponse(
-        access_token=token,
+        access_token=access_value,
         user_id=user["id"],
         is_pro=usage.is_pro,
         minutes_limit=usage.minutes_limit,
@@ -191,10 +201,50 @@ def register(body: RegisterRequest, request: Request) -> RegisterResponse:
     )
 
 
+@app.post("/v1/auth/apple", response_model=RegisterResponse)
+def apple_auth(body: AppleAuthRequest, request: Request) -> RegisterResponse:
+    enforce_rate_limit(
+        request, key_prefix="apple-auth", max_requests=20, window_seconds=3600
+    )
+    try:
+        apple_subject = verify_apple_identity_token(body.identity_token)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Apple identity token.",
+        ) from exc
+
+    user = get_or_create_apple_user(apple_subject, body.device_id)
+    access_value = create_access_token(user["id"], body.device_id, auth_type="apple")
+    usage = build_usage_response(user)
+    return RegisterResponse(
+        access_token=access_value,
+        user_id=user["id"],
+        is_pro=usage.is_pro,
+        minutes_limit=usage.minutes_limit,
+        minutes_used=usage.minutes_used,
+        minutes_remaining=usage.minutes_remaining,
+        period_key=usage.period_key,
+        pro_expires_at=usage.pro_expires_at,
+    )
+
+
+def get_local_user(token: dict[str, Any]):
+    if token.get("source") == "apple":
+        user = get_user_by_id(token["sub"])
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired token.",
+            )
+        return user
+    return get_or_create_user(token["device_id"])
+
+
 @app.get("/v1/usage", response_model=UsageResponse)
-def usage(token: dict[str, Any] = Depends(get_current_user)) -> UsageResponse:
-    token = require_device_token(token)
-    user = get_or_create_user(token["device_id"])
+def usage(principal: dict[str, Any] = Depends(get_current_user)) -> UsageResponse:
+    principal = require_device_token(principal)
+    user = get_local_user(principal)
     return build_usage_response(user)
 
 
@@ -216,11 +266,11 @@ def build_usage_response(user) -> UsageResponse:
 def verify_subscription(
     body: VerifySubscriptionRequest,
     request: Request,
-    token: dict[str, Any] = Depends(get_current_user),
+    principal: dict[str, Any] = Depends(get_current_user),
 ) -> UsageResponse:
     enforce_rate_limit(request, key_prefix="verify", max_requests=30, window_seconds=3600)
-    token = require_device_token(token)
-    user = get_or_create_user(token["device_id"])
+    principal = require_device_token(principal)
+    user = get_local_user(principal)
 
     if body.product_id != settings.apple_pro_product_id:
         raise HTTPException(status_code=400, detail="Unknown product.")
@@ -229,7 +279,7 @@ def verify_subscription(
         expires_at = (datetime.now(timezone.utc) + timedelta(days=32)).isoformat()
         set_user_pro(user["id"], True, expires_at)
         log_subscription_event(user["id"], body.product_id, body.transaction_id, "dev_verified")
-        user = get_or_create_user(token["device_id"])
+        user = get_local_user(principal)
         return build_usage_response(user)
 
     try:
@@ -260,7 +310,7 @@ def verify_subscription(
         verification.get("transaction_id") or body.transaction_id,
         "verified",
     )
-    user = get_or_create_user(token["device_id"])
+    user = get_local_user(principal)
     return build_usage_response(user)
 
 
@@ -274,11 +324,11 @@ def app_store_webhook(body: AppStoreNotificationRequest, request: Request) -> di
 
 
 @app.post("/v1/subscription/dev-activate", response_model=UsageResponse)
-def dev_activate(token: dict[str, Any] = Depends(get_current_user)) -> UsageResponse:
+def dev_activate(principal: dict[str, Any] = Depends(get_current_user)) -> UsageResponse:
     if not settings.paperorg_dev_mode:
         raise HTTPException(status_code=404, detail="Not found.")
-    token = require_device_token(token)
-    user = get_or_create_user(token["device_id"])
+    principal = require_device_token(principal)
+    user = get_local_user(principal)
     expires_at = (datetime.now(timezone.utc) + timedelta(days=32)).isoformat()
     set_user_pro(user["id"], True, expires_at)
     used = get_usage_minutes(user["id"])

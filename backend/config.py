@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     luxasr_api_key: str = ""
 
     pro_minutes_per_month: int = 600
+    free_included_minutes_enabled: bool = False
+    free_minutes_per_month: int = 30
     free_vocabulary_limit: int = 20
 
     apple_bundle_id: str = "com.paperorg.notes"
