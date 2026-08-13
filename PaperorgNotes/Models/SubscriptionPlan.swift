@@ -151,8 +151,8 @@ enum ProBackendError: LocalizedError {
             return "Paperorg Pro subscription required."
         case .usageLimitReached:
             return "You've used all included Pro minutes this month."
-        case .serverError(let message):
-            return message
+        case .serverError:
+            return "Paperorg Pro is temporarily unavailable. Please try again later."
         }
     }
 }

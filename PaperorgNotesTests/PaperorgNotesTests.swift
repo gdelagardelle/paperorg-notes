@@ -1,3 +1,16 @@
+#if APP_CHECK_CLI
+import Foundation
+
+@main
+struct ProBackendErrorRegression {
+    static func main() {
+        let rawPayload = #"{"message":"Route POST:/v1/auth/register not found","error":"Not Found","statusCode":404}"#
+        guard ProBackendError.serverError(rawPayload).localizedDescription == "Paperorg Pro is temporarily unavailable. Please try again later." else {
+            exit(1)
+        }
+    }
+}
+#else
 import XCTest
 @testable import PaperorgNotes
 
@@ -168,6 +181,13 @@ final class KeychainServiceTests: XCTestCase {
 }
 
 final class ProUsageInfoDecodingTests: XCTestCase {
+    func testServerErrorDoesNotExposeRawPayloadToUsers() {
+        let rawPayload = #"{"message":"Route POST:/v1/auth/register not found","error":"Not Found","statusCode":404}"#
+        let message = ProBackendError.serverError(rawPayload).localizedDescription
+
+        XCTAssertEqual(message, "Paperorg Pro is temporarily unavailable. Please try again later.")
+    }
+
     func testDecodesLegacyFlatShape() throws {
         let json = """
         {"is_pro": true, "minutes_limit": 600, "minutes_used": 12.5,
@@ -208,3 +228,4 @@ final class ProUsageInfoDecodingTests: XCTestCase {
         XCTAssertNil(usage.proExpiresAt)
     }
 }
+#endif
