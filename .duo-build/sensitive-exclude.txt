@@ -1,0 +1,18 @@
+# Directory prefixes (REPO-ROOT-relative, one per line, trailing slash) that
+# sol.sh's sensitive-ignored-files scan skips. Without this, node_modules and
+# friends make every dispatch hash the world twice, and a legitimate dependency
+# install trips the "risky ignored files changed" tripwire.
+# TRADE-OFF, stated honestly: excluded dirs are a real attack surface. This
+# file is baseline-frozen (a worker cannot widen its own blind spot), and
+# PRODUCTION MODE IGNORES IT ENTIRELY — there, use a sanitized worktree.
+node_modules/
+vendor/
+.venv/
+venv/
+target/
+dist/
+build/
+.next/
+.nuxt/
+.turbo/
+.cache/

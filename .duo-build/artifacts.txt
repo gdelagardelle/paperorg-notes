@@ -1,0 +1,6 @@
+# Artifacts this project's proof BUILDS, one project-relative path per line.
+# proof.sh records each one's sha256 in proof.json; deploy-guard.sh verifies
+# those exact bytes before shipping — build once, deploy by digest.
+# REQUIRED in production: without it the guard can only bind the deploy
+# procedure, not the shipped bytes.
+# e.g. dist/app.tar.gz

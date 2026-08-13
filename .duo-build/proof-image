@@ -1,0 +1,7 @@
+# A PINNED container image for sealed proof runs (prefer a digest:
+#   node:22-bookworm@sha256:...). When present and a runtime is available,
+# proof.sh runs the architect's proof script inside a disposable container with
+# a clean HOME and the network DISABLED — which is what makes DUO_NO_NETWORK
+# enforcement rather than advice. Full/lightweight projects may leave this
+# empty to use the honestly reported host tier. Production requires a
+# digest-pinned value plus a working runtime and refuses host fallback.

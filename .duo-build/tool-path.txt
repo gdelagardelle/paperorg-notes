@@ -1,0 +1,4 @@
+# Extra PATH entries for the production verifier's minimal environment, one per
+# line. Without these, node/npm/pytest/gitleaks are not on PATH under `env -i`.
+# Find yours with: dirname "$(command -v npm)"
+# e.g. /opt/homebrew/bin

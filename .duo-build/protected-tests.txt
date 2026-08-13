@@ -1,0 +1,3 @@
+# Architect-owned acceptance tests — frozen for workers (byte + mode checked).
+backend/tests/test_apple_identity.py
+backend/tests/test_platform_tokens.py

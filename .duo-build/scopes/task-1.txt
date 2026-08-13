@@ -1,0 +1,6 @@
+# Files task 1 may create or modify, one per line, project-relative.
+backend/auth_utils.py
+backend/config.py
+backend/database.py
+backend/main.py
+backend/tests/
