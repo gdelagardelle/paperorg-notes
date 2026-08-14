@@ -24,7 +24,9 @@ struct RootView: View {
         }
         .preferredColorScheme(.light)
         .task {
-            await environment.subscriptionService.refreshEntitlements()
+            // A background refresh should never surface as a paywall failure.
+            // Explicit restore and purchase actions still report their errors.
+            await environment.subscriptionService.refreshEntitlements(reportError: false)
         }
         .onAppear(perform: recoverInterruptedProcessing)
         .onChange(of: scenePhase) { oldPhase, newPhase in
@@ -36,7 +38,7 @@ struct RootView: View {
             }
             if newPhase == .active, settings.hasCompletedPlanSelection {
                 recoverInterruptedProcessing()
-                Task { await environment.subscriptionService.refreshEntitlements() }
+                Task { await environment.subscriptionService.refreshEntitlements(reportError: false) }
             }
         }
         .onChange(of: settings.faceIDEnabled) { _, enabled in

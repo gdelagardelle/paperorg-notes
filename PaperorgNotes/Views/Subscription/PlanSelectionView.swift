@@ -225,9 +225,12 @@ struct PaywallView: View {
                 }
             }
             .task {
-                await environment.subscriptionService.loadProducts()
+                await environment.subscriptionService.loadProducts(reportError: false)
                 try? await environment.proBackendClient.ensureRegistered()
-                await environment.subscriptionService.refreshEntitlements()
+                // A first-use token refresh can briefly fail while the device
+                // registers. It must not make a ready-to-purchase paywall look
+                // like the subscription itself is unavailable.
+                await environment.subscriptionService.refreshEntitlements(reportError: false)
             }
         }
     }

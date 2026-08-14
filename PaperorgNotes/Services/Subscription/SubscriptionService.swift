@@ -31,20 +31,34 @@ final class SubscriptionService {
         set { settings.selectedPlan = newValue }
     }
 
-    func loadProducts() async {
+    /// Loads the App Store product metadata used for the displayed price.
+    ///
+    /// StoreKit may not return a product until Apple's first-subscription
+    /// review is complete. The paywall can still explain the offering during
+    /// that transient state, so its initial load can be silent.
+    func loadProducts(reportError: Bool = true) async {
         do {
             products = try await Product.products(for: [SubscriptionProduct.proMonthly])
         } catch {
-            lastError = error.localizedDescription
+            if reportError {
+                lastError = error.localizedDescription
+            }
         }
     }
 
-    func refreshEntitlements() async {
+    /// Refreshes the server-side usage record.
+    ///
+    /// A new device has no access token until it registers. That is normal while
+    /// the paywall is opening, so callers can opt out of treating a transient
+    /// refresh failure as a purchase error.
+    func refreshEntitlements(reportError: Bool = true) async {
         do {
             let usage = try await proBackend.refreshUsage()
             applyUsageEntitlements(usage)
         } catch {
-            lastError = error.localizedDescription
+            if reportError {
+                lastError = error.localizedDescription
+            }
         }
     }
 
