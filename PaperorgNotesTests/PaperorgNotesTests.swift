@@ -39,6 +39,19 @@ final class ProviderRegistryTests: XCTestCase {
     }
 }
 
+final class LocalizationCoverageTests: XCTestCase {
+    func testEverySpokenLanguageHasLocalizedStringCatalog() {
+        let applicationBundle = Bundle(for: ProviderRegistry.self)
+        let supportedCatalogs = Set(applicationBundle.localizations)
+        let spokenLanguageCodes = Set(AppLanguage.spokenLanguages.map(\.rawValue))
+
+        XCTAssertTrue(
+            spokenLanguageCodes.isSubset(of: supportedCatalogs),
+            "Missing UI localization catalogs: \(spokenLanguageCodes.subtracting(supportedCatalogs).sorted().joined(separator: ", "))"
+        )
+    }
+}
+
 final class QualityPipelineTests: XCTestCase {
     @MainActor
     func testFlagsLowConfidenceSegments() async throws {
