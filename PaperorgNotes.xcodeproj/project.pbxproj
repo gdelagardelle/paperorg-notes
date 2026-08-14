@@ -116,7 +116,7 @@
 
 /* Begin PBXFileReference section */
 		015CA9C9BF4BA1A913E6E87E /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
-		073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0A2776891AC1FF283C722736 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		0C9BD304B8AD3F3CF47BD303 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		10F451B9CE45F448ED5357EA /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
@@ -128,7 +128,7 @@
 		1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteNoteUseCase.swift; sourceTree = "<group>"; };
 		23130EAFD410A3FED41D40AC /* ProUsageCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProUsageCard.swift; sourceTree = "<group>"; };
 		24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanSelectionView.swift; sourceTree = "<group>"; };
-		26A44276A0E661C5F8BAD71E /* PaperorgPro.storekit */ = {isa = PBXFileReference; path = PaperorgPro.storekit; sourceTree = "<group>"; };
+		26A44276A0E661C5F8BAD71E /* PaperorgPro.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = PaperorgPro.storekit; sourceTree = "<group>"; };
 		2A5F341369B3D0BDA7654913 /* ProTranscriptionRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProTranscriptionRouter.swift; sourceTree = "<group>"; };
 		2A7A286993897E5DE6FB106C /* AppDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDesignSystem.swift; sourceTree = "<group>"; };
 		2BF5DBF0A62BECF4981A7BE7 /* ReviewBeforeSendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewBeforeSendView.swift; sourceTree = "<group>"; };
@@ -142,7 +142,7 @@
 		382E43B13BC104B0DC4917A5 /* ExportBranding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportBranding.swift; sourceTree = "<group>"; };
 		411E38DDB48629A61AEDDAA8 /* NoteAudioPlayerSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteAudioPlayerSection.swift; sourceTree = "<group>"; };
 		47612546C77D2EBA71ED4283 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
-		4870B2B5145972BC95567F38 /* PaperorgNotes.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PaperorgNotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4870B2B5145972BC95567F38 /* PaperorgNotes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PaperorgNotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B6B8DF7F1EC58D388ACDC88 /* NotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesListView.swift; sourceTree = "<group>"; };
 		5129B0C96608861776DCB9EC /* ExportBrandingSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportBrandingSettingsSection.swift; sourceTree = "<group>"; };
 		565A7124A59F839DA2119477 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
@@ -767,7 +767,15 @@
 				CURRENT_PROJECT_VERSION = 17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Paperorg Notes";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Paperorg Notes uses Face ID to protect your private notes.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Paperorg Notes needs microphone access to record voice notes and meetings.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Paperorg Notes uses speech recognition for on-device English transcription.";
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -944,7 +952,15 @@
 				CURRENT_PROJECT_VERSION = 17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Paperorg Notes";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Paperorg Notes uses Face ID to protect your private notes.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Paperorg Notes needs microphone access to record voice notes and meetings.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Paperorg Notes uses speech recognition for on-device English transcription.";
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
