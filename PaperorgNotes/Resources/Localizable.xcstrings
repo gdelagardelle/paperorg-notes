@@ -2098,6 +2098,74 @@
         }
       }
     },
+    "offline_recovery.waiting_message": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme offline gespeichert. Sie wird automatisch transkribiert, sobald die Internetverbindung wiederhergestellt ist."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording saved offline. It will transcribe automatically when your internet connection returns."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrement sauvegardé hors ligne. Il sera transcrit automatiquement dès le retour de votre connexion Internet."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnam offline gespäichert. Si gëtt automatesch transkribéiert, soubal d'Internetverbindung erëm do ass."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravação guardada offline. Será transcrita automaticamente quando a ligação à Internet voltar."
+          }
+        }
+      }
+    },
+    "offline_recovery.waiting_status": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wartet auf Internet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for Internet"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente d’Internet"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waart op Internet"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À espera da Internet"
+          }
+        }
+      }
+    },
     "note.detail.assignee %@": {
       "extractionState": "stale",
       "localizations": {

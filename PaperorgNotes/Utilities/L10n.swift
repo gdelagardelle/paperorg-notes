@@ -120,6 +120,11 @@ enum L10n {
         static let disable = String(localized: "lock.disable")
     }
 
+    enum OfflineRecovery {
+        static let waitingStatus = String(localized: "offline_recovery.waiting_status")
+        static let waitingMessage = String(localized: "offline_recovery.waiting_message")
+    }
+
     enum NoteDetail {
         static let deleteRecording = String(localized: "note.detail.delete_recording")
         static let deleteNote = String(localized: "note.detail.delete_note")

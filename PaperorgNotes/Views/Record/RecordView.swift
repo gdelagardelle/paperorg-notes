@@ -411,8 +411,10 @@ struct RecordView: View {
                                 of: environment.storageService.audioURL(for: noteId)
                             )
                         }
-                        note.status = NoteStatus.failed.rawValue
-                        note.errorMessage = processingError
+                        if note.noteStatus != .waitingForNetwork {
+                            note.status = NoteStatus.failed.rawValue
+                            note.errorMessage = processingError
+                        }
                         note.updatedAt = .now
                         try? modelContext.save()
                     }

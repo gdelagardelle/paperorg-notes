@@ -147,9 +147,12 @@ final class ProcessRecordingUseCase {
         } catch {
             debugEvents.append("Failed at +\(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s")
             debugEvents.append("Error: \(error.localizedDescription)")
-            note.status = NoteStatus.failed.rawValue
+            let waitsForConnectivity = OfflineTranscriptionRecoveryPolicy.isConnectivityFailure(error)
+            note.status = waitsForConnectivity
+                ? NoteStatus.waitingForNetwork.rawValue
+                : NoteStatus.failed.rawValue
             note.processingStage = nil
-            note.errorMessage = safeErrorMessage(for: error)
+            note.errorMessage = waitsForConnectivity ? nil : safeErrorMessage(for: error)
             note.updatedAt = .now
             note.processingDebug = debugEvents.joined(separator: "\n")
             try? save(note)

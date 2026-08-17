@@ -159,6 +159,8 @@ struct NoteStatusBadge: View {
         case .processing:
             ProgressView()
                 .scaleEffect(0.65)
+        case .waitingForNetwork:
+            Image(systemName: "wifi.exclamationmark")
         case .failed:
             Image(systemName: "exclamationmark.circle.fill")
         case .draft:
@@ -170,6 +172,7 @@ struct NoteStatusBadge: View {
         switch status {
         case .ready: return "Ready"
         case .processing: return "Processing"
+        case .waitingForNetwork: return L10n.OfflineRecovery.waitingStatus
         case .failed: return "Failed"
         case .draft: return "Draft"
         }
@@ -179,6 +182,7 @@ struct NoteStatusBadge: View {
         switch status {
         case .ready: return AppTheme.primary
         case .processing: return AppTheme.accent
+        case .waitingForNetwork: return AppTheme.warning
         case .failed: return AppTheme.error
         case .draft: return AppTheme.textSecondary
         }
@@ -272,6 +276,7 @@ struct NoteCardRow: View {
         switch note.noteStatus {
         case .ready: return AppTheme.primary
         case .processing: return AppTheme.accent
+        case .waitingForNetwork: return AppTheme.warning
         case .failed: return AppTheme.error
         case .draft: return AppTheme.border
         }

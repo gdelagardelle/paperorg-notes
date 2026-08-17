@@ -139,8 +139,52 @@ enum OutputType: String, Codable, CaseIterable, Identifiable, Sendable {
 enum NoteStatus: String, Codable, Sendable {
     case draft
     case processing
+    case waitingForNetwork
     case ready
     case failed
+}
+
+enum OfflineTranscriptionRecoveryPolicy {
+    private static let retryableURLCodes: Set<URLError.Code> = [
+        .timedOut,
+        .cannotFindHost,
+        .cannotConnectToHost,
+        .networkConnectionLost,
+        .dnsLookupFailed,
+        .notConnectedToInternet,
+        .internationalRoamingOff,
+        .callIsActive,
+        .dataNotAllowed,
+        .cannotLoadFromNetwork
+    ]
+
+    static func isConnectivityFailure(_ error: Error) -> Bool {
+        if let urlError = error as? URLError {
+            return retryableURLCodes.contains(urlError.code)
+        }
+        if case TranscriptionError.networkError = error {
+            return true
+        }
+
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain {
+            return retryableURLCodes.contains(URLError.Code(rawValue: nsError.code))
+        }
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? Error,
+           (underlying as NSError) !== nsError {
+            return isConnectivityFailure(underlying)
+        }
+        return false
+    }
+
+    static func shouldRetry(
+        status: NoteStatus,
+        isConnected: Bool,
+        hasAudio: Bool,
+        isInFlight: Bool
+    ) -> Bool {
+        status == .waitingForNetwork && isConnected && hasAudio && !isInFlight
+    }
 }
 
 enum ProcessingStage: String, Codable, Sendable, CaseIterable {
