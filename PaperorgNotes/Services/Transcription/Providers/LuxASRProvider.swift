@@ -20,9 +20,10 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
     
     func transcribe(_ request: TranscriptionRequest, credentials: TranscriptionCredentials) async throws -> TranscriptionResult {
         let start = Date()
-        let audioData = try AudioFileReader.readData(from: request.audioURL)
-        let mimeType = mimeType(for: request.audioURL)
-        let filename = request.audioURL.lastPathComponent
+        let preparedAudio = try AudioFileReader.prepareForTranscription(from: request.audioURL)
+        let audioData = try preparedAudio?.data ?? AudioFileReader.readData(from: request.audioURL)
+        let mimeType = preparedAudio?.mimeType ?? mimeType(for: request.audioURL)
+        let filename = preparedAudio?.fileName ?? request.audioURL.lastPathComponent
         
         var components = URLComponents(url: baseURL.appendingPathComponent("asr2"), resolvingAgainstBaseURL: false)!
         var queryItems = [
@@ -98,6 +99,9 @@ final class LuxASRProvider: TranscriptionProvider, @unchecked Sendable {
         var metadata = parsed.metadata
         metadata["jobId"] = job.job_id
         metadata["pollHistory"] = pollResult.history.joined(separator: " | ")
+        if let gain = preparedAudio?.gainAppliedDecibels {
+            metadata["audioGainDB"] = String(format: "%.1f", gain)
+        }
         return TranscriptionResult(
             providerId: parsed.providerId,
             language: parsed.language,

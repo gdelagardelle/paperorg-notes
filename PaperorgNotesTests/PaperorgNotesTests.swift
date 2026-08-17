@@ -11,8 +11,72 @@ struct ProBackendErrorRegression {
     }
 }
 #else
+import AVFoundation
 import XCTest
 @testable import PaperorgNotes
+
+final class AudioFileReaderTests: XCTestCase {
+    func testQuietAudioIsAmplifiedForTranscription() throws {
+        let sourceURL = try makeAudioFile(amplitude: 0.001)
+        defer { try? FileManager.default.removeItem(at: sourceURL) }
+        let originalData = try Data(contentsOf: sourceURL)
+
+        let prepared = try XCTUnwrap(
+            AudioFileReader.prepareForTranscription(from: sourceURL)
+        )
+
+        XCTAssertGreaterThan(prepared.gainAppliedDecibels, 20)
+        XCTAssertLessThanOrEqual(prepared.gainAppliedDecibels, 30)
+        XCTAssertEqual(prepared.mimeType, "audio/wav")
+        XCTAssertEqual(try Data(contentsOf: sourceURL), originalData)
+        XCTAssertGreaterThan(try peakAmplitude(in: prepared.data), 0.01)
+    }
+
+    func testNormalAudioIsNotReencoded() throws {
+        let sourceURL = try makeAudioFile(amplitude: 0.25)
+        defer { try? FileManager.default.removeItem(at: sourceURL) }
+
+        XCTAssertNil(try AudioFileReader.prepareForTranscription(from: sourceURL))
+    }
+
+    private func makeAudioFile(amplitude: Float) throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("paperorg-audio-test-\(UUID().uuidString).wav")
+        let format = try XCTUnwrap(
+            AVAudioFormat(standardFormatWithSampleRate: 16_000, channels: 1)
+        )
+        let frameCount: AVAudioFrameCount = 16_000
+        let buffer = try XCTUnwrap(
+            AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)
+        )
+        buffer.frameLength = frameCount
+        let samples = try XCTUnwrap(buffer.floatChannelData?[0])
+        for frame in 0..<Int(frameCount) {
+            samples[frame] = amplitude * sin(2 * .pi * 440 * Float(frame) / 16_000)
+        }
+        let file = try AVAudioFile(forWriting: url, settings: format.settings)
+        try file.write(from: buffer)
+        return url
+    }
+
+    private func peakAmplitude(in data: Data) throws -> Float {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("paperorg-prepared-test-\(UUID().uuidString).wav")
+        try data.write(to: url, options: .atomic)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let file = try AVAudioFile(forReading: url)
+        let frameCount = AVAudioFrameCount(file.length)
+        let buffer = try XCTUnwrap(
+            AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: frameCount)
+        )
+        try file.read(into: buffer)
+        let samples = try XCTUnwrap(buffer.floatChannelData?[0])
+        return (0..<Int(buffer.frameLength)).reduce(Float.zero) {
+            max($0, abs(samples[$1]))
+        }
+    }
+}
 
 final class ProviderRegistryTests: XCTestCase {
     @MainActor
