@@ -179,6 +179,64 @@ final class TranscriptTextFormatterTests: XCTestCase {
     }
 }
 
+final class OfflineTranscriptionRecoveryPolicyTests: XCTestCase {
+    func testConnectivityFailuresWaitForNetwork() {
+        XCTAssertTrue(
+            OfflineTranscriptionRecoveryPolicy.isConnectivityFailure(
+                URLError(.notConnectedToInternet)
+            )
+        )
+        XCTAssertTrue(
+            OfflineTranscriptionRecoveryPolicy.isConnectivityFailure(
+                TranscriptionError.networkError("Connection lost")
+            )
+        )
+    }
+
+    func testProviderFailuresDoNotEnterOfflineQueue() {
+        XCTAssertFalse(
+            OfflineTranscriptionRecoveryPolicy.isConnectivityFailure(
+                TranscriptionError.providerError("Invalid API response")
+            )
+        )
+    }
+
+    func testRetryRequiresConnectivityAudioAndNoInflightWork() {
+        XCTAssertTrue(
+            OfflineTranscriptionRecoveryPolicy.shouldRetry(
+                status: .waitingForNetwork,
+                isConnected: true,
+                hasAudio: true,
+                isInFlight: false
+            )
+        )
+        XCTAssertFalse(
+            OfflineTranscriptionRecoveryPolicy.shouldRetry(
+                status: .waitingForNetwork,
+                isConnected: false,
+                hasAudio: true,
+                isInFlight: false
+            )
+        )
+        XCTAssertFalse(
+            OfflineTranscriptionRecoveryPolicy.shouldRetry(
+                status: .waitingForNetwork,
+                isConnected: true,
+                hasAudio: true,
+                isInFlight: true
+            )
+        )
+        XCTAssertFalse(
+            OfflineTranscriptionRecoveryPolicy.shouldRetry(
+                status: .failed,
+                isConnected: true,
+                hasAudio: true,
+                isInFlight: false
+            )
+        )
+    }
+}
+
 final class KeychainServiceTests: XCTestCase {
     func testSaveAndRetrieveAPIKey() throws {
         #if targetEnvironment(simulator)

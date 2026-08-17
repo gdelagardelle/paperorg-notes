@@ -9,6 +9,7 @@ struct ExportBrandingSettingsSection: View {
 
     var body: some View {
         @Bindable var settings = environment.settingsService
+        let hasCustomExportLogo = environment.storageService.hasCustomExportLogo
 
         Section(L10n.Settings.pdfBrandingSection) {
             SettingsSectionHint(text: L10n.Settings.pdfBrandingHint)
@@ -21,14 +22,14 @@ struct ExportBrandingSettingsSection: View {
                 VStack(alignment: .leading, spacing: 8) {
                     PhotosPicker(selection: $logoPickerItem, matching: .images) {
                         Label(
-                            environment.storageService.hasCustomExportLogo
+                            hasCustomExportLogo
                                 ? L10n.Settings.replaceLogo
                                 : L10n.Settings.uploadLogo,
                             systemImage: "photo"
                         )
                     }
 
-                    if environment.storageService.hasCustomExportLogo {
+                    if hasCustomExportLogo {
                         Button(L10n.Settings.useDefaultLogo, role: .destructive) {
                             removeCustomLogo()
                         }

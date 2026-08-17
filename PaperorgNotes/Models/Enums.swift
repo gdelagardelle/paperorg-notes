@@ -109,14 +109,14 @@ enum OutputType: String, Codable, CaseIterable, Identifiable, Sendable {
     
     var displayName: String {
         switch self {
-        case .meetingNotes: return "Meeting"
-        case .brainstorm: return "Brainstorm"
-        case .personalMemo: return "Memo"
-        case .clientCall: return "Client call"
-        case .interview: return "Interview"
-        case .taskList: return "Tasks"
-        case .cleanResume: return "Résumé"
-        case .rawTranscript: return "Transcript only"
+        case .meetingNotes: return String(localized: "output.meeting")
+        case .brainstorm: return String(localized: "output.brainstorm")
+        case .personalMemo: return String(localized: "output.memo")
+        case .clientCall: return String(localized: "output.client_call")
+        case .interview: return String(localized: "output.interview")
+        case .taskList: return String(localized: "output.tasks")
+        case .cleanResume: return String(localized: "output.resume")
+        case .rawTranscript: return String(localized: "output.transcript_only")
         }
     }
     
@@ -139,8 +139,52 @@ enum OutputType: String, Codable, CaseIterable, Identifiable, Sendable {
 enum NoteStatus: String, Codable, Sendable {
     case draft
     case processing
+    case waitingForNetwork
     case ready
     case failed
+}
+
+enum OfflineTranscriptionRecoveryPolicy {
+    private static let retryableURLCodes: Set<URLError.Code> = [
+        .timedOut,
+        .cannotFindHost,
+        .cannotConnectToHost,
+        .networkConnectionLost,
+        .dnsLookupFailed,
+        .notConnectedToInternet,
+        .internationalRoamingOff,
+        .callIsActive,
+        .dataNotAllowed,
+        .cannotLoadFromNetwork
+    ]
+
+    static func isConnectivityFailure(_ error: Error) -> Bool {
+        if let urlError = error as? URLError {
+            return retryableURLCodes.contains(urlError.code)
+        }
+        if case TranscriptionError.networkError = error {
+            return true
+        }
+
+        let nsError = error as NSError
+        if nsError.domain == NSURLErrorDomain {
+            return retryableURLCodes.contains(URLError.Code(rawValue: nsError.code))
+        }
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? Error,
+           (underlying as NSError) !== nsError {
+            return isConnectivityFailure(underlying)
+        }
+        return false
+    }
+
+    static func shouldRetry(
+        status: NoteStatus,
+        isConnected: Bool,
+        hasAudio: Bool,
+        isInFlight: Bool
+    ) -> Bool {
+        status == .waitingForNetwork && isConnected && hasAudio && !isInFlight
+    }
 }
 
 enum ProcessingStage: String, Codable, Sendable, CaseIterable {

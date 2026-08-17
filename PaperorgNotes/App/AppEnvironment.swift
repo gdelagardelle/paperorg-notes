@@ -1,5 +1,29 @@
 import Foundation
+import Network
 import SwiftUI
+
+@Observable
+@MainActor
+final class ConnectivityMonitor {
+    private(set) var isConnected = false
+    @ObservationIgnored private let monitor: NWPathMonitor
+    @ObservationIgnored private let queue = DispatchQueue(label: "com.paperorg.notes.connectivity")
+
+    init(monitor: NWPathMonitor = NWPathMonitor()) {
+        self.monitor = monitor
+        monitor.pathUpdateHandler = { [weak self] path in
+            let isConnected = path.status == .satisfied
+            Task { @MainActor [weak self] in
+                self?.isConnected = isConnected
+            }
+        }
+        monitor.start(queue: queue)
+    }
+
+    deinit {
+        monitor.cancel()
+    }
+}
 
 @Observable
 @MainActor
@@ -20,6 +44,7 @@ final class AppEnvironment {
     let deepLinkHandler: DeepLinkHandler
     let proBackendClient: ProBackendClient
     let subscriptionService: SubscriptionService
+    let connectivityMonitor: ConnectivityMonitor
     
     init(
         recordingService: RecordingService,
@@ -35,7 +60,8 @@ final class AppEnvironment {
         keychainService: KeychainService,
         deepLinkHandler: DeepLinkHandler,
         proBackendClient: ProBackendClient,
-        subscriptionService: SubscriptionService
+        subscriptionService: SubscriptionService,
+        connectivityMonitor: ConnectivityMonitor? = nil
     ) {
         self.recordingService = recordingService
         self.transcriptionService = transcriptionService
@@ -51,6 +77,7 @@ final class AppEnvironment {
         self.deepLinkHandler = deepLinkHandler
         self.proBackendClient = proBackendClient
         self.subscriptionService = subscriptionService
+        self.connectivityMonitor = connectivityMonitor ?? ConnectivityMonitor()
         self.processRecordingUseCase = ProcessRecordingUseCase(
             transcriptionService: transcriptionService,
             summaryService: summaryService,

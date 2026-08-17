@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F00000000000000000000001 /* PaperorgNotesUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000002 /* PaperorgNotesUITests.swift */; };
 		026EFC7E07DD0201D8FBD951 /* NoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E171CA6AC03EC4611DD5EB2 /* NoteDetailView.swift */; };
 		02ECA3A767DDA35414C2E876 /* TranscriptionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC82CA43248D13335C7DBE96 /* TranscriptionProvider.swift */; };
 		04CFA2851125FEF94203EB4F /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B3C01618A0601C86CA1CF7 /* Note.swift */; };
@@ -84,6 +85,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		F00000000000000000000008 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2C523E156D6DF25FD720FA1F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE9B446B39A3F4D51D8E920C;
+			remoteInfo = PaperorgNotes;
+		};
 		09E1EF747357DC66A1285478 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 2C523E156D6DF25FD720FA1F /* Project object */;
@@ -115,6 +123,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		F00000000000000000000002 /* PaperorgNotesUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesUITests.swift; sourceTree = "<group>"; };
+		F00000000000000000000003 /* PaperorgNotesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PaperorgNotesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		015CA9C9BF4BA1A913E6E87E /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
 		073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0A2776891AC1FF283C722736 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
@@ -240,6 +250,7 @@
 			children = (
 				CECE5466C3B7E0A7B2B9FEDF /* PaperorgNotes */,
 				57B69C801314659AC6FAB746 /* PaperorgNotesTests */,
+				F00000000000000000000004 /* PaperorgNotesUITests */,
 				5319BEDC57964CBD273F9FE9 /* PaperorgNotesWidget */,
 				B8C9318A8A1BBCB892294AE8 /* Products */,
 			);
@@ -393,6 +404,14 @@
 			path = PaperorgNotesTests;
 			sourceTree = "<group>";
 		};
+		F00000000000000000000004 /* PaperorgNotesUITests */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000002 /* PaperorgNotesUITests.swift */,
+			);
+			path = PaperorgNotesUITests;
+			sourceTree = "<group>";
+		};
 		73D8A1100EC4314B21F6CA9E /* Record */ = {
 			isa = PBXGroup;
 			children = (
@@ -450,6 +469,7 @@
 			children = (
 				4870B2B5145972BC95567F38 /* PaperorgNotes.app */,
 				2D726C5822C87F122AA6765A /* PaperorgNotesTests.xctest */,
+				F00000000000000000000003 /* PaperorgNotesUITests.xctest */,
 				74C446E4F10FD42ACD134C39 /* PaperorgNotesWidgetExtension.appex */,
 			);
 			name = Products;
@@ -527,6 +547,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		F00000000000000000000005 /* PaperorgNotesUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F0000000000000000000000B /* Build configuration list for PBXNativeTarget "PaperorgNotesUITests" */;
+			buildPhases = (
+				F00000000000000000000006 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F00000000000000000000007 /* PBXTargetDependency */,
+			);
+			name = PaperorgNotesUITests;
+			packageProductDependencies = (
+			);
+			productName = PaperorgNotesUITests;
+			productReference = F00000000000000000000003 /* PaperorgNotesUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		017874723AFC7C132C772952 /* PaperorgNotesTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 96E7ED7DF66020373F609C52 /* Build configuration list for PBXNativeTarget "PaperorgNotesTests" */;
@@ -596,6 +634,11 @@
 						DevelopmentTeam = 3N4Q2GQ558;
 						ProvisioningStyle = Automatic;
 					};
+					F00000000000000000000005 = {
+						DevelopmentTeam = 3N4Q2GQ558;
+						ProvisioningStyle = Automatic;
+						TestTargetID = CE9B446B39A3F4D51D8E920C;
+					};
 					AB87B253C8F1B026D3F065F5 = {
 						DevelopmentTeam = 3N4Q2GQ558;
 						ProvisioningStyle = Automatic;
@@ -624,6 +667,7 @@
 			targets = (
 				CE9B446B39A3F4D51D8E920C /* PaperorgNotes */,
 				017874723AFC7C132C772952 /* PaperorgNotesTests */,
+				F00000000000000000000005 /* PaperorgNotesUITests */,
 				AB87B253C8F1B026D3F065F5 /* PaperorgNotesWidgetExtension */,
 			);
 		};
@@ -653,6 +697,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		F00000000000000000000006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F00000000000000000000001 /* PaperorgNotesUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0A44FB0B27989E33CBAF2608 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -744,6 +796,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		F00000000000000000000007 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE9B446B39A3F4D51D8E920C /* PaperorgNotes */;
+			targetProxy = F00000000000000000000008 /* PBXContainerItemProxy */;
+		};
 		2E74E6C790CDA9CF7CB43DD4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE9B446B39A3F4D51D8E920C /* PaperorgNotes */;
@@ -757,6 +814,42 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		F00000000000000000000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3N4Q2GQ558;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PaperorgNotes;
+			};
+			name = Debug;
+		};
+		F0000000000000000000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 3N4Q2GQ558;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PaperorgNotes;
+			};
+			name = Release;
+		};
 		3CF06E151A77119F016C0ECC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1029,6 +1122,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		F0000000000000000000000B /* Build configuration list for PBXNativeTarget "PaperorgNotesUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F00000000000000000000009 /* Debug */,
+				F0000000000000000000000A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		7A3F05FB6B92F034C9ECCF06 /* Build configuration list for PBXNativeTarget "PaperorgNotes" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

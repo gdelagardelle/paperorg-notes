@@ -44,6 +44,29 @@ struct NoteDetailView: View {
                 } else if note.noteStatus == .draft {
                     SettingsSectionHint(text: "No recording file found. If this note stays empty after reopening the app, the audio was likely lost when recording stopped.")
                 }
+                if note.noteStatus == .waitingForNetwork {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: "wifi.exclamationmark")
+                                .foregroundStyle(AppTheme.warning)
+                            Text(L10n.OfflineRecovery.waitingMessage)
+                                .font(.subheadline)
+                                .foregroundStyle(AppTheme.textSecondary)
+                        }
+                        Button {
+                            transcribeAgain()
+                        } label: {
+                            Label(L10n.NoteDetail.transcribeAgain, systemImage: "arrow.clockwise")
+                        }
+                        .buttonStyle(AccentButtonStyle())
+                        .disabled(
+                            isProcessing
+                                || !audioAvailable
+                                || !environment.connectivityMonitor.isConnected
+                        )
+                    }
+                    .surfaceCard(padding: 14, cornerRadius: 14)
+                }
                 if note.noteStatus == .failed, let error = note.errorMessage, !error.isEmpty {
                     HStack(spacing: 10) {
                         Image(systemName: "exclamationmark.triangle.fill")
@@ -160,7 +183,9 @@ struct NoteDetailView: View {
 
             OutputTypePicker(selection: $selectedOutputType, label: L10n.NoteDetail.noteStyle)
 
-            if note.noteStatus == .ready || note.noteStatus == .failed {
+            if note.noteStatus == .ready
+                || note.noteStatus == .failed
+                || note.noteStatus == .waitingForNetwork {
                 LanguagePicker(selection: $selectedLanguage)
             }
 
@@ -442,11 +467,14 @@ struct NoteDetailView: View {
 
         note.audioFileName = recovered.audioURL.lastPathComponent
         note.durationSeconds = recovered.duration
-        note.status = NoteStatus.draft.rawValue
+        note.status = NoteStatus.waitingForNetwork.rawValue
         note.processingStage = nil
-        note.errorMessage = "Recording recovered. Tap Transcribe again to process."
+        note.errorMessage = nil
         note.updatedAt = .now
         try? modelContext.save()
+        if environment.connectivityMonitor.isConnected {
+            transcribeAgain()
+        }
     }
     
     private func transcribeAgain() {
@@ -466,8 +494,10 @@ struct NoteDetailView: View {
                 isProcessing = false
             } catch {
                 processingError = error.localizedDescription
-                note.status = NoteStatus.failed.rawValue
-                note.errorMessage = error.localizedDescription
+                if note.noteStatus != .waitingForNetwork {
+                    note.status = NoteStatus.failed.rawValue
+                    note.errorMessage = error.localizedDescription
+                }
                 try? modelContext.save()
                 isProcessing = false
             }

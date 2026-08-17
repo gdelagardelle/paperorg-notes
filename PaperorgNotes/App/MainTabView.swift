@@ -7,6 +7,7 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \Note.createdAt, order: .reverse) private var notes: [Note]
     @State private var isUnlocked = false
+    @State private var retryingNoteIDs: Set<UUID> = []
     
     var body: some View {
         @Bindable var settings = environment.settingsService
@@ -27,8 +28,12 @@ struct RootView: View {
             // A background refresh should never surface as a paywall failure.
             // Explicit restore and purchase actions still report their errors.
             await environment.subscriptionService.refreshEntitlements(reportError: false)
+            await retryWaitingTranscriptions()
         }
-        .onAppear(perform: recoverInterruptedProcessing)
+        .onAppear {
+            recoverInterruptedProcessing()
+            Task { await retryWaitingTranscriptions() }
+        }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if settings.faceIDEnabled,
                oldPhase == .active,
@@ -38,7 +43,15 @@ struct RootView: View {
             }
             if newPhase == .active, settings.hasCompletedPlanSelection {
                 recoverInterruptedProcessing()
-                Task { await environment.subscriptionService.refreshEntitlements(reportError: false) }
+                Task {
+                    await environment.subscriptionService.refreshEntitlements(reportError: false)
+                    await retryWaitingTranscriptions()
+                }
+            }
+        }
+        .onChange(of: environment.connectivityMonitor.isConnected) { _, isConnected in
+            if isConnected {
+                Task { await retryWaitingTranscriptions() }
             }
         }
         .onChange(of: settings.faceIDEnabled) { _, enabled in
@@ -78,9 +91,14 @@ struct RootView: View {
         }
 
         for note in notes where note.noteStatus == .processing {
-            note.status = NoteStatus.failed.rawValue
+            let hasAudio = audioExists(for: note.id)
+            note.status = hasAudio
+                ? NoteStatus.waitingForNetwork.rawValue
+                : NoteStatus.failed.rawValue
             note.processingStage = nil
-            note.errorMessage = "Processing was interrupted. You can transcribe again or re-summarize."
+            note.errorMessage = hasAudio
+                ? nil
+                : "Processing was interrupted and the recording file is unavailable."
             note.updatedAt = .now
         }
 
@@ -99,10 +117,33 @@ struct RootView: View {
     private func applyRecovery(_ recovered: RecoveredRecording, to note: Note) {
         note.audioFileName = recovered.audioURL.lastPathComponent
         note.durationSeconds = recovered.duration
-        note.status = NoteStatus.draft.rawValue
+        note.status = NoteStatus.waitingForNetwork.rawValue
         note.processingStage = nil
-        note.errorMessage = "Recording recovered after an interruption. Tap Transcribe again to process."
+        note.errorMessage = nil
         note.updatedAt = .now
+    }
+
+    private func retryWaitingTranscriptions() async {
+        guard environment.connectivityMonitor.isConnected,
+              environment.recordingService.state == .idle else { return }
+
+        for note in notes {
+            let hasAudio = audioExists(for: note.id)
+            guard OfflineTranscriptionRecoveryPolicy.shouldRetry(
+                status: note.noteStatus,
+                isConnected: environment.connectivityMonitor.isConnected,
+                hasAudio: hasAudio,
+                isInFlight: retryingNoteIDs.contains(note.id)
+            ) else { continue }
+
+            retryingNoteIDs.insert(note.id)
+            do {
+                try await environment.processRecordingUseCase.transcribeAgain(note: note) { _ in }
+            } catch {
+                // The use case persists either waiting-for-network or a terminal failure.
+            }
+            retryingNoteIDs.remove(note.id)
+        }
     }
 
     private func audioExists(for noteId: UUID) -> Bool {

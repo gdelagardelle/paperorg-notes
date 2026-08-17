@@ -159,6 +159,8 @@ struct NoteStatusBadge: View {
         case .processing:
             ProgressView()
                 .scaleEffect(0.65)
+        case .waitingForNetwork:
+            Image(systemName: "wifi.exclamationmark")
         case .failed:
             Image(systemName: "exclamationmark.circle.fill")
         case .draft:
@@ -170,6 +172,7 @@ struct NoteStatusBadge: View {
         switch status {
         case .ready: return "Ready"
         case .processing: return "Processing"
+        case .waitingForNetwork: return L10n.OfflineRecovery.waitingStatus
         case .failed: return "Failed"
         case .draft: return "Draft"
         }
@@ -179,6 +182,7 @@ struct NoteStatusBadge: View {
         switch status {
         case .ready: return AppTheme.primary
         case .processing: return AppTheme.accent
+        case .waitingForNetwork: return AppTheme.warning
         case .failed: return AppTheme.error
         case .draft: return AppTheme.textSecondary
         }
@@ -272,6 +276,7 @@ struct NoteCardRow: View {
         switch note.noteStatus {
         case .ready: return AppTheme.primary
         case .processing: return AppTheme.accent
+        case .waitingForNetwork: return AppTheme.warning
         case .failed: return AppTheme.error
         case .draft: return AppTheme.border
         }
@@ -573,8 +578,8 @@ struct RecordHeroButton: View {
 
     private var accessibilityLabel: String {
         switch state {
-        case .idle: return "Start recording"
-        case .recording, .paused: return "Stop recording"
+        case .idle: return String(localized: "record.start")
+        case .recording, .paused: return String(localized: "record.stop")
         }
     }
 }
@@ -592,10 +597,14 @@ struct RecordingInProgressBanner: View {
                 Image(systemName: state == .paused ? "pause.circle.fill" : "record.circle")
                     .foregroundStyle(AppTheme.accent)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(state == .paused ? "Recording paused" : "Recording in progress")
+                    Text(
+                        state == .paused
+                            ? String(localized: "record.banner.paused")
+                            : String(localized: "record.banner.active")
+                    )
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(AppTheme.textPrimary)
-                    Text("Tap to return to Record and tap Stop when finished")
+                    Text(String(localized: "record.banner.hint"))
                         .font(.caption2)
                         .foregroundStyle(AppTheme.textSecondary)
                 }

@@ -65,7 +65,7 @@ final class SummaryService {
             output = sanitize(output, transcript: transcript)
             return .generated(makeStructuredOutput(from: output, outputType: outputType))
         } catch let error as SummaryParseError {
-            throw TranscriptionError.providerError(error.localizedDescription ?? "Summary parsing failed.")
+            throw TranscriptionError.providerError(error.localizedDescription)
         } catch {
             return .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
         }
