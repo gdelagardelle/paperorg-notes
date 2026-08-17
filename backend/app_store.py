@@ -144,21 +144,21 @@ def verify_pro_subscription(
     private_key: str,
     use_sandbox: bool,
 ) -> dict[str, Any]:
-    signed_payload = signed_transaction_info
-
-    if not signed_payload:
-        if not transaction_id:
-            raise AppStoreVerificationError(
-                "transaction_id or signed_transaction_info is required."
-            )
-        signed_payload = fetch_signed_transaction_info(
-            transaction_id,
-            issuer_id=issuer_id,
-            key_id=key_id,
-            private_key=private_key,
-            bundle_id=bundle_id,
-            use_sandbox=use_sandbox,
+    if signed_transaction_info:
+        raise AppStoreVerificationError(
+            "Client-supplied signed transaction data is not accepted."
         )
+    if not transaction_id:
+        raise AppStoreVerificationError("transaction_id is required.")
+
+    signed_payload = fetch_signed_transaction_info(
+        transaction_id,
+        issuer_id=issuer_id,
+        key_id=key_id,
+        private_key=private_key,
+        bundle_id=bundle_id,
+        use_sandbox=use_sandbox,
+    )
 
     payload = decode_and_verify_jws(
         signed_payload,

@@ -39,6 +39,7 @@ from database import (
 )
 from email_delivery import (
     EmailDeliveryError,
+    MAX_ATTACHMENT_BYTES,
     email_delivery_configured,
     email_delivery_sender,
     email_delivery_source,
@@ -47,6 +48,9 @@ from email_delivery import (
 from rate_limit import enforce_rate_limit, enforce_user_rate_limit
 
 app = FastAPI(title="Paperorg Notes Pro API", version="1.0.0")
+
+MAX_AUDIO_UPLOAD_BYTES = 100 * 1024 * 1024
+UPLOAD_READ_CHUNK_BYTES = 1024 * 1024
 
 
 class RegisterRequest(BaseModel):
@@ -198,6 +202,21 @@ def record_usage(user, audio_minutes: float, provider: str = "unknown") -> None:
         )
         return
     add_usage_minutes(user["id"], max(audio_minutes, 0.1))
+
+
+async def read_limited_upload(upload: UploadFile, max_bytes: int) -> bytes:
+    data = bytearray()
+    while True:
+        remaining = max_bytes - len(data)
+        chunk = await upload.read(min(UPLOAD_READ_CHUNK_BYTES, remaining + 1))
+        if not chunk:
+            return bytes(data)
+        data.extend(chunk)
+        if len(data) > max_bytes:
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail="Uploaded file exceeds the size limit.",
+            )
 
 
 @app.get("/health")
@@ -390,7 +409,7 @@ async def transcribe_openai(
     if not openai_key:
         raise HTTPException(status_code=503, detail="OpenAI not configured on server.")
 
-    audio_bytes = await file.read()
+    audio_bytes = await read_limited_upload(file, MAX_AUDIO_UPLOAD_BYTES)
     try:
         minutes = duration_seconds(audio_bytes) / 60
     except AudioDurationError as exc:
@@ -434,7 +453,7 @@ async def transcribe_elevenlabs(
     if not elevenlabs_key:
         raise HTTPException(status_code=503, detail="ElevenLabs not configured on server.")
 
-    audio_bytes = await file.read()
+    audio_bytes = await read_limited_upload(file, MAX_AUDIO_UPLOAD_BYTES)
     try:
         minutes = duration_seconds(audio_bytes) / 60
     except AudioDurationError as exc:
@@ -472,7 +491,7 @@ async def transcribe_luxasr(
     principal: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
     user = require_processing_user(principal)
-    audio_bytes = await file.read()
+    audio_bytes = await read_limited_upload(file, MAX_AUDIO_UPLOAD_BYTES)
     try:
         minutes = duration_seconds(audio_bytes) / 60
     except AudioDurationError as exc:
@@ -601,9 +620,17 @@ def token_user_key(token: dict[str, Any]) -> str:
     return f"device:{token.get('device_id') or token.get('sub')}"
 
 
+def require_trusted_email_user(token: dict[str, Any]) -> None:
+    if token.get("source") not in {"apple", "platform"}:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Sign in with Apple before using server email delivery.",
+        )
+
+
 @app.get("/v1/email/status")
 def email_status(token: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
-    _ = token
+    require_trusted_email_user(token)
     status_payload: dict[str, Any] = {
         "available": email_delivery_configured(),
         "source": email_delivery_source(),
@@ -624,6 +651,7 @@ async def email_send(
     markdown: Optional[UploadFile] = File(None),
     token: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, str]:
+    require_trusted_email_user(token)
     if not email_delivery_configured():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -654,7 +682,7 @@ async def email_send(
     ):
         if upload is None:
             continue
-        data = await upload.read()
+        data = await read_limited_upload(upload, MAX_ATTACHMENT_BYTES)
         if not data:
             continue
         attachments.append(

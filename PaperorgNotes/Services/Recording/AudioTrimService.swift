@@ -17,9 +17,7 @@ enum AudioTrimError: LocalizedError {
 
 enum AudioTrimService {
     static func duration(of url: URL) -> TimeInterval {
-        let asset = AVURLAsset(url: url)
-        let seconds = CMTimeGetSeconds(asset.duration)
-        return seconds.isFinite && seconds > 0 ? seconds : 0
+        playableDuration(of: url)
     }
 
     /// Prefer AVAudioPlayer — it reflects playable audio, not inflated container metadata.

@@ -209,7 +209,9 @@ struct RecordView: View {
                 HStack(spacing: 12) {
                     Button(action: togglePause) {
                         RecordControlButton(
-                            title: environment.recordingService.state == .paused ? "Resume" : "Pause",
+                            title: environment.recordingService.state == .paused
+                                ? String(localized: "record.resume")
+                                : String(localized: "record.pause"),
                             systemImage: environment.recordingService.state == .paused ? "play.fill" : "pause.fill"
                         )
                     }
@@ -279,7 +281,10 @@ struct RecordView: View {
                 }
             }
         } header: {
-            AppSectionHeader(title: "Recent notes", subtitle: "Pick up where you left off")
+            AppSectionHeader(
+                title: String(localized: "home.recent_notes"),
+                subtitle: String(localized: "home.recent_subtitle")
+            )
                 .textCase(nil)
                 .padding(.top, 12)
         }
@@ -290,9 +295,9 @@ struct RecordView: View {
     
     private var recordStatusText: String {
         switch environment.recordingService.state {
-        case .idle: return "Tap to start recording"
-        case .recording: return "Listening… tap to finish"
-        case .paused: return "Paused — tap Stop to finish, or Resume to continue"
+        case .idle: return String(localized: "record.status.idle")
+        case .recording: return String(localized: "record.status.recording")
+        case .paused: return String(localized: "record.status.paused")
         }
     }
     

@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     paperorg_jwt_secret: str = "dev-secret-change-in-production"
-    paperorg_dev_mode: bool = True
+    paperorg_dev_mode: bool = False
 
     # Empty = local SQLite file. Production: postgresql://user:pass@host:5432/dbname
     database_url: str = ""

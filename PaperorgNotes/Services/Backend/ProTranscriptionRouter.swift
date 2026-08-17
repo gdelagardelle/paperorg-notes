@@ -2,9 +2,10 @@ import AVFoundation
 import Foundation
 
 enum AudioDurationReader {
-    static func duration(for url: URL) -> TimeInterval {
+    static func duration(for url: URL) async -> TimeInterval {
         let asset = AVURLAsset(url: url)
-        let seconds = CMTimeGetSeconds(asset.duration)
+        guard let duration = try? await asset.load(.duration) else { return 60 }
+        let seconds = CMTimeGetSeconds(duration)
         guard seconds.isFinite, seconds > 0 else { return 60 }
         return seconds
     }
@@ -21,7 +22,7 @@ final class ProTranscriptionRouter {
 
     func transcribe(_ request: TranscriptionRequest) async throws -> TranscriptionResult {
         let client = registry.proBackend
-        let duration = AudioDurationReader.duration(for: request.audioURL)
+        let duration = await AudioDurationReader.duration(for: request.audioURL)
         var lastError: Error?
         var attemptLog: [String] = []
 

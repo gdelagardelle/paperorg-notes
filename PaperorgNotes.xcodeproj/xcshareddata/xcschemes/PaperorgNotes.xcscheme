@@ -64,6 +64,17 @@
                ReferencedContainer = "container:PaperorgNotes.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F00000000000000000000005"
+               BuildableName = "PaperorgNotesUITests.xctest"
+               BlueprintName = "PaperorgNotesUITests"
+               ReferencedContainer = "container:PaperorgNotes.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

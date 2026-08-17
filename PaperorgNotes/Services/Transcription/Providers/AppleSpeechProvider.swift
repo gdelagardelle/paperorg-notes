@@ -67,7 +67,7 @@ final class AppleSpeechProvider: TranscriptionProvider, @unchecked Sendable {
             try await withCheckedThrowingContinuation { continuation in
                 operation.install(continuation: continuation)
                 let task = recognizer.recognitionTask(with: request) { result, error in
-                if let error {
+                if error != nil {
                         operation.finish(
                             .failure(TranscriptionError.providerError("Apple Speech could not transcribe this recording."))
                         )

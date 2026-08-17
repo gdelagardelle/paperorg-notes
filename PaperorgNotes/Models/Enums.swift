@@ -109,14 +109,14 @@ enum OutputType: String, Codable, CaseIterable, Identifiable, Sendable {
     
     var displayName: String {
         switch self {
-        case .meetingNotes: return "Meeting"
-        case .brainstorm: return "Brainstorm"
-        case .personalMemo: return "Memo"
-        case .clientCall: return "Client call"
-        case .interview: return "Interview"
-        case .taskList: return "Tasks"
-        case .cleanResume: return "Résumé"
-        case .rawTranscript: return "Transcript only"
+        case .meetingNotes: return String(localized: "output.meeting")
+        case .brainstorm: return String(localized: "output.brainstorm")
+        case .personalMemo: return String(localized: "output.memo")
+        case .clientCall: return String(localized: "output.client_call")
+        case .interview: return String(localized: "output.interview")
+        case .taskList: return String(localized: "output.tasks")
+        case .cleanResume: return String(localized: "output.resume")
+        case .rawTranscript: return String(localized: "output.transcript_only")
         }
     }
     
