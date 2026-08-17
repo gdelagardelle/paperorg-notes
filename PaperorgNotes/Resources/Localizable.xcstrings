@@ -43,7 +43,7 @@
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "translated",
+            "state": "new",
             "value": "%1$@ %2$@"
           }
         },
@@ -79,7 +79,7 @@
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "translated",
+            "state": "new",
             "value": "%1$@ %2$@ · %3$@"
           }
         },
@@ -260,25 +260,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erfassen, transkribieren, senden"
+            "value": "Aufnehmen, transkribieren, senden"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capturer, transcrire, envoyer"
+            "value": "Enregistrer, transcrire, envoyer"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erfaassen, transkriberen, schécken"
+            "value": "Ophuelen, transkribéieren, schécken"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture, transcreva, envie"
+            "value": "Gravar, transcrever, enviar"
           }
         }
       }
@@ -294,25 +294,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server-E-Mails werden überprüft…"
+            "value": "Server-E-Mail wird geprüft…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vérification du courrier électronique du serveur…"
+            "value": "Vérification de l’e-mail du serveur…"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Iwwerpréift Server E-Mail…"
+            "value": "Server-E-Mail gëtt iwwerpréift…"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verificando e-mail do servidor…"
+            "value": "A verificar o e-mail do servidor…"
           }
         }
       }
@@ -398,25 +398,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verbunden · Konto %@"
+            "value": "Verbunden · Konto %1$@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecté · compte %@"
+            "value": "Connecté · compte %1$@"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ugeschloss · Kont %@"
+            "value": "Verbonnen · Kont %1$@"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conectado · conta %@"
+            "value": "Ligado · conta %1$@"
           }
         }
       }
@@ -432,25 +432,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Server konnte nicht erreicht werden – wird es erneut versuchen"
+            "value": "Der Server ist nicht erreichbar — erneuter Versuch folgt"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Impossible d'atteindre le serveur ; je vais réessayer"
+            "value": "Impossible de joindre le serveur — nouvelle tentative à venir"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Konnt de Server net erreechen - wäert erëm probéieren"
+            "value": "De Server konnt net erreecht ginn — et gëtt nach eng Kéier probéiert"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não foi possível acessar o servidor – tentarei novamente"
+            "value": "Não foi possível contactar o servidor — será feita nova tentativa"
           }
         }
       }
@@ -474,13 +474,13 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Impossible de lire la durée de l'enregistrement."
+            "value": "Impossible de lire la durée de l’enregistrement."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Konnt d'Opnahmsdauer net liesen."
+            "value": "D'Dauer vun der Opnam konnt net gelies ginn."
           }
         },
         "pt": {
@@ -502,7 +502,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Benutzerdefinierter Wortschatz"
+            "value": "Benutzerdefiniertes Vokabular"
           }
         },
         "fr": {
@@ -514,7 +514,7 @@
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Benotzerdefinéiert Vocabulaire"
+            "value": "Benotzerdefinéierte Vocabulaire"
           }
         },
         "pt": {
@@ -538,25 +538,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ziehen Sie an den Griffen, um nur den gewünschten Teil beizubehalten. Bei der Transkription wird das zugeschnittene Audiomaterial verwendet, wenn Sie es erneut verarbeiten."
+            "value": "Ziehen Sie die Griffe, um nur den gewünschten Teil zu behalten. Bei einer erneuten Verarbeitung wird das gekürzte Audio transkribiert."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Faites glisser les poignées pour conserver uniquement la partie souhaitée. La transcription utilisera l'audio découpé si vous retraitez."
+            "value": "Faites glisser les poignées pour ne conserver que la partie souhaitée. Si vous relancez le traitement, l’audio découpé sera utilisé pour la transcription."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dréckt d'Griffe fir nëmmen den Deel ze halen deen Dir wëllt. Transkriptioun benotzt den ofgeschniddenen Audio wann Dir nei veraarbecht."
+            "value": "Zitt d'Grëffer, fir nëmmen deen Deel ze behalen, deen Dir wëllt. Wann Dir d'Opnam nei veraarbecht, gëtt déi gekierzt Audiodatei fir d'Transkriptioun benotzt."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arraste as alças para manter apenas a parte desejada. A transcrição usará o áudio cortado se você reprocessar."
+            "value": "Arraste as pegas para manter apenas a parte pretendida. Se voltar a processar, a transcrição utilizará o áudio recortado."
           }
         }
       }
@@ -1412,25 +1412,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schließen Sie unten die Einrichtung Ihres eigenen Mailservers ab oder deaktivieren Sie diese Option, damit Paperorg für Sie senden kann."
+            "value": "Schließen Sie unten die Einrichtung Ihres eigenen Mailservers ab oder deaktivieren Sie diese Option, damit Paperorg für Sie sendet."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Terminez la configuration de votre propre serveur de messagerie ci-dessous ou désactivez cette option pour permettre à Paperorg d'envoyer pour vous."
+            "value": "Terminez ci-dessous la configuration de votre propre serveur de messagerie, ou désactivez cette option pour laisser Paperorg envoyer à votre place."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fäerdeg Ären eegene Mail Server Setup hei ënnen, oder schalt dës Optioun aus fir Paperorg fir Iech ze schécken."
+            "value": "Fäerdeg Är eege Mailserver-Konfiguratioun hei ënnen of, oder schalt dës Optioun aus, fir Paperorg fir Iech schécken ze loossen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conclua a configuração do seu próprio servidor de e-mail abaixo ou desative essa opção para permitir que o Paperorg envie para você."
+            "value": "Conclua abaixo a configuração do seu próprio servidor de e-mail ou desative essa opção para permitir que o Paperorg envie por si."
           }
         }
       }
@@ -1448,25 +1448,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Beenden Sie Ihre Notiz"
+            "value": "Ihre Notiz wird fertiggestellt"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Terminer votre note"
+            "value": "Finalisation de votre note"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fäerdeg Är Notiz"
+            "value": "Är Notiz gëtt ofgeschloss"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finalizando sua nota"
+            "value": "A concluir a sua nota"
           }
         }
       }
@@ -1482,25 +1482,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kostenloser Plan: bis zu %@ Laufzeiten. Pro beinhaltet unbegrenzten Wortschatz."
+            "value": "Free-Plan: bis zu %1$@ Begriffe. Pro enthält unbegrenztes Vokabular."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Forfait gratuit : jusqu'aux conditions %@. Pro comprend un vocabulaire illimité."
+            "value": "Offre gratuite : jusqu’à %1$@ termes. Pro inclut un vocabulaire illimité."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gratis Plang: bis zu %@ Begrëffer. Pro enthält onlimitéiert Vokabulär."
+            "value": "Gratis-Plang: bis zu %1$@ Begrëffer. Pro enthält en onbegrenzte Vocabulaire."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Plano gratuito: até termos %@. Pro inclui vocabulário ilimitado."
+            "value": "Plano gratuito: até %1$@ termos. O Pro inclui vocabulário ilimitado."
           }
         }
       }
@@ -1536,7 +1536,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Linguagem"
+            "value": "Idioma"
           }
         }
       }
@@ -1937,13 +1937,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Luxemburgisch: LuxASR (primär) → ElevenLabs → OpenAI"
+            "value": "Lëtzebuergesch: LuxASR (primär) → ElevenLabs → OpenAI"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Luxembourgeois : LuxASR (primaire) → ElevenLabs → OpenAI"
+            "value": "Luxembourgeois : LuxASR (principal) → ElevenLabs → OpenAI"
           }
         },
         "lb": {
@@ -1955,7 +1955,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Luxemburguês: LuxASR (primário) → ElevenLabs → OpenAI"
+            "value": "Luxemburguês: LuxASR (principal) → ElevenLabs → OpenAI"
           }
         }
       }
@@ -1983,7 +1983,7 @@
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nimm, Marken a Begrëffer fir d'Transkriptiounsgenauegkeet ze verbesseren."
+            "value": "Nimm, Marken a Begrëffer fir d'Genauegkeet vun der Transkriptioun ze verbesseren."
           }
         },
         "pt": {
@@ -2005,7 +2005,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Niemals"
+            "value": "Nie"
           }
         },
         "fr": {
@@ -2041,25 +2041,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Neue Länge: %@"
+            "value": "Neue Länge: %1$@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nouvelle longueur : %@"
+            "value": "Nouvelle durée : %1$@"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "New Längt: %@"
+            "value": "Nei Längt: %1$@"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Novo comprimento: %@"
+            "value": "Nova duração: %1$@"
           }
         }
       }
@@ -2075,25 +2075,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht verbunden – verbindet sich automatisch mit Pro"
+            "value": "Nicht verbunden — verbindet sich mit Pro automatisch"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non connecté : se connecte automatiquement à Pro"
+            "value": "Non connecté — connexion automatique avec Pro"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Net verbonne - verbënnt automatesch mat Pro"
+            "value": "Net verbonnen — verbënnt sech automatesch mat Pro"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não conectado – conecta-se automaticamente ao Pro"
+            "value": "Não ligado — liga-se automaticamente com o Pro"
           }
         }
       }
@@ -3548,7 +3548,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Autres langues : OpenAI (primaire) → ElevenLabs"
+            "value": "Autres langues : OpenAI (principal) → ElevenLabs"
           }
         },
         "lb": {
@@ -3560,7 +3560,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Outros idiomas: OpenAI (primário) → ElevenLabs"
+            "value": "Outros idiomas: OpenAI (principal) → ElevenLabs"
           }
         }
       }
@@ -3578,13 +3578,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg-Notizen"
+            "value": "Paperorg Notes"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notes de Paperorg"
+            "value": "Paperorg Notes"
           }
         },
         "lb": {
@@ -3596,7 +3596,7 @@
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notas do Paperorg"
+            "value": "Paperorg Notes"
           }
         }
       }
@@ -6138,14 +6138,14 @@
       "localizations": {
         "en": {
           "stringUnit": {
-            "state": "translated",
+            "state": "new",
             "value": "Sends as %1$@ <%2$@>%3$@"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schéckt als %1$@ <%2$@>%3$@"
+            "value": "Sends as %1$@ <%2$@>%3$@"
           }
         },
         "pt": {
@@ -6157,7 +6157,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wird als %1$@ <%2$@>%3$@ gesendet"
+            "value": "Sendet als %1$@ <%2$@>%3$@"
           }
         },
         "fr": {
@@ -6185,13 +6185,13 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La messagerie du serveur n'est pas encore configurée"
+            "value": "E-mail du serveur pas encore configuré"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Server E-Mail nach net konfiguréiert"
+            "value": "Server-E-Mail nach net konfiguréiert"
           }
         },
         "pt": {
@@ -6950,25 +6950,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das Abonnement verlängert sich monatlich. In den App Store-Einstellungen können Sie jederzeit kündigen."
+            "value": "Das Abonnement verlängert sich monatlich. Sie können es jederzeit in den App-Store-Einstellungen kündigen."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'abonnement se renouvelle mensuellement. Annulez à tout moment dans les paramètres de l’App Store."
+            "value": "L’abonnement se renouvelle chaque mois. Vous pouvez l’annuler à tout moment dans les réglages de l’App Store."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abonnement erneiert all Mount. Annulatioun zu all Moment an App Store Astellungen."
+            "value": "D'Abonnement gëtt all Mount erneiert. Dir kënnt et zu all Moment an den App-Store-Astellungen annuléieren."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "A assinatura é renovada mensalmente. Cancele a qualquer momento nas configurações da App Store."
+            "value": "A subscrição renova-se mensalmente. Pode cancelar a qualquer momento nas definições da App Store."
           }
         }
       }
@@ -7126,13 +7126,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schlagworte"
+            "value": "Tags"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Balises"
+            "value": "Tags"
           }
         },
         "lb": {
@@ -7162,25 +7162,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tippen Sie auf , um zu „Aufzeichnen“ zurückzukehren, und tippen Sie auf „Stopp“, wenn Sie fertig sind"
+            "value": "Tippen Sie, um zur Aufnahme zurückzukehren, und anschließend auf Stopp, wenn Sie fertig sind"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appuyez pour revenir à Enregistrer et appuyez sur Arrêter lorsque vous avez terminé"
+            "value": "Touchez pour revenir à Enregistrer, puis touchez Arrêter lorsque vous avez terminé"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tippen fir zréck op Record a tippen Stop wann Dir fäerdeg sidd"
+            "value": "Tippt, fir zeréck op Opnam ze goen, a tippt op Stop, wann Dir fäerdeg sidd"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Toque para retornar para Gravar e toque em Parar quando terminar"
+            "value": "Toque para voltar a Gravar e toque em Parar quando terminar"
           }
         }
       }
@@ -7202,19 +7202,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cela supprime définitivement toutes les notes, audio, transcriptions et clés API."
+            "value": "Cette action supprime définitivement toutes les notes, les données audio, les transcriptions et les clés API."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dëst läscht permanent all Notizen, Audio, Transkriptiounen an API Schlësselen."
+            "value": "Dëst läscht permanent all Notizen, Audiodateien, Transkriptiounen an API-Schlësselen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Isso exclui permanentemente todas as notas, áudios, transcrições e chaves de API."
+            "value": "Esta ação elimina permanentemente todas as notas, áudios, transcrições e chaves API."
           }
         }
       }
@@ -7232,25 +7232,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dieser Anbieter verarbeitet Audio auf Ihrem Gerät. Kein Ton verlässt Ihr iPhone."
+            "value": "Dieser Anbieter verarbeitet Audio auf Ihrem Gerät. Kein Audio verlässt Ihr iPhone."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ce fournisseur traite l'audio sur votre appareil. Aucun son ne quitte votre iPhone."
+            "value": "Ce fournisseur traite l’audio sur votre appareil. Aucun audio ne quitte votre iPhone."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dëse Provider veraarbecht Audio op Ärem Apparat. Keen Audio verléisst Ären iPhone."
+            "value": "Dëse Provider veraarbecht d'Audio op Ärem Apparat. Keng Audiodate verléisst Ären iPhone."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Este provedor processa áudio no seu dispositivo. Nenhum áudio sai do seu iPhone."
+            "value": "Este fornecedor processa o áudio no seu dispositivo. Nenhum áudio sai do seu iPhone."
           }
         }
       }
@@ -7268,25 +7268,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diese Aufnahme ist zu kurz zum Zuschneiden."
+            "value": "Diese Aufnahme ist zu kurz zum Kürzen."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cet enregistrement est trop court pour être coupé."
+            "value": "Cet enregistrement est trop court pour être découpé."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dës Opnam ass ze kuerz fir ze trimmen."
+            "value": "Dës Opnam ass ze kuerz fir ze kierzen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta gravação é muito curta para ser cortada."
+            "value": "Esta gravação é demasiado curta para recortar."
           }
         }
       }
@@ -7310,19 +7310,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cela prend généralement moins d'une minute."
+            "value": "Cela prend généralement moins d’une minute."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dëst dauert normalerweis ënner enger Minutt."
+            "value": "Dat dauert normalerweis manner wéi eng Minutt."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Isso geralmente leva menos de um minuto."
+            "value": "Normalmente, demora menos de um minuto."
           }
         }
       }
@@ -7340,25 +7340,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transkription und KI-Zusammenfassungen enthalten – kein OpenAI- oder ElevenLabs-Setup."
+            "value": "Transkription und KI-Zusammenfassungen inklusive — keine Einrichtung von OpenAI oder ElevenLabs nötig."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Résumés de transcription et d'IA inclus – pas de configuration OpenAI ou ElevenLabs."
+            "value": "Transcription et résumés IA inclus — aucune configuration OpenAI ou ElevenLabs nécessaire."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transkriptioun an AI Zesummefaassungen abegraff - keng OpenAI oder ElevenLabs Setup."
+            "value": "Transkriptioun an KI-Zesummefaassunge sinn abegraff — keng Konfiguratioun vun OpenAI oder ElevenLabs néideg."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transcrição e resumos de IA incluídos – sem configuração de OpenAI ou ElevenLabs."
+            "value": "Transcrição e resumos de IA incluídos — sem configuração da OpenAI ou ElevenLabs."
           }
         }
       }
@@ -7386,13 +7386,13 @@
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transkriptiouns Ubidder"
+            "value": "Transkriptiounsprovider"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provedores de transcrição"
+            "value": "Fornecedores de transcrição"
           }
         }
       }
@@ -7416,19 +7416,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Impossible d'ouvrir les notes"
+            "value": "Impossible d’ouvrir les notes"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kann Notizen net opmaachen"
+            "value": "Notize konnten net opgemaach ginn"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não é possível abrir notas"
+            "value": "Não foi possível abrir as notas"
           }
         }
       }
@@ -7514,25 +7514,25 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wenn Sie transkribieren, wird Ihr Audio zur Verarbeitung an %@ gesendet. Lesen Sie deren Datenschutzrichtlinien, bevor Sie fortfahren."
+            "value": "Beim Transkribieren wird Ihr Audio zur Verarbeitung an %1$@ gesendet. Lesen Sie die Datenschutzerklärung des Anbieters, bevor Sie fortfahren."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lorsque vous transcrivez, votre audio sera envoyé à %@ pour traitement. Consultez leur politique de confidentialité avant de continuer."
+            "value": "Lorsque vous lancez la transcription, votre audio est envoyé à %1$@ pour traitement. Consultez sa politique de confidentialité avant de continuer."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wann Dir transkriptéiert, gëtt Ären Audio op %@ fir d'Veraarbechtung geschéckt. Iwwerpréift hir Privatsphär Politik ier Dir weider geet."
+            "value": "Wann Dir transkribéiert, gëtt Är Audiodatei fir d'Veraarbechtung un %1$@ geschéckt. Liest d'Dateschutzerklärung vum Provider, ier Dir weiderfuert."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ao transcrever, seu áudio será enviado para %@ para processamento. Revise sua política de privacidade antes de continuar."
+            "value": "Ao transcrever, o seu áudio será enviado para %1$@ para processamento. Consulte a política de privacidade do fornecedor antes de continuar."
           }
         }
       }

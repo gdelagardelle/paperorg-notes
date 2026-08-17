@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate complete five-language catalog coverage and translation integrity."""
+"""Validate complete catalog coverage for every supported spoken language."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 CATALOG = Path(__file__).parents[1] / "PaperorgNotes/Resources/Localizable.xcstrings"
-LANGUAGES = ("en", "de", "fr", "lb", "pt")
+ENUMS = Path(__file__).parents[1] / "PaperorgNotes/Models/Enums.swift"
 PLACEHOLDER = re.compile(r"%(?:\d+\$)?(?:lld|ld|d|f|@)")
 
 
@@ -26,16 +26,26 @@ def normalized_placeholders(value: str) -> list[str]:
     return sorted(re.sub(r"\d+\$", "", item) for item in PLACEHOLDER.findall(value))
 
 
+def spoken_language_codes() -> tuple[str, ...]:
+    source = ENUMS.read_text(encoding="utf-8")
+    app_language = source.split("enum AppLanguage", 1)[1].split("enum TranscriptionProvider", 1)[0]
+    codes = re.findall(r'^\s*case\s+\w+\s*=\s*"([a-z]{2})"', app_language, re.MULTILINE)
+    if not codes:
+        raise SystemExit("No spoken AppLanguage codes found")
+    return tuple(sorted(set(codes)))
+
+
 def main() -> None:
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     strings = catalog.get("strings", {})
+    languages = spoken_language_codes()
     failures: list[str] = []
     german_luxembourgish_pairs: list[tuple[str, str, str]] = []
 
     for key, entry in strings.items():
         source = localized_value(entry, "en") or key
         expected_placeholders = normalized_placeholders(source)
-        for language in LANGUAGES:
+        for language in languages:
             value = localized_value(entry, language)
             if not value:
                 failures.append(f"missing {language}: {key}")
@@ -62,7 +72,7 @@ def main() -> None:
     if failures:
         raise SystemExit("\n".join(failures))
     print(
-        f"{len(strings)} keys complete in en/de/fr/lb/pt; "
+        f"{len(strings)} keys complete in {'/'.join(languages)}; "
         f"Luxembourgish/German duplicate ratio {duplicate_ratio:.1%}."
     )
 
