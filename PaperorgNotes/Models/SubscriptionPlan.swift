@@ -148,6 +148,7 @@ enum ProBackendError: LocalizedError {
     case notAuthenticated
     case subscriptionRequired
     case usageLimitReached
+    case deviceIntegrityVerificationFailed
     case serverError(String)
 
     var errorDescription: String? {
@@ -158,6 +159,8 @@ enum ProBackendError: LocalizedError {
             return "Paperorg Pro subscription required."
         case .usageLimitReached:
             return "You've used all included Pro minutes this month."
+        case .deviceIntegrityVerificationFailed:
+            return "This device could not be verified securely. Please try again."
         case .serverError:
             return "Paperorg Pro is temporarily unavailable. Please try again later."
         }

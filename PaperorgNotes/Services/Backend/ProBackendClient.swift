@@ -394,7 +394,14 @@ final class ProBackendClient {
         let challenge = try JSONDecoder().decode(AppAttestChallenge.self, from: challengeData)
         guard let rawChallenge = Data(base64Encoded: challenge.challenge) else { throw ProBackendError.serverError("Invalid device verification challenge.") }
         if !attestationStatus.verified {
-            let proof = try await appAttestation.makeAttestation(challenge: rawChallenge)
+            // A key can be attested only once. If the server does not know the
+            // stored key (for example after a rejected or interrupted first
+            // registration), replace it rather than repeatedly attesting a key
+            // that Apple will no longer attest.
+            let proof = try await appAttestation.makeAttestation(
+                challenge: rawChallenge,
+                replacingUnregisteredKey: localKeyID != nil
+            )
             var verify = URLRequest(url: baseURL.appending(path: "/v1/app-attest/verify"))
             verify.httpMethod = "POST"
             verify.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -433,6 +440,8 @@ final class ProBackendClient {
                 throw ProBackendError.notAuthenticated
             case 402:
                 throw ProBackendError.subscriptionRequired
+            case 403:
+                throw ProBackendError.deviceIntegrityVerificationFailed
             case 429:
                 throw ProBackendError.usageLimitReached
             default:

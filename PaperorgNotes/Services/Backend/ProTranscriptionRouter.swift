@@ -78,6 +78,13 @@ final class ProTranscriptionRouter {
                 attemptLog.append(
                     "\(provider.identifier): failed after \(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s — \(error.localizedDescription)"
                 )
+                // Integrity failures apply to the device, not a single
+                // provider. Do not retry the same rejected request against
+                // every paid provider.
+                if let backendError = error as? ProBackendError,
+                   case .deviceIntegrityVerificationFailed = backendError {
+                    throw backendError
+                }
             }
         }
 

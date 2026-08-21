@@ -27,9 +27,13 @@ actor AppAttestationService {
         self.keychain = keychain
     }
 
-    func makeAttestation(challenge: Data) async throws -> (keyID: String, object: Data) {
+    /// Use a new key when the server confirms that a previously stored key was
+    /// never registered. Apple permits an attestation only once per key; keeping
+    /// a key whose original attestation was rejected would make every later
+    /// attempt fail before it reaches the server.
+    func makeAttestation(challenge: Data, replacingUnregisteredKey: Bool = false) async throws -> (keyID: String, object: Data) {
         guard service.isSupported else { throw AttestationError.unsupported }
-        let keyID = try await existingOrNewKeyID()
+        let keyID = try await keyIDForAttestation(replacingUnregisteredKey: replacingUnregisteredKey)
         let object = try await withCheckedThrowingContinuation { continuation in
             service.attestKey(keyID, clientDataHash: Data(SHA256.hash(data: challenge))) { object, error in
                 if let object { continuation.resume(returning: object) }
@@ -56,8 +60,11 @@ actor AppAttestationService {
         return (keyID, assertion)
     }
 
-    private func existingOrNewKeyID() async throws -> String {
-        if let keyID = keychain.retrieve(for: .appAttestKeyID) { return keyID }
+    private func keyIDForAttestation(replacingUnregisteredKey: Bool) async throws -> String {
+        if !replacingUnregisteredKey,
+           let keyID = keychain.retrieve(for: .appAttestKeyID) {
+            return keyID
+        }
         let keyID = try await withCheckedThrowingContinuation { continuation in
             service.generateKey { keyID, error in
                 if let keyID { continuation.resume(returning: keyID) }
