@@ -78,6 +78,13 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_ENTITLEMENTS: PaperorgNotes/Resources/PaperorgNotes.entitlements
+      configs:
+        Debug:
+          CODE_SIGN_IDENTITY: "Apple Development"
+        Release:
+          CODE_SIGN_IDENTITY: "Apple Distribution"
+          CODE_SIGN_STYLE: Manual
+          PROVISIONING_PROFILE_SPECIFIER: "Paperorg Notes App Store 2026-08-21"
     dependencies:
       - target: PaperorgNotesWidgetExtension
         embed: true
@@ -108,6 +115,13 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_ENTITLEMENTS: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
         SKIP_INSTALL: YES
+      configs:
+        Debug:
+          CODE_SIGN_IDENTITY: "Apple Development"
+        Release:
+          CODE_SIGN_IDENTITY: "Apple Distribution"
+          CODE_SIGN_STYLE: Manual
+          PROVISIONING_PROFILE_SPECIFIER: "Paperorg Notes Widget App Store 2026-08-21"
 
   PaperorgNotesTests:
     type: bundle.unit-test
