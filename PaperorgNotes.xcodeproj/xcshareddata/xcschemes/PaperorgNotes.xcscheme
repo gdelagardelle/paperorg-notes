@@ -69,7 +69,7 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F00000000000000000000005"
+               BlueprintIdentifier = "90AAB3BB8CFC8F4F9AA5AF7B"
                BuildableName = "PaperorgNotesUITests.xctest"
                BlueprintName = "PaperorgNotesUITests"
                ReferencedContainer = "container:PaperorgNotes.xcodeproj">

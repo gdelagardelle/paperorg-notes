@@ -61,6 +61,33 @@ CREATE TABLE IF NOT EXISTS request_rate_limits (
     PRIMARY KEY (user_id, operation, window_key),
     FOREIGN KEY(user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS rate_limit_windows (
+    bucket TEXT NOT NULL,
+    window_start INTEGER NOT NULL,
+    hits INTEGER NOT NULL,
+    PRIMARY KEY(bucket, window_start)
+);
+
+CREATE TABLE IF NOT EXISTS app_attest_challenges (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    challenge BLOB NOT NULL,
+    challenge_hash BLOB NOT NULL,
+    expires_at TEXT NOT NULL,
+    used_at TEXT,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS app_attest_keys (
+    user_id TEXT NOT NULL,
+    key_id TEXT NOT NULL,
+    public_key_pem TEXT NOT NULL,
+    assertion_counter INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY(user_id, key_id),
+    FOREIGN KEY(user_id) REFERENCES users(id)
+);
 """
 
 _POSTGRES_SCHEMA = """
@@ -106,6 +133,31 @@ CREATE TABLE IF NOT EXISTS request_rate_limits (
     request_count INTEGER NOT NULL DEFAULT 0,
     updated_at TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (user_id, operation, window_key)
+);
+
+CREATE TABLE IF NOT EXISTS rate_limit_windows (
+    bucket TEXT NOT NULL,
+    window_start BIGINT NOT NULL,
+    hits INTEGER NOT NULL,
+    PRIMARY KEY(bucket, window_start)
+);
+
+CREATE TABLE IF NOT EXISTS app_attest_challenges (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    challenge BYTEA NOT NULL,
+    challenge_hash BYTEA NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS app_attest_keys (
+    user_id TEXT NOT NULL REFERENCES users(id),
+    key_id TEXT NOT NULL,
+    public_key_pem TEXT NOT NULL,
+    assertion_counter BIGINT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY(user_id, key_id)
 );
 """
 
@@ -179,10 +231,14 @@ def init_db() -> None:
         conn.executescript(schema)
         if uses_postgres():
             conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS apple_subject TEXT")
+            conn.execute("ALTER TABLE app_attest_challenges ADD COLUMN IF NOT EXISTS challenge BYTEA")
         else:
             columns = conn.execute("PRAGMA table_info(users)").fetchall()
             if "apple_subject" not in {row["name"] for row in columns}:
                 conn.execute("ALTER TABLE users ADD COLUMN apple_subject TEXT")
+            attest_columns = conn.execute("PRAGMA table_info(app_attest_challenges)").fetchall()
+            if attest_columns and "challenge" not in {row["name"] for row in attest_columns}:
+                conn.execute("ALTER TABLE app_attest_challenges ADD COLUMN challenge BLOB")
         conn.execute(
             "CREATE UNIQUE INDEX IF NOT EXISTS users_apple_subject_unique "
             "ON users (apple_subject)"
@@ -412,6 +468,26 @@ def reserve_rate_limited_request(
             (user_id, operation, window_key, utc_now(), max_requests),
         ).fetchone()
         return row is not None
+
+
+def consume_rate_limit(bucket: str, max_requests: int, window_seconds: int, now_epoch: int) -> bool:
+    """Persist a public IP window independently of authenticated-user limits."""
+    window_start = now_epoch - (now_epoch % window_seconds)
+    with connect() as conn:
+        cursor = conn.execute(
+            """INSERT INTO rate_limit_windows (bucket, window_start, hits)
+               VALUES (?, ?, 1)
+               ON CONFLICT(bucket, window_start) DO UPDATE SET hits = rate_limit_windows.hits + 1
+               WHERE rate_limit_windows.hits < ?
+               RETURNING hits""",
+            (bucket, window_start, max_requests),
+        )
+        accepted = cursor.fetchone() is not None
+        conn.execute(
+            "DELETE FROM rate_limit_windows WHERE window_start < ?",
+            (window_start - (window_seconds * 2),),
+        )
+        return accepted
 
 
 def log_subscription_event(

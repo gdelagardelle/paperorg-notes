@@ -1,15 +1,12 @@
-"""Simple in-memory rate limiting for public endpoints."""
+"""Database-backed rate limiting for public endpoints."""
 
 from __future__ import annotations
 
-from collections import defaultdict
-from threading import Lock
 from time import time
 
 from fastapi import HTTPException, Request, status
 
-_lock = Lock()
-_buckets: dict[str, list[float]] = defaultdict(list)
+from database import consume_rate_limit
 
 
 def enforce_rate_limit(
@@ -21,18 +18,8 @@ def enforce_rate_limit(
 ) -> None:
     client = request.client.host if request.client else "unknown"
     key = f"{key_prefix}:{client}"
-    now = time()
-    window_start = now - window_seconds
-
-    with _lock:
-        hits = [stamp for stamp in _buckets[key] if stamp > window_start]
-        if len(hits) >= max_requests:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Too many requests. Try again later.",
-            )
-        hits.append(now)
-        _buckets[key] = hits
+    if not consume_rate_limit(key, max_requests, window_seconds, int(time())):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many requests. Try again later.")
 
 
 def enforce_user_rate_limit(
@@ -43,15 +30,5 @@ def enforce_user_rate_limit(
     window_seconds: int,
 ) -> None:
     key = f"{key_prefix}:{user_key}"
-    now = time()
-    window_start = now - window_seconds
-
-    with _lock:
-        hits = [stamp for stamp in _buckets[key] if stamp > window_start]
-        if len(hits) >= max_requests:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Daily email limit reached. Try again tomorrow.",
-            )
-        hits.append(now)
-        _buckets[key] = hits
+    if not consume_rate_limit(key, max_requests, window_seconds, int(time())):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Daily email limit reached. Try again tomorrow.")

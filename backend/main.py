@@ -1,6 +1,8 @@
 import asyncio
+import base64
 import json
 import math
+from pathlib import Path
 import re
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -11,6 +13,13 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, Upload
 from pydantic import BaseModel, Field
 
 from app_store import AppStoreVerificationError, verify_pro_subscription
+from app_attest import (
+    AppAttestError,
+    create_challenge,
+    has_attested_key,
+    verify_assertion,
+    verify_attestation,
+)
 from app_store_notifications import handle_signed_notification
 from audio_duration import AudioDurationError, duration_seconds
 from auth_utils import (
@@ -82,6 +91,7 @@ class UsageResponse(BaseModel):
     minutes_remaining: float
     period_key: str
     pro_expires_at: Optional[str] = None
+    app_attest_required: bool = False
 
 
 class VerifySubscriptionRequest(BaseModel):
@@ -99,6 +109,12 @@ class SummarizeRequest(BaseModel):
     output_type: str
     language: str
     summary_length: str = "detailed"
+
+
+class AppAttestVerificationRequest(BaseModel):
+    challenge_id: str = Field(min_length=1, max_length=100)
+    key_id: str = Field(min_length=1, max_length=200)
+    attestation_object: str = Field(min_length=1, max_length=100_000)
 
 
 @app.on_event("startup")
@@ -121,6 +137,12 @@ def validate_production_security() -> None:
         raise RuntimeError(
             "Included Free minutes require the Paperorg Platform credential vault."
         )
+    if settings.free_included_minutes_enabled and not settings.app_attest_enabled:
+        raise RuntimeError("Included Free minutes require Apple App Attest.")
+    if settings.free_included_minutes_enabled and not Path(
+        settings.app_attest_root_certificate_path
+    ).is_file():
+        raise RuntimeError("Apple App Attest root certificate is unavailable.")
 
 
 def user_is_pro(user_row) -> bool:
@@ -295,6 +317,30 @@ def record_platform_usage(user, audio_minutes: float, provider: str) -> None:
         )
 
 
+async def require_free_app_attest(request: Request, user, audio_bytes: bytes) -> None:
+    """Require a fresh assertion bound to this route and its audio bytes.
+
+    FastAPI parses multipart uploads before route code runs, so re-reading an
+    exact raw multipart body is neither reliable nor memory-safe. The audio is
+    the cost-bearing payload; binding it together with the endpoint path keeps
+    a captured assertion single-use and unable to authorize another provider.
+    """
+    if not settings.app_attest_enabled or user_is_pro(user):
+        return
+    if not user_has_free_included_minutes(user):
+        return
+    challenge_id = request.headers.get("X-Paperorg-App-Attest-Challenge")
+    key_id = request.headers.get("X-Paperorg-App-Attest-Key")
+    assertion = request.headers.get("X-Paperorg-App-Attest-Assertion")
+    if not challenge_id or not key_id or not assertion:
+        raise HTTPException(status_code=403, detail="Device integrity verification is required.")
+    try:
+        protected_payload = request.url.path.encode("utf-8") + audio_bytes
+        verify_assertion(user["id"], challenge_id, key_id, assertion, protected_payload)
+    except AppAttestError as exc:
+        raise HTTPException(status_code=403, detail="Device integrity could not be verified.") from exc
+
+
 async def read_limited_upload(upload: UploadFile, max_bytes: int) -> bytes:
     data = bytearray()
     while True:
@@ -388,6 +434,41 @@ def usage(principal: dict[str, Any] = Depends(get_current_user)) -> UsageRespons
     return build_usage_response(user)
 
 
+@app.post("/v1/app-attest/challenge")
+def app_attest_challenge(principal: dict[str, Any] = Depends(get_current_user)) -> dict[str, str]:
+    if not settings.app_attest_enabled:
+        raise HTTPException(status_code=404, detail="Not found.")
+    principal = require_device_token(principal)
+    user = get_local_user(principal)
+    challenge_id, challenge, expires_at = create_challenge(user["id"])
+    return {"challenge_id": challenge_id, "challenge": base64.b64encode(challenge).decode(), "expires_at": expires_at}
+
+
+@app.get("/v1/app-attest/status")
+def app_attest_status(
+    key_id: Optional[str] = None,
+    principal: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, bool]:
+    if not settings.app_attest_enabled:
+        raise HTTPException(status_code=404, detail="Not found.")
+    principal = require_device_token(principal)
+    user = get_local_user(principal)
+    return {"verified": has_attested_key(user["id"], key_id)}
+
+
+@app.post("/v1/app-attest/verify")
+def app_attest_verify(body: AppAttestVerificationRequest, principal: dict[str, Any] = Depends(get_current_user)) -> dict[str, str]:
+    if not settings.app_attest_enabled:
+        raise HTTPException(status_code=404, detail="Not found.")
+    principal = require_device_token(principal)
+    user = get_local_user(principal)
+    try:
+        verify_attestation(user["id"], body.challenge_id, body.key_id, body.attestation_object)
+    except AppAttestError as exc:
+        raise HTTPException(status_code=403, detail="Device integrity could not be verified.") from exc
+    return {"status": "verified"}
+
+
 def build_usage_response(user) -> UsageResponse:
     is_pro = user_is_pro(user)
     used = get_usage_minutes(user["id"])
@@ -405,6 +486,7 @@ def build_usage_response(user) -> UsageResponse:
         minutes_remaining=max(0.0, limit - used),
         period_key=period_key(),
         pro_expires_at=user["pro_expires_at"],
+        app_attest_required=(settings.app_attest_enabled and user_has_free_included_minutes(user)),
     )
 
 
@@ -490,6 +572,7 @@ def dev_activate(principal: dict[str, Any] = Depends(get_current_user)) -> Usage
 
 @app.post("/v1/transcribe/openai")
 async def transcribe_openai(
+    request: Request,
     file: UploadFile = File(...),
     language: Optional[str] = Form(None),
     prompt: Optional[str] = Form(None),
@@ -501,6 +584,7 @@ async def transcribe_openai(
         raise HTTPException(status_code=503, detail="OpenAI not configured on server.")
 
     audio_bytes = await read_limited_upload(file, MAX_AUDIO_UPLOAD_BYTES)
+    await require_free_app_attest(request, user, audio_bytes)
     try:
         minutes = duration_seconds(audio_bytes) / 60
     except AudioDurationError as exc:
@@ -538,6 +622,7 @@ async def transcribe_openai(
 
 @app.post("/v1/transcribe/elevenlabs")
 async def transcribe_elevenlabs(
+    request: Request,
     file: UploadFile = File(...),
     language_code: Optional[str] = Form(None),
     diarize: bool = Form(False),
@@ -549,6 +634,7 @@ async def transcribe_elevenlabs(
         raise HTTPException(status_code=503, detail="ElevenLabs not configured on server.")
 
     audio_bytes = await read_limited_upload(file, MAX_AUDIO_UPLOAD_BYTES)
+    await require_free_app_attest(request, user, audio_bytes)
     try:
         minutes = duration_seconds(audio_bytes) / 60
     except AudioDurationError as exc:
@@ -584,6 +670,7 @@ async def transcribe_elevenlabs(
 
 @app.post("/v1/transcribe/luxasr")
 async def transcribe_luxasr(
+    request: Request,
     file: UploadFile = File(...),
     language: str = Form("lb"),
     prompt: Optional[str] = Form(None),
@@ -591,6 +678,7 @@ async def transcribe_luxasr(
 ) -> dict[str, Any]:
     user = require_processing_user(principal)
     audio_bytes = await read_limited_upload(file, MAX_AUDIO_UPLOAD_BYTES)
+    await require_free_app_attest(request, user, audio_bytes)
     try:
         minutes = duration_seconds(audio_bytes) / 60
     except AudioDurationError as exc:

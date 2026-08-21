@@ -5,11 +5,13 @@ final class ProBackendClient {
     private let settings: SettingsService
     private let keychain: KeychainService
     private let session: URLSession
+    private let appAttestation: AppAttestationService
 
     init(settings: SettingsService, keychain: KeychainService, session: URLSession = .shared) {
         self.settings = settings
         self.keychain = keychain
         self.session = session
+        self.appAttestation = AppAttestationService(keychain: keychain)
     }
 
     var baseURL: URL {
@@ -179,6 +181,7 @@ final class ProBackendClient {
         request.httpBody = body
         request.timeoutInterval = 300
         try authorize(&request)
+        try await attachAppAttestationIfNeeded(&request, audioPayload: audioData)
 
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
@@ -222,6 +225,7 @@ final class ProBackendClient {
         request.httpBody = body
         request.timeoutInterval = 300
         try authorize(&request)
+        try await attachAppAttestationIfNeeded(&request, audioPayload: audioData)
 
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
@@ -263,6 +267,7 @@ final class ProBackendClient {
         request.httpBody = body
         request.timeoutInterval = 300
         try authorize(&request)
+        try await attachAppAttestationIfNeeded(&request, audioPayload: audioData)
 
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
@@ -367,6 +372,52 @@ final class ProBackendClient {
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     }
 
+    private func attachAppAttestationIfNeeded(_ request: inout URLRequest, audioPayload: Data) async throws {
+        guard settings.cachedProUsage?.appAttestRequired == true else { return }
+        try authorize(&request)
+        let localKeyID = keychain.retrieve(for: .appAttestKeyID)
+        var statusComponents = URLComponents(url: baseURL.appending(path: "/v1/app-attest/status"), resolvingAgainstBaseURL: false)!
+        if let localKeyID {
+            statusComponents.queryItems = [URLQueryItem(name: "key_id", value: localKeyID)]
+        }
+        var statusRequest = URLRequest(url: statusComponents.url!)
+        try authorize(&statusRequest)
+        let (statusData, statusResponse) = try await session.data(for: statusRequest)
+        try validate(response: statusResponse, data: statusData)
+        let attestationStatus = try JSONDecoder().decode(AppAttestStatus.self, from: statusData)
+
+        var challengeRequest = URLRequest(url: baseURL.appending(path: "/v1/app-attest/challenge"))
+        challengeRequest.httpMethod = "POST"
+        try authorize(&challengeRequest)
+        let (challengeData, challengeResponse) = try await session.data(for: challengeRequest)
+        try validate(response: challengeResponse, data: challengeData)
+        let challenge = try JSONDecoder().decode(AppAttestChallenge.self, from: challengeData)
+        guard let rawChallenge = Data(base64Encoded: challenge.challenge) else { throw ProBackendError.serverError("Invalid device verification challenge.") }
+        if !attestationStatus.verified {
+            let proof = try await appAttestation.makeAttestation(challenge: rawChallenge)
+            var verify = URLRequest(url: baseURL.appending(path: "/v1/app-attest/verify"))
+            verify.httpMethod = "POST"
+            verify.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            try authorize(&verify)
+            verify.httpBody = try JSONEncoder().encode(AppAttestVerification(challengeID: challenge.challengeID, keyID: proof.keyID, attestationObject: proof.object.base64EncodedString()))
+            let (data, response) = try await session.data(for: verify)
+            try validate(response: response, data: data)
+            // Attestation consumes its challenge. Obtain a new one for the
+            // assertion that protects the actual transcription request.
+            try await attachAppAttestationIfNeeded(&request, audioPayload: audioPayload)
+            return
+        }
+        // URLSession sends multipart bodies as a stream, while FastAPI parses
+        // that stream before the route handler. Bind the one-time proof to the
+        // audio bytes and route path instead of relying on a second raw-body read.
+        var protectedPayload = Data(request.url?.path.utf8 ?? "".utf8)
+        protectedPayload.append(audioPayload)
+        let assertion = try await appAttestation.makeAssertion(challenge: rawChallenge, protectedPayload: protectedPayload)
+        request.setValue(challenge.challengeID, forHTTPHeaderField: "X-Paperorg-App-Attest-Challenge")
+        request.setValue(assertion.keyID, forHTTPHeaderField: "X-Paperorg-App-Attest-Key")
+        request.setValue(assertion.assertion.base64EncodedString(), forHTTPHeaderField: "X-Paperorg-App-Attest-Assertion")
+    }
+
     private func validate(response: URLResponse, data: Data) throws {
         guard let http = response as? HTTPURLResponse else {
             throw ProBackendError.serverError("Invalid server response.")
@@ -448,4 +499,21 @@ private struct VerifySubscriptionRequest: Encodable {
 
 private struct ErrorResponse: Decodable {
     let detail: String
+}
+
+private struct AppAttestChallenge: Decodable {
+    let challengeID: String
+    let challenge: String
+    enum CodingKeys: String, CodingKey { case challengeID = "challenge_id", challenge }
+}
+
+private struct AppAttestStatus: Decodable {
+    let verified: Bool
+}
+
+private struct AppAttestVerification: Encodable {
+    let challengeID: String
+    let keyID: String
+    let attestationObject: String
+    enum CodingKeys: String, CodingKey { case challengeID = "challenge_id", keyID = "key_id", attestationObject = "attestation_object" }
 }

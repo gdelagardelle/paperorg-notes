@@ -40,5 +40,17 @@ def test_production_allows_configured_free_minutes(monkeypatch):
     monkeypatch.setattr(settings, "free_included_minutes_enabled", True)
     monkeypatch.setattr(settings, "platform_api_url", "https://poplatform.paperorg.com")
     monkeypatch.setattr(settings, "platform_internal_token", "internal-token")
+    monkeypatch.setattr(settings, "app_attest_enabled", True)
 
     main.validate_production_security()
+
+
+def test_free_minutes_require_app_attest(monkeypatch):
+    configure_production(monkeypatch)
+    monkeypatch.setattr(settings, "free_included_minutes_enabled", True)
+    monkeypatch.setattr(settings, "platform_api_url", "https://poplatform.paperorg.com")
+    monkeypatch.setattr(settings, "platform_internal_token", "internal-token")
+    monkeypatch.setattr(settings, "app_attest_enabled", False)
+
+    with pytest.raises(RuntimeError, match="App Attest"):
+        main.validate_production_security()

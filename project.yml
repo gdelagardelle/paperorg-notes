@@ -25,11 +25,13 @@ settings:
       PAPERORG_PRO_BACKEND_URL: "http://127.0.0.1:8080"
       PAPERORG_PLATFORM_API_URL: "http://127.0.0.1:8000"
       PAPERORG_USE_PLATFORM_AUTH: "NO"
+      APP_ATTEST_ENVIRONMENT: development
     Release:
       # Release stays on the legacy backend until the Phase C/D cutover.
       PAPERORG_PRO_BACKEND_URL: "https://notes-api.paperorg.com"
       PAPERORG_PLATFORM_API_URL: "https://poplatform.paperorg.com"
       PAPERORG_USE_PLATFORM_AUTH: "NO"
+      APP_ATTEST_ENVIRONMENT: production
 
 targets:
   PaperorgNotes:
@@ -44,6 +46,7 @@ targets:
           - group.com.paperorg.notes
         com.apple.developer.applesignin:
           - Default
+        com.apple.developer.devicecheck.appattest-environment: $(APP_ATTEST_ENVIRONMENT)
     info:
       path: PaperorgNotes/Resources/Info.plist
       properties:
@@ -118,6 +121,18 @@ targets:
     dependencies:
       - target: PaperorgNotes
 
+  PaperorgNotesUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: PaperorgNotesUITests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.notes.uitests
+    dependencies:
+      - target: PaperorgNotes
+
 schemes:
   PaperorgNotes:
     build:
@@ -130,3 +145,4 @@ schemes:
     test:
       targets:
         - PaperorgNotesTests
+        - PaperorgNotesUITests

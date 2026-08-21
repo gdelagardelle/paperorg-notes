@@ -30,6 +30,7 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
     let minutesRemaining: Double
     let periodKey: String
     let proExpiresAt: String?
+    let appAttestRequired: Bool
 
     enum CodingKeys: String, CodingKey {
         case isPro = "is_pro"
@@ -38,6 +39,7 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         case minutesRemaining = "minutes_remaining"
         case periodKey = "period_key"
         case proExpiresAt = "pro_expires_at"
+        case appAttestRequired = "app_attest_required"
     }
 
     init(
@@ -46,7 +48,8 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         minutesUsed: Double,
         minutesRemaining: Double,
         periodKey: String,
-        proExpiresAt: String?
+        proExpiresAt: String?,
+        appAttestRequired: Bool = false
     ) {
         self.isPro = isPro
         self.minutesLimit = minutesLimit
@@ -54,6 +57,7 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         self.minutesRemaining = minutesRemaining
         self.periodKey = periodKey
         self.proExpiresAt = proExpiresAt
+        self.appAttestRequired = appAttestRequired
     }
 
     /// Decodes both the legacy Notes backend shape (flat fields, integer
@@ -71,6 +75,7 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
             minutesRemaining = minutes?.remaining ?? 0
             periodKey = try platform.decode(String.self, forKey: .periodKey)
             proExpiresAt = try platform.decodeIfPresent(String.self, forKey: .proExpiresAt)
+            appAttestRequired = false
             return
         }
 
@@ -89,6 +94,7 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         }
         periodKey = try container.decodeIfPresent(String.self, forKey: .periodKey) ?? Self.defaultPeriodKey()
         proExpiresAt = try container.decodeIfPresent(String.self, forKey: .proExpiresAt)
+        appAttestRequired = try container.decodeIfPresent(Bool.self, forKey: .appAttestRequired) ?? false
     }
 
     private static func defaultPeriodKey() -> String {
@@ -103,6 +109,7 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         case isPro = "is_pro"
         case periodKey = "period_key"
         case proExpiresAt = "pro_expires_at"
+        case appAttestRequired = "app_attest_required"
     }
 
     private struct PlatformMetric: Decodable {

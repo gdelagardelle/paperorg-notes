@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,6 +23,15 @@ class Settings(BaseSettings):
     free_minutes_per_month: int = 30
     free_vocabulary_limit: int = 20
     transcription_requests_per_15_minutes: int = 12
+
+    # App Attest is fail-closed when Free minutes are enabled. The root
+    # certificate is provisioned on the server, never shipped to iOS.
+    app_attest_enabled: bool = False
+    app_attest_team_id: str = "3N4Q2GQ558"
+    app_attest_root_certificate_path: str = str(
+        Path(__file__).parent / "certs" / "Apple_App_Attestation_Root_CA.pem"
+    )
+    app_attest_challenge_ttl_seconds: int = 300
 
     apple_bundle_id: str = "com.paperorg.notes"
     apple_pro_product_id: str = "com.paperorg.notes.pro.monthly"

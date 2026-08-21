@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		F00000000000000000000001 /* PaperorgNotesUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000002 /* PaperorgNotesUITests.swift */; };
 		026EFC7E07DD0201D8FBD951 /* NoteDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E171CA6AC03EC4611DD5EB2 /* NoteDetailView.swift */; };
 		02ECA3A767DDA35414C2E876 /* TranscriptionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC82CA43248D13335C7DBE96 /* TranscriptionProvider.swift */; };
 		04CFA2851125FEF94203EB4F /* Note.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76B3C01618A0601C86CA1CF7 /* Note.swift */; };
@@ -54,10 +53,12 @@
 		958031920000A50C401A194D /* RecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C32F8A10B9DF8469B8745043 /* RecordView.swift */; };
 		96EE2A629E724164161E4373 /* PaperorgNotesWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829314BC54DCB82DDAC7E449 /* PaperorgNotesWidgetBundle.swift */; };
 		99E2BC589319777947514DAF /* OpenAITranscriptionProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */; };
+		A1707F59E19907357EBB908B /* AppAttestationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 490229135857992775295156 /* AppAttestationService.swift */; };
 		AA416AB7CAD44329FD134834 /* SubscriptionPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */; };
 		AD3AD30C810BF4155A7C4FEC /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D34CD6703E1B9404B252C40 /* Enums.swift */; };
 		ADC9EA453F99A4C9066C2A90 /* PrivacyConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4CCE7823C18246EF50175B /* PrivacyConsentView.swift */; };
 		ADD2EECA433DF2B4E19B3A2B /* QuickRecordSharedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96C7CBD0EF7A5A63DF8FC5 /* QuickRecordSharedStore.swift */; };
+		AF9BE5C6D33E9B4AA140EFE8 /* PaperorgNotesUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B57873956B55ED42E219D87 /* PaperorgNotesUITests.swift */; };
 		B2A3392EF299E2B52340BD1A /* NotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B6B8DF7F1EC58D388ACDC88 /* NotesListView.swift */; };
 		B528AA9EBC95FD71061FEFD0 /* MailComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65181023F293D9C4ACE28EEB /* MailComposeView.swift */; };
 		B56F621E4D48F4CF8B8AC067 /* SMTPEmailDeliveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0D2034A23A4CA8E571D5F4 /* SMTPEmailDeliveryService.swift */; };
@@ -85,13 +86,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		F00000000000000000000008 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 2C523E156D6DF25FD720FA1F /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE9B446B39A3F4D51D8E920C;
-			remoteInfo = PaperorgNotes;
-		};
 		09E1EF747357DC66A1285478 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 2C523E156D6DF25FD720FA1F /* Project object */;
@@ -105,6 +99,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = AB87B253C8F1B026D3F065F5;
 			remoteInfo = PaperorgNotesWidgetExtension;
+		};
+		5C0B66E7B514F8DCAB823B50 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2C523E156D6DF25FD720FA1F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE9B446B39A3F4D51D8E920C;
+			remoteInfo = PaperorgNotes;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -123,10 +124,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		F00000000000000000000002 /* PaperorgNotesUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesUITests.swift; sourceTree = "<group>"; };
-		F00000000000000000000003 /* PaperorgNotesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PaperorgNotesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		015CA9C9BF4BA1A913E6E87E /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
-		073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0A2776891AC1FF283C722736 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		0C9BD304B8AD3F3CF47BD303 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		10F451B9CE45F448ED5357EA /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
@@ -134,11 +133,12 @@
 		15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionPlan.swift; sourceTree = "<group>"; };
 		1720A754F02F5E075400BFF0 /* SummaryJSONParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryJSONParser.swift; sourceTree = "<group>"; };
 		182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionProvider.swift; sourceTree = "<group>"; };
+		1AD992980EEB462DBEF81EC0 /* PaperorgNotesUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PaperorgNotesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E96C7CBD0EF7A5A63DF8FC5 /* QuickRecordSharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecordSharedStore.swift; sourceTree = "<group>"; };
 		1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteNoteUseCase.swift; sourceTree = "<group>"; };
 		23130EAFD410A3FED41D40AC /* ProUsageCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProUsageCard.swift; sourceTree = "<group>"; };
 		24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanSelectionView.swift; sourceTree = "<group>"; };
-		26A44276A0E661C5F8BAD71E /* PaperorgPro.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = PaperorgPro.storekit; sourceTree = "<group>"; };
+		26A44276A0E661C5F8BAD71E /* PaperorgPro.storekit */ = {isa = PBXFileReference; path = PaperorgPro.storekit; sourceTree = "<group>"; };
 		2A5F341369B3D0BDA7654913 /* ProTranscriptionRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProTranscriptionRouter.swift; sourceTree = "<group>"; };
 		2A7A286993897E5DE6FB106C /* AppDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDesignSystem.swift; sourceTree = "<group>"; };
 		2BF5DBF0A62BECF4981A7BE7 /* ReviewBeforeSendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewBeforeSendView.swift; sourceTree = "<group>"; };
@@ -152,7 +152,9 @@
 		382E43B13BC104B0DC4917A5 /* ExportBranding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportBranding.swift; sourceTree = "<group>"; };
 		411E38DDB48629A61AEDDAA8 /* NoteAudioPlayerSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteAudioPlayerSection.swift; sourceTree = "<group>"; };
 		47612546C77D2EBA71ED4283 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
-		4870B2B5145972BC95567F38 /* PaperorgNotes.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PaperorgNotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4870B2B5145972BC95567F38 /* PaperorgNotes.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PaperorgNotes.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		490229135857992775295156 /* AppAttestationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAttestationService.swift; sourceTree = "<group>"; };
+		4B57873956B55ED42E219D87 /* PaperorgNotesUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesUITests.swift; sourceTree = "<group>"; };
 		4B6B8DF7F1EC58D388ACDC88 /* NotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesListView.swift; sourceTree = "<group>"; };
 		5129B0C96608861776DCB9EC /* ExportBrandingSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportBrandingSettingsSection.swift; sourceTree = "<group>"; };
 		565A7124A59F839DA2119477 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
@@ -250,7 +252,7 @@
 			children = (
 				CECE5466C3B7E0A7B2B9FEDF /* PaperorgNotes */,
 				57B69C801314659AC6FAB746 /* PaperorgNotesTests */,
-				F00000000000000000000004 /* PaperorgNotesUITests */,
+				B50D4E5836492E323718129E /* PaperorgNotesUITests */,
 				5319BEDC57964CBD273F9FE9 /* PaperorgNotesWidget */,
 				B8C9318A8A1BBCB892294AE8 /* Products */,
 			);
@@ -263,6 +265,7 @@
 				3AA2CE636883B8AF263721D1 /* Email */,
 				14A1EB76882F063FC0A728D5 /* Export */,
 				909DA3D8B92FBD36BB74CAD5 /* Recording */,
+				52C1DE0528741FBE1E5F7C88 /* Security */,
 				358E0A97B38B4C6403F0B30D /* Settings */,
 				1A1F1CEAAB7521ABF392EF76 /* Storage */,
 				360C28AB8DD6643ACDF01D6B /* Subscription */,
@@ -384,6 +387,14 @@
 			path = Search;
 			sourceTree = "<group>";
 		};
+		52C1DE0528741FBE1E5F7C88 /* Security */ = {
+			isa = PBXGroup;
+			children = (
+				490229135857992775295156 /* AppAttestationService.swift */,
+			);
+			path = Security;
+			sourceTree = "<group>";
+		};
 		5319BEDC57964CBD273F9FE9 /* PaperorgNotesWidget */ = {
 			isa = PBXGroup;
 			children = (
@@ -402,14 +413,6 @@
 				93893A2E19AAAF5CE666C272 /* PaperorgNotesTests.swift */,
 			);
 			path = PaperorgNotesTests;
-			sourceTree = "<group>";
-		};
-		F00000000000000000000004 /* PaperorgNotesUITests */ = {
-			isa = PBXGroup;
-			children = (
-				F00000000000000000000002 /* PaperorgNotesUITests.swift */,
-			);
-			path = PaperorgNotesUITests;
 			sourceTree = "<group>";
 		};
 		73D8A1100EC4314B21F6CA9E /* Record */ = {
@@ -464,12 +467,20 @@
 			path = Intents;
 			sourceTree = "<group>";
 		};
+		B50D4E5836492E323718129E /* PaperorgNotesUITests */ = {
+			isa = PBXGroup;
+			children = (
+				4B57873956B55ED42E219D87 /* PaperorgNotesUITests.swift */,
+			);
+			path = PaperorgNotesUITests;
+			sourceTree = "<group>";
+		};
 		B8C9318A8A1BBCB892294AE8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				4870B2B5145972BC95567F38 /* PaperorgNotes.app */,
 				2D726C5822C87F122AA6765A /* PaperorgNotesTests.xctest */,
-				F00000000000000000000003 /* PaperorgNotesUITests.xctest */,
+				1AD992980EEB462DBEF81EC0 /* PaperorgNotesUITests.xctest */,
 				74C446E4F10FD42ACD134C39 /* PaperorgNotesWidgetExtension.appex */,
 			);
 			name = Products;
@@ -547,24 +558,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		F00000000000000000000005 /* PaperorgNotesUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = F0000000000000000000000B /* Build configuration list for PBXNativeTarget "PaperorgNotesUITests" */;
-			buildPhases = (
-				F00000000000000000000006 /* Sources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				F00000000000000000000007 /* PBXTargetDependency */,
-			);
-			name = PaperorgNotesUITests;
-			packageProductDependencies = (
-			);
-			productName = PaperorgNotesUITests;
-			productReference = F00000000000000000000003 /* PaperorgNotesUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 		017874723AFC7C132C772952 /* PaperorgNotesTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 96E7ED7DF66020373F609C52 /* Build configuration list for PBXNativeTarget "PaperorgNotesTests" */;
@@ -582,6 +575,24 @@
 			productName = PaperorgNotesTests;
 			productReference = 2D726C5822C87F122AA6765A /* PaperorgNotesTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		90AAB3BB8CFC8F4F9AA5AF7B /* PaperorgNotesUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6476ED63E9C351340D142B72 /* Build configuration list for PBXNativeTarget "PaperorgNotesUITests" */;
+			buildPhases = (
+				15C5C799A8C0ACE8BF53F892 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1F7A497F789CCACD655EA213 /* PBXTargetDependency */,
+			);
+			name = PaperorgNotesUITests;
+			packageProductDependencies = (
+			);
+			productName = PaperorgNotesUITests;
+			productReference = 1AD992980EEB462DBEF81EC0 /* PaperorgNotesUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		AB87B253C8F1B026D3F065F5 /* PaperorgNotesWidgetExtension */ = {
 			isa = PBXNativeTarget;
@@ -634,7 +645,7 @@
 						DevelopmentTeam = 3N4Q2GQ558;
 						ProvisioningStyle = Automatic;
 					};
-					F00000000000000000000005 = {
+					90AAB3BB8CFC8F4F9AA5AF7B = {
 						DevelopmentTeam = 3N4Q2GQ558;
 						ProvisioningStyle = Automatic;
 						TestTargetID = CE9B446B39A3F4D51D8E920C;
@@ -657,6 +668,8 @@
 				de,
 				en,
 				fr,
+				lb,
+				pt,
 			);
 			mainGroup = 1BEEBBC2971557B8219F1080;
 			minimizedProjectReferenceProxies = 1;
@@ -667,7 +680,7 @@
 			targets = (
 				CE9B446B39A3F4D51D8E920C /* PaperorgNotes */,
 				017874723AFC7C132C772952 /* PaperorgNotesTests */,
-				F00000000000000000000005 /* PaperorgNotesUITests */,
+				90AAB3BB8CFC8F4F9AA5AF7B /* PaperorgNotesUITests */,
 				AB87B253C8F1B026D3F065F5 /* PaperorgNotesWidgetExtension */,
 			);
 		};
@@ -697,18 +710,11 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		F00000000000000000000006 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				F00000000000000000000001 /* PaperorgNotesUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		0A44FB0B27989E33CBAF2608 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1707F59E19907357EBB908B /* AppAttestationService.swift in Sources */,
 				5D9B4272A0E335AADB6CDDFB /* AppConstants.swift in Sources */,
 				530DB2E781C62C66C6952C17 /* AppDesignSystem.swift in Sources */,
 				129CE3D23578AA4B51A0B063 /* AppEnvironment.swift in Sources */,
@@ -776,6 +782,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		15C5C799A8C0ACE8BF53F892 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AF9BE5C6D33E9B4AA140EFE8 /* PaperorgNotesUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1B39B88B6AB932EA0D956E58 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -796,10 +810,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		F00000000000000000000007 /* PBXTargetDependency */ = {
+		1F7A497F789CCACD655EA213 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE9B446B39A3F4D51D8E920C /* PaperorgNotes */;
-			targetProxy = F00000000000000000000008 /* PBXContainerItemProxy */;
+			targetProxy = 5C0B66E7B514F8DCAB823B50 /* PBXContainerItemProxy */;
 		};
 		2E74E6C790CDA9CF7CB43DD4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -814,42 +828,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		F00000000000000000000009 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3N4Q2GQ558;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.uitests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = PaperorgNotes;
-			};
-			name = Debug;
-		};
-		F0000000000000000000000A /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 3N4Q2GQ558;
-				GENERATE_INFOPLIST_FILE = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.uitests;
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = PaperorgNotes;
-			};
-			name = Release;
-		};
 		3CF06E151A77119F016C0ECC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -860,15 +838,7 @@
 				CURRENT_PROJECT_VERSION = 42;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Paperorg Notes";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "Paperorg Notes uses Face ID to protect your private notes.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Paperorg Notes needs microphone access to record voice notes and meetings.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Paperorg Notes uses speech recognition for on-device English transcription.";
-				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -884,6 +854,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APP_ATTEST_ENVIRONMENT = production;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -948,6 +919,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APP_ATTEST_ENVIRONMENT = development;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1045,15 +1017,7 @@
 				CURRENT_PROJECT_VERSION = 42;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Paperorg Notes";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "Paperorg Notes uses Face ID to protect your private notes.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Paperorg Notes needs microphone access to record voice notes and meetings.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Paperorg Notes uses speech recognition for on-device English transcription.";
-				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1079,6 +1043,40 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PaperorgNotes.app/PaperorgNotes";
+			};
+			name = Release;
+		};
+		C2823E01C274750421AAF8E1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PaperorgNotes;
+			};
+			name = Debug;
+		};
+		C4EA79824E8622916724544A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PaperorgNotes;
 			};
 			name = Release;
 		};
@@ -1122,11 +1120,11 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F0000000000000000000000B /* Build configuration list for PBXNativeTarget "PaperorgNotesUITests" */ = {
+		6476ED63E9C351340D142B72 /* Build configuration list for PBXNativeTarget "PaperorgNotesUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F00000000000000000000009 /* Debug */,
-				F0000000000000000000000A /* Release */,
+				C2823E01C274750421AAF8E1 /* Debug */,
+				C4EA79824E8622916724544A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
