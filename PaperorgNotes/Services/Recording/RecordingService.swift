@@ -55,16 +55,16 @@ final class RecordingService: NSObject {
         let granted = await requestPermission()
         guard granted else { throw RecordingError.permissionDenied }
 
-        try configureAudioSession()
-
-        sessionId = UUID()
-        currentNoteId = noteId
-        recorderHasFinished = false
-        tempURL = storage.recordingsDirectory.appendingPathComponent("temp-\(sessionId.uuidString).m4a")
-
-        guard let url = tempURL else { throw RecordingError.setupFailed("Invalid temp URL") }
-
         do {
+            try configureAudioSession()
+
+            sessionId = UUID()
+            currentNoteId = noteId
+            recorderHasFinished = false
+            tempURL = storage.recordingsDirectory.appendingPathComponent("temp-\(sessionId.uuidString).m4a")
+
+            guard let url = tempURL else { throw RecordingError.setupFailed("Invalid temp URL") }
+
             recorder = try AVAudioRecorder(url: url, settings: Self.recorderSettings)
             recorder?.delegate = self
             recorder?.isMeteringEnabled = true
@@ -81,9 +81,8 @@ final class RecordingService: NSObject {
             persistCheckpoint()
             persistActiveSession()
         } catch {
-            recorder = nil
-            tempURL = nil
-            currentNoteId = nil
+            deactivateAudioSession()
+            resetState()
             throw RecordingError.setupFailed(error.localizedDescription)
         }
     }
@@ -128,6 +127,19 @@ final class RecordingService: NSObject {
         }
 
         isStoppingIntentionally = true
+        defer {
+            isStoppingIntentionally = false
+            stopFinishContinuation = nil
+            deactivateAudioSession()
+
+            // A failed finalization must not leave the microphone reserved or
+            // make the next recording appear to still be in progress. The
+            // checkpoint remains available for recovery in that case.
+            if state != .idle {
+                resetState()
+            }
+        }
+
         timer?.invalidate()
         timer = nil
 
@@ -135,13 +147,20 @@ final class RecordingService: NSObject {
             await withCheckedContinuation { continuation in
                 stopFinishContinuation = continuation
                 recorder?.stop()
+
+                // AVAudioRecorder normally invokes its delegate immediately
+                // after stop(). Never keep the audio session active forever if
+                // the system omits that callback during an interruption.
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    guard let self, self.stopFinishContinuation != nil else { return }
+                    self.stopFinishContinuation?.resume()
+                    self.stopFinishContinuation = nil
+                }
             }
         } else {
             recorder?.stop()
         }
-
-        isStoppingIntentionally = false
-        stopFinishContinuation = nil
 
         syncDurationFromRecorder()
 
@@ -154,21 +173,23 @@ final class RecordingService: NSObject {
 
         resetState()
 
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-
         return (noteId, finalURL, finalDuration)
     }
 
     func cancel() {
         isStoppingIntentionally = true
+        defer {
+            isStoppingIntentionally = false
+            stopFinishContinuation = nil
+            deactivateAudioSession()
+            resetState()
+        }
+
         recorder?.stop()
         timer?.invalidate()
         if let temp = tempURL { try? FileManager.default.removeItem(at: temp) }
         storage.deleteCheckpoint(sessionId: sessionId)
         clearActiveSession()
-        isStoppingIntentionally = false
-        stopFinishContinuation = nil
-        resetState()
     }
 
     /// Finalizes recordings left behind by an interrupted app session.
@@ -245,7 +266,14 @@ final class RecordingService: NSObject {
             mode: .spokenAudio,
             options: [.defaultToSpeaker, .allowBluetoothHFP, .duckOthers]
         )
-        try session.setActive(true, options: .notifyOthersOnDeactivation)
+        try session.setActive(true)
+    }
+
+    private func deactivateAudioSession() {
+        try? AVAudioSession.sharedInstance().setActive(
+            false,
+            options: .notifyOthersOnDeactivation
+        )
     }
 
     private func startTimer() {
@@ -469,6 +497,8 @@ extension RecordingService: AVAudioRecorderDelegate {
 
     nonisolated func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
         Task { @MainActor in
+            guard recorder === self.recorder else { return }
+
             if isStoppingIntentionally {
                 syncDurationFromRecorder()
                 stopFinishContinuation?.resume()
