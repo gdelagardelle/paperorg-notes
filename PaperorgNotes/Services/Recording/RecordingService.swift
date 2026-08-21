@@ -407,7 +407,16 @@ final class RecordingService: NSObject {
     }
 
     private func handleAppBackgrounding() {
-        guard state != .idle else { return }
+        // The app declares the audio background mode so an active recording can
+        // continue when the screen locks. Once recording has stopped, however,
+        // it must not retain its recording session while idle in the background.
+        // A screen lock after processing otherwise leaves the app eligible to
+        // keep the input route, preventing Voice Memos and the next recording
+        // from acquiring the microphone.
+        guard state != .idle else {
+            releaseRecorderAndDeactivateAudioSession()
+            return
+        }
         syncDurationFromRecorder()
         persistCheckpoint()
     }
