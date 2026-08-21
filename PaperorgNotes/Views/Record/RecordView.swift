@@ -488,7 +488,7 @@ struct RecordView: View {
     }
 
     private func scheduleQuickRecordIfNeeded() {
-        guard environment.deepLinkHandler.pendingQuickRecord else { return }
+        guard environment.deepLinkHandler.hasFreshQuickRecordRequest() else { return }
         guard scenePhase == .active else { return }
 
         quickRecordTask?.cancel()
@@ -504,7 +504,7 @@ struct RecordView: View {
 
     @MainActor
     private func handleQuickRecordRequestIfNeeded() async {
-        guard environment.deepLinkHandler.pendingQuickRecord else { return }
+        guard environment.deepLinkHandler.hasFreshQuickRecordRequest() else { return }
         guard environment.recordingService.state == .idle, !showProcessing else {
             showQuickRecordQueued = true
             return

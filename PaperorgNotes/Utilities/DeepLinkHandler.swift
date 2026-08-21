@@ -4,6 +4,11 @@ import SwiftUI
 @Observable
 @MainActor
 final class DeepLinkHandler {
+    /// A Quick Record request is an explicit, near-immediate user action. It
+    /// must never start the microphone later after a long-running operation
+    /// has completed in the background.
+    private static let quickRecordAutoStartLifetime: TimeInterval = 15
+
     var pendingQuickRecord = false
     var selectedTab = 0
 
@@ -22,8 +27,27 @@ final class DeepLinkHandler {
         let defaults = appGroupDefaults
         if defaults.bool(forKey: QuickRecordSharedStore.pendingKey) {
             pendingQuickRecord = true
-            selectedTab = 0
+            if hasFreshQuickRecordRequest() {
+                selectedTab = 0
+            } else {
+                clearQuickRecordFlag()
+            }
         }
+    }
+
+    /// Returns whether this request is still close enough to the user's
+    /// explicit widget, Siri, or deep-link action to start audio capture.
+    /// Stale requests are cleared rather than being queued until processing
+    /// completes, which prevents an unattended microphone restart.
+    func hasFreshQuickRecordRequest() -> Bool {
+        guard pendingQuickRecord else { return false }
+        let requestedAt = appGroupDefaults.double(forKey: QuickRecordSharedStore.requestedAtKey)
+        let age = Date().timeIntervalSince1970 - requestedAt
+        guard requestedAt > 0, age >= 0, age <= Self.quickRecordAutoStartLifetime else {
+            clearQuickRecordFlag()
+            return false
+        }
+        return true
     }
 
     func markQuickRecordPending(clearingPreferences: Bool = false) {
