@@ -43,6 +43,7 @@ final class SettingsService {
         static let exportBrandSubtitle = "exportBrandSubtitle"
         static let cachedProUsage = "cachedProUsage"
         static let platformUserID = "platformUserID"
+        static let subscriptionTokenBackendURL = "subscriptionTokenBackendURL"
         static let hasSeenIncludedMinutesUpgradePrompt = "hasSeenIncludedMinutesUpgradePrompt"
     }
     
@@ -209,6 +210,18 @@ final class SettingsService {
         }
     }
 
+    /// The service that issued the Keychain token. This prevents an app update
+    /// from sending an old Notes-server token to the Platform (or vice versa).
+    var subscriptionTokenBackendURL: String? {
+        didSet {
+            if let subscriptionTokenBackendURL {
+                defaults.set(subscriptionTokenBackendURL, forKey: Keys.subscriptionTokenBackendURL)
+            } else {
+                defaults.removeObject(forKey: Keys.subscriptionTokenBackendURL)
+            }
+        }
+    }
+
     var hasSeenIncludedMinutesUpgradePrompt: Bool {
         didSet { defaults.set(hasSeenIncludedMinutesUpgradePrompt, forKey: Keys.hasSeenIncludedMinutesUpgradePrompt) }
     }
@@ -363,16 +376,15 @@ final class SettingsService {
             self.hasCompletedPlanSelection = false
         }
         self.platformUserID = defaults.string(forKey: Keys.platformUserID)
+        self.subscriptionTokenBackendURL = defaults.string(forKey: Keys.subscriptionTokenBackendURL)
         self.hasSeenIncludedMinutesUpgradePrompt = defaults.bool(forKey: Keys.hasSeenIncludedMinutesUpgradePrompt)
         self.proBackendBaseURL = defaults.string(forKey: Keys.proBackendBaseURL)
             ?? BackendConfiguration.defaultProBackendURL
         self.platformAPIBaseURL = defaults.string(forKey: Keys.platformAPIBaseURL)
             ?? BackendConfiguration.defaultPlatformAPIURL
-        if defaults.object(forKey: Keys.usePlatformAuth) != nil {
-            self.usePlatformAuth = defaults.bool(forKey: Keys.usePlatformAuth)
-        } else {
-            self.usePlatformAuth = BackendConfiguration.usePlatformAuthByDefault
-        }
+        // The auth service is an app-release decision, not a user preference.
+        // Always honor the bundled value so an update can safely migrate users.
+        self.usePlatformAuth = BackendConfiguration.usePlatformAuthByDefault
         self.exportBrandName = defaults.string(forKey: Keys.exportBrandName) ?? "Paperorg Notes"
         self.exportBrandSubtitle = defaults.string(forKey: Keys.exportBrandSubtitle) ?? ""
     }
@@ -479,6 +491,7 @@ final class SettingsService {
         cachedProUsage = nil
         hasSeenIncludedMinutesUpgradePrompt = false
         platformUserID = nil
+        subscriptionTokenBackendURL = nil
         usePlatformAuth = BackendConfiguration.usePlatformAuthByDefault
         platformAPIBaseURL = BackendConfiguration.defaultPlatformAPIURL
         proBackendBaseURL = BackendConfiguration.defaultProBackendURL

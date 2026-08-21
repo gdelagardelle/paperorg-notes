@@ -23,9 +23,15 @@ final class ProBackendClient {
     }
 
     func ensureRegistered() async throws {
-        if keychain.retrieve(for: .proAccessToken) != nil {
+        let expectedIssuer = settings.subscriptionBackendBaseURL
+        if keychain.retrieve(for: .proAccessToken) != nil,
+           settings.subscriptionTokenBackendURL == expectedIssuer {
             return
         }
+        // A Platform migration must never reuse a token from the legacy Notes
+        // backend. The issuer is stored separately from the token itself.
+        keychain.delete(for: .proAccessToken)
+        settings.subscriptionTokenBackendURL = nil
         _ = try await register()
     }
 
@@ -43,6 +49,7 @@ final class ProBackendClient {
 
         let payload = try JSONDecoder().decode(RegisterResponse.self, from: data)
         try keychain.save(payload.accessToken, for: .proAccessToken)
+        settings.subscriptionTokenBackendURL = settings.subscriptionBackendBaseURL
         settings.cachedProUsage = payload.usageInfo
         if let userID = payload.userID {
             settings.platformUserID = userID
@@ -52,6 +59,11 @@ final class ProBackendClient {
 
     @discardableResult
     func signInWithApple(identityToken: String) async throws -> ProUsageInfo {
+        if settings.usePlatformAuth {
+            // Platform account linking is bound to the current installation
+            // token as well as the verified Apple identity token.
+            try await ensureRegistered()
+        }
         var request = URLRequest(url: subscriptionBaseURL.appending(path: "/v1/auth/apple"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -59,11 +71,15 @@ final class ProBackendClient {
             "identity_token": identityToken,
             "device_id": settings.deviceID
         ])
+        if settings.usePlatformAuth {
+            try authorize(&request)
+        }
 
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
         let payload = try JSONDecoder().decode(RegisterResponse.self, from: data)
         try keychain.save(payload.accessToken, for: .proAccessToken)
+        settings.subscriptionTokenBackendURL = settings.subscriptionBackendBaseURL
         settings.cachedProUsage = payload.usageInfo
         settings.platformUserID = payload.userID
         return payload.usageInfo
@@ -130,6 +146,7 @@ final class ProBackendClient {
 
         // Fresh notes-api token (avoids stale Platform JWT after switching Debug config).
         keychain.delete(for: .proAccessToken)
+        settings.subscriptionTokenBackendURL = nil
         try await ensureRegistered()
         var request = URLRequest(url: baseURL.appending(path: "/v1/subscription/dev-activate"))
         request.httpMethod = "POST"
@@ -437,6 +454,7 @@ final class ProBackendClient {
             switch http.statusCode {
             case 401:
                 keychain.delete(for: .proAccessToken)
+                settings.subscriptionTokenBackendURL = nil
                 throw ProBackendError.notAuthenticated
             case 402:
                 throw ProBackendError.subscriptionRequired
