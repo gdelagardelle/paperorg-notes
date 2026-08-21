@@ -28,7 +28,10 @@ enum AudioTrimService {
            player.duration > 0 {
             return player.duration
         }
-        return duration(of: url)
+        // A partial or corrupt recording is not playable. Do not fall back to
+        // another duration helper here: the old fallback called this function
+        // again and overflowed the stack during launch-time recovery.
+        return 0
     }
 
     static func trim(sourceURL: URL, start: TimeInterval, end: TimeInterval) async throws -> URL {

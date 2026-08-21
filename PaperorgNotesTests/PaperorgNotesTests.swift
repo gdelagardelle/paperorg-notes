@@ -16,6 +16,15 @@ import XCTest
 @testable import PaperorgNotes
 
 final class AudioFileReaderTests: XCTestCase {
+    func testMalformedAudioHasZeroPlayableDuration() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("paperorg-invalid-audio-\(UUID().uuidString).m4a")
+        try Data([0x00, 0x01, 0x02, 0x03]).write(to: url, options: .atomic)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        XCTAssertEqual(AudioTrimService.playableDuration(of: url), 0)
+    }
+
     func testQuietAudioIsAmplifiedForTranscription() throws {
         let sourceURL = try makeAudioFile(amplitude: 0.001)
         defer { try? FileManager.default.removeItem(at: sourceURL) }
