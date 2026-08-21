@@ -83,7 +83,7 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section(L10n.Settings.providerSection) {
+                Section {
                     SettingsSectionHint(text: L10n.Settings.proHint)
                 } header: {
                     Text(L10n.Settings.transcriptionSection)
