@@ -3,12 +3,10 @@ import Foundation
 @MainActor
 final class SummaryService {
     private let settings: SettingsService
-    private let keychain: KeychainService
     private let proBackend: ProBackendClient
 
-    init(settings: SettingsService, keychain: KeychainService, proBackend: ProBackendClient) {
+    init(settings: SettingsService, keychain _: KeychainService, proBackend: ProBackendClient) {
         self.settings = settings
-        self.keychain = keychain
         self.proBackend = proBackend
     }
 
@@ -21,54 +19,14 @@ final class SummaryService {
             return .notRequested
         }
 
-        if settings.usesBackendProcessing {
-            return try await generateViaProBackend(
-                transcript: transcript,
-                outputType: outputType,
-                language: language
-            )
+        guard settings.usesBackendProcessing else {
+            throw ProBackendError.subscriptionRequired
         }
-
-        guard settings.isProviderConsented(.openai),
-              let apiKey = settings.openAIAPIKey,
-              !apiKey.isEmpty else {
-            return .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
-        }
-
-        let prompt = buildPrompt(transcript: transcript, outputType: outputType, language: language)
-
-        let requestBody: [String: Any] = [
-            "model": "gpt-4o-mini",
-            "response_format": ["type": "json_object"],
-            "messages": [
-                ["role": "system", "content": systemPrompt],
-                ["role": "user", "content": prompt]
-            ],
-            "temperature": 0.2
-        ]
-
-        var request = URLRequest(url: URL(string: "https://api.openai.com/v1/chat/completions")!)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-        request.timeoutInterval = 120
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            return .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
-        }
-
-        do {
-            var output = try SummaryJSONParser.decodeChatCompletionContent(data).normalized()
-            output = sanitize(output, transcript: transcript)
-            return .generated(makeStructuredOutput(from: output, outputType: outputType))
-        } catch let error as SummaryParseError {
-            throw TranscriptionError.providerError(error.localizedDescription)
-        } catch {
-            return .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
-        }
+        return try await generateViaProBackend(
+            transcript: transcript,
+            outputType: outputType,
+            language: language
+        )
     }
 
     private func generateViaProBackend(

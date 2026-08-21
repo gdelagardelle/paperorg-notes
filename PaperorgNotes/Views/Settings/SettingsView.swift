@@ -6,12 +6,8 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Note.createdAt, order: .reverse) private var notes: [Note]
     @State private var showDeleteConfirmation = false
-    @State private var showProviderConsent: ProviderID?
     @State private var newEmail = ""
     @State private var emailValidationMessage: String?
-    @State private var openAIKey = ""
-    @State private var elevenLabsKey = ""
-    @State private var luxASRKey = ""
     @State private var smtpPassword = ""
     @State private var newVocabularyTerm = ""
     @State private var gdprExportURL: URL?
@@ -88,57 +84,7 @@ struct SettingsView: View {
                 }
                 
                 Section(L10n.Settings.providerSection) {
-                    if environment.subscriptionService.isProActive {
-                        SettingsSectionHint(text: "Your Pro plan includes cloud transcription through Paperorg's secure backend.")
-                    } else {
-                        SettingsSectionHint(text: L10n.Settings.providerHint)
-                    }
-
-                    if !environment.subscriptionService.isProActive {
-                        SecureField(L10n.Settings.openAIKey, text: $openAIKey)
-                            .textContentType(.password)
-                            .onChange(of: openAIKey) { _, val in
-                                settings.openAIAPIKey = val.isEmpty ? nil : val
-                            }
-                        
-                        SecureField(L10n.Settings.elevenLabsKey, text: $elevenLabsKey)
-                            .textContentType(.password)
-                            .onChange(of: elevenLabsKey) { _, val in
-                                settings.elevenLabsAPIKey = val.isEmpty ? nil : val
-                            }
-                        
-                        SecureField(L10n.Settings.luxASRKey, text: $luxASRKey)
-                            .textContentType(.password)
-                            .onChange(of: luxASRKey) { _, val in
-                                settings.luxASRAPIKey = val.isEmpty ? nil : val
-                            }
-                    }
-                    if !environment.subscriptionService.isProActive {
-                        ForEach(ProviderID.allCases, id: \.self) { provider in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(provider.displayName)
-                                        .font(.subheadline)
-                                    Text(provider.sendsAudioOffDevice ? "Sends audio off-device" : "On-device only")
-                                        .font(.caption)
-                                        .foregroundStyle(AppTheme.textSecondary)
-                                }
-                                Spacer()
-                                if settings.isProviderConsented(provider) {
-                                    Button("Revoke") {
-                                        settings.revokeProviderConsent(provider)
-                                    }
-                                    .font(.caption)
-                                    .foregroundStyle(AppTheme.error)
-                                } else {
-                                    Button("Consent") {
-                                        showProviderConsent = provider
-                                    }
-                                    .font(.caption)
-                                }
-                            }
-                        }
-                    }
+                    SettingsSectionHint(text: L10n.Settings.proHint)
                 } header: {
                     Text(L10n.Settings.transcriptionSection)
                 }
@@ -405,7 +351,7 @@ struct SettingsView: View {
             .settingsScreenStyle()
             .navigationTitle(L10n.Settings.title)
             .onAppear {
-                loadKeys()
+                loadSettings()
                 environment.storageService.purgeExpiredAudio(
                     notes: notes,
                     retentionDays: environment.settingsService.effectiveAudioRetentionDays
@@ -420,10 +366,7 @@ struct SettingsView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This permanently deletes all notes, audio, transcripts, and API keys.")
-            }
-            .sheet(item: $showProviderConsent) { provider in
-                ProviderConsentView(provider: provider)
+                Text("This permanently deletes all notes, audio, transcripts, and local settings.")
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
@@ -503,10 +446,7 @@ struct SettingsView: View {
         }
     }
     
-    private func loadKeys() {
-        openAIKey = environment.settingsService.openAIAPIKey ?? ""
-        elevenLabsKey = environment.settingsService.elevenLabsAPIKey ?? ""
-        luxASRKey = environment.settingsService.luxASRAPIKey ?? ""
+    private func loadSettings() {
         smtpPassword = environment.settingsService.smtpPassword ?? ""
         if environment.settingsService.sendEmailAfterTranscription,
            environment.settingsService.smtpHost.isEmpty,

@@ -8,9 +8,9 @@ struct TranscriptionCredentials: Sendable {
     @MainActor
     static func from(_ settings: SettingsService) -> TranscriptionCredentials {
         TranscriptionCredentials(
-            openAIAPIKey: settings.openAIAPIKey,
-            elevenLabsAPIKey: settings.elevenLabsAPIKey,
-            luxASRAPIKey: settings.luxASRAPIKey
+            openAIAPIKey: nil,
+            elevenLabsAPIKey: nil,
+            luxASRAPIKey: nil
         )
     }
 }
@@ -86,86 +86,20 @@ final class TranscriptionOrchestrator {
     }
     
     func transcribe(_ request: TranscriptionRequest) async throws -> TranscriptionResult {
-        if registry.settings.usesBackendProcessing {
-            return try await proRouter.transcribe(request)
+        guard registry.settings.usesBackendProcessing else {
+            throw ProBackendError.subscriptionRequired
         }
-
-        let providers = registry.orderedProviders(for: request.language)
-        guard !providers.isEmpty else {
-            throw TranscriptionError.noProviderAvailable(request.language)
-        }
-        
-        var lastError: Error?
-        var attemptLog: [String] = []
-        let credentials = TranscriptionCredentials.from(registry.settings)
-        
-        for provider in providers {
-            guard let providerId = ProviderID(rawValue: provider.identifier) else { continue }
-            
-            if provider.sendsAudioOffDevice && !registry.settings.isProviderConsented(providerId) {
-                lastError = TranscriptionError.providerNotConsented(providerId)
-                attemptLog.append("\(provider.identifier): skipped — consent missing")
-                continue
-            }
-            
-            guard provider.isConfigured(credentials: credentials) else {
-                lastError = TranscriptionError.missingAPIKey(providerId)
-                attemptLog.append("\(provider.identifier): skipped — API key missing")
-                continue
-            }
-            
-            let startedAt = Date()
-            do {
-                let result = try await provider.transcribe(request, credentials: credentials)
-                guard !result.fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                    throw TranscriptionError.emptyResult
-                }
-                attemptLog.append("\(provider.identifier): succeeded in \(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s")
-                var metadata = result.metadata
-                metadata["attemptLog"] = attemptLog.joined(separator: " | ")
-                return TranscriptionResult(
-                    providerId: result.providerId,
-                    language: result.language,
-                    segments: result.segments,
-                    fullText: result.fullText,
-                    averageConfidence: result.averageConfidence,
-                    processingTimeMs: result.processingTimeMs,
-                    metadata: metadata
-                )
-            } catch {
-                lastError = error
-                attemptLog.append("\(provider.identifier): failed after \(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s — \(error.localizedDescription)")
-                continue
-            }
-        }
-        
-        throw lastError ?? TranscriptionError.noProviderAvailable(request.language)
+        return try await proRouter.transcribe(request)
     }
     
     func retranscribeSegment(
         request: TranscriptionRequest,
         excludingProvider: String
     ) async throws -> TranscriptionResult {
-        if registry.settings.usesBackendProcessing {
-            return try await proRouter.transcribe(request)
+        guard registry.settings.usesBackendProcessing else {
+            throw ProBackendError.subscriptionRequired
         }
-
-        let providers = registry.orderedProviders(for: request.language)
-            .filter { $0.identifier != excludingProvider }
-        
-        let credentials = TranscriptionCredentials.from(registry.settings)
-        
-        for provider in providers {
-            guard let providerId = ProviderID(rawValue: provider.identifier) else { continue }
-            guard !provider.sendsAudioOffDevice || registry.settings.isProviderConsented(providerId) else {
-                continue
-            }
-            guard provider.isConfigured(credentials: credentials) else { continue }
-            do {
-                return try await provider.transcribe(request, credentials: credentials)
-            } catch { continue }
-        }
-        throw TranscriptionError.noProviderAvailable(request.language)
+        return try await proRouter.transcribe(request)
     }
 }
 

@@ -317,8 +317,7 @@ struct RecordView: View {
             return
         }
 
-        if !environment.settingsService.usesBackendProcessing,
-           environment.settingsService.openAIAPIKey?.isEmpty != false {
+        if !environment.settingsService.usesBackendProcessing {
             showIncludedMinutesAccess = true
             return
         }
@@ -530,8 +529,7 @@ struct RecordView: View {
             return
         }
 
-        if !environment.settingsService.usesBackendProcessing,
-           environment.settingsService.openAIAPIKey?.isEmpty != false {
+        if !environment.settingsService.usesBackendProcessing {
             environment.deepLinkHandler.clearQuickRecordFlag()
             showIncludedMinutesAccess = true
             return

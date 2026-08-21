@@ -37,18 +37,6 @@ When the user accepts the in-app privacy policy and uses the included Free allow
 | OpenAI / ElevenLabs / LuxASR | Audio and/or transcript text (via Paperorg backend) | Transcription & summarisation |
 | Apple | Purchase data (Pro only) | Subscription billing |
 
-## Third-party data sharing (optional personal keys)
-
-When a user adds their own provider key and consents to the provider in Settings:
-
-| Recipient | Data | Purpose |
-|-----------|------|---------|
-| OpenAI | Audio, transcript text | Direct transcription & summarisation |
-| ElevenLabs | Audio | Direct transcription |
-| LuxASR | Audio | Direct transcription (Luxembourgish) |
-
----
-
 ## Tracking
 
 **No** — the app does not track users across apps or websites for advertising.
@@ -73,7 +61,7 @@ Record meetings and voice notes in Lëtzebuergesch, French, German, and more. AI
 **Description (opening):**  
 Paperorg Notes turns voice into structured notes. Record on your iPhone, transcribe in Luxembourgish and multiple languages, and get meeting summaries, action items, and email drafts.
 
-**Free plan:** 30 minutes/month of cloud transcription and AI summaries. No API key or sign-in required; personal keys are optional.
+**Free plan:** 30 minutes/month of cloud transcription and AI summaries when the included service is available. No API key or sign-in required.
 **Paperorg Pro:** 600 minutes/month included — no API setup required.
 
 **Keywords:** voice notes, transcription, Luxembourgish, Lëtzebuergesch, meeting notes, AI summary, dictation, minutes
@@ -102,7 +90,7 @@ Paperorg Notes turns voice into structured notes. Record on your iPhone, transcr
 - Pro subscription: `com.paperorg.notes.pro.monthly`
 - Sandbox test account available on request
 - Backend URL: `[your production URL]` — required for Pro transcription
-- Free and Pro cloud processing require the Paperorg backend; personal keys are an optional direct-processing path
+- Free and Pro cloud processing require the Paperorg backend
 
 ---
 

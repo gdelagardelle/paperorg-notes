@@ -297,6 +297,17 @@ final class SettingsService {
     init(keychain: KeychainService, defaults: UserDefaults = .standard) {
         self.keychain = keychain
         self.defaults = defaults
+        // Versions before server-only processing let people add personal AI
+        // provider keys. Those keys are no longer used and are deleted without
+        // reading them when the app first launches this version.
+        for account in [
+            "com.paperorg.notes.openai.apikey",
+            "com.paperorg.notes.elevenlabs.apikey",
+            "com.paperorg.notes.luxasr.apikey"
+        ] {
+            keychain.deleteLegacySecret(account)
+        }
+        defaults.removeObject(forKey: Keys.consentedProviders)
         
         let storedLanguage = AppLanguage(rawValue: defaults.string(forKey: Keys.defaultLanguage) ?? "") ?? .luxembourgish
         self.defaultLanguage = storedLanguage.isAutoDetect ? .luxembourgish : storedLanguage
@@ -402,32 +413,6 @@ final class SettingsService {
         consentedProviders = consentedProviders.subtracting([provider.rawValue])
     }
     
-    // MARK: - API Keys
-    
-    var openAIAPIKey: String? {
-        get { keychain.retrieve(for: .openAIAPIKey) }
-        set {
-            if let newValue, !newValue.isEmpty { try? keychain.save(newValue, for: .openAIAPIKey) }
-            else { keychain.delete(for: .openAIAPIKey) }
-        }
-    }
-    
-    var elevenLabsAPIKey: String? {
-        get { keychain.retrieve(for: .elevenLabsAPIKey) }
-        set {
-            if let newValue, !newValue.isEmpty { try? keychain.save(newValue, for: .elevenLabsAPIKey) }
-            else { keychain.delete(for: .elevenLabsAPIKey) }
-        }
-    }
-    
-    var luxASRAPIKey: String? {
-        get { keychain.retrieve(for: .luxASRAPIKey) }
-        set {
-            if let newValue, !newValue.isEmpty { try? keychain.save(newValue, for: .luxASRAPIKey) }
-            else { keychain.delete(for: .luxASRAPIKey) }
-        }
-    }
-
     var smtpPassword: String? {
         get { keychain.retrieve(for: .smtpPassword) }
         set {

@@ -16,7 +16,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable, Identifiable, Sendable {
     var subtitle: String {
         switch self {
         case .free:
-            return "Use your own OpenAI & ElevenLabs API keys"
+            return "Included cloud transcription and summaries"
         case .pro:
             return "Transcription & summaries included — no keys needed"
         }

@@ -5,26 +5,26 @@ A production-grade native iOS app for voice recording, multilingual transcriptio
 ## Features (MVP)
 
 - **Record** — one-tap recording with pause/resume, background support, crash-safe checkpoints
-- **Transcribe** — provider abstraction supporting LuxASR, OpenAI, ElevenLabs Scribe, Apple Speech
+- **Transcribe** — Paperorg-managed cloud transcription with provider routing kept server-side
 - **Quality pipeline** — confidence flags, suspicious phrase detection, fallback re-transcription
 - **AI structuring** — meeting notes, brainstorms, action items, decisions, email drafts
 - **Library & search** — local SwiftData storage with full-text search
 - **Export & email** — TXT, Markdown, PDF, RTF; Mail compose with attachments
-- **Privacy/GDPR** — consent flows, data export, delete all, Keychain API keys
+- **Privacy/GDPR** — consent flows, data export, delete all, and encrypted local app data
 
 ## Free vs Paperorg Pro
 
 | | **Free** | **Pro** |
 |---|----------|---------|
 | Price | €0 | Subscription |
-| API keys | None required; personal keys are optional | Included — no setup |
-| Transcription | 30 minutes/month via Paperorg backend | Via Paperorg backend |
-| Minutes | 30 min/month included; personal keys are not metered by Paperorg | 600 min/month included |
+| API keys | None required | Included — no setup |
+| Transcription | 30 minutes/month via Paperorg backend when available | Via Paperorg backend |
+| Minutes | 30 min/month included when enabled | 600 min/month included |
 | Vocabulary | 20 custom terms | Unlimited |
 | Audio retention | Your settings | 90 days included |
 
 ### Free plan
-Launch the app and use the included 30 monthly minutes—no sign-in and no API key are required. Personal provider keys remain available in **Settings → Advanced Providers** for users who prefer to pay the provider directly.
+Launch the app and use the included 30 monthly minutes when the service is available—no sign-in and no API key are required. Processing is routed through Paperorg's secure backend.
 
 ### Pro plan
 Requires the [Paperorg Pro backend](backend/README.md). For local development:
@@ -53,7 +53,7 @@ Product ID: `com.paperorg.notes.pro.monthly`
 - Xcode 16+
 - iOS 17.0+
 - Swift 5.9+
-- A Paperorg backend for included Free and Pro processing; personal provider keys are optional for direct processing
+- A Paperorg backend for included Free and Pro processing
 
 ## Getting Started
 
@@ -77,15 +77,7 @@ open PaperorgNotes.xcodeproj
 
 In Xcode, set your **Development Team** for the `PaperorgNotes` target.
 
-### 3. Optional: Add Personal Provider Keys
-
-Included Free and Pro processing uses the Paperorg backend. For direct processing with your own paid provider account, open **Settings → Advanced Providers**, enter a key, and consent to that provider:
-
-- **OpenAI** — optional direct processing for DE/FR/EN/PT transcription and AI summaries
-- **ElevenLabs** — recommended fallback, especially for Luxembourgish
-- **LuxASR** — best Luxembourgish accuracy ([luxasr.uni.lu](https://luxasr.uni.lu))
-
-### 4. Run Luxembourgish Benchmark
+### 3. Run Luxembourgish Benchmark
 
 Add test clips to `TestFixtures/Luxembourgish/` (`.m4a` + matching `.txt` reference transcript), then:
 

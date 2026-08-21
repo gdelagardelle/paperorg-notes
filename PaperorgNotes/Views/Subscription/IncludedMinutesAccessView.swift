@@ -27,11 +27,6 @@ struct IncludedMinutesAccessView: View {
                 .buttonStyle(AccentButtonStyle())
                 .disabled(isWorking)
 
-                Button(L10n.Included.useOwnKeys) {
-                    dismiss()
-                }
-                .buttonStyle(SecondaryButtonStyle())
-
                 Button(L10n.Included.upgrade) {
                     requestUpgrade = true
                     dismiss()
