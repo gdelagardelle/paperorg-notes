@@ -94,7 +94,7 @@ def test_platform_token_accepted_and_pro_enforced(client, platform_keypair, monk
     )
     assert principal["platform"] is True
     main.enforce_usage_limit(principal, 3.0)
-    main.record_usage(principal, 3.0, "openai")
+    main.record_platform_usage(principal, 3.0, "openai")
     assert calls["checked"] == 500.0
     assert calls["reported"] == ("u-1", 3.0, "openai")
 
@@ -116,6 +116,32 @@ def test_platform_over_limit_gets_429(client, platform_keypair, monkeypatch):
     with pytest.raises(Exception) as exc_info:
         main.enforce_usage_limit({"platform": True, "id": "u", "bearer": "x"}, 5.0)
     assert getattr(exc_info.value, "status_code", None) == 429
+
+
+def test_platform_ledger_outage_fails_closed(client, platform_keypair, monkeypatch):
+    import main
+
+    monkeypatch.setattr(main, "platform_minutes_remaining", lambda bearer: None)
+    with pytest.raises(Exception) as exc_info:
+        main.reserve_transcription_usage(
+            {"platform": True, "id": "u", "bearer": "x"}, 1.0
+        )
+    assert getattr(exc_info.value, "status_code", None) == 503
+
+
+def test_platform_requests_have_atomic_local_pro_ceiling(client, platform_keypair, monkeypatch):
+    import database
+    import main
+
+    monkeypatch.setattr(main, "platform_minutes_remaining", lambda bearer: 600.0)
+    principal = {"platform": True, "id": "u", "bearer": "x"}
+    main.reserve_transcription_usage(principal, 599.5)
+
+    with pytest.raises(Exception) as exc_info:
+        main.reserve_transcription_usage(principal, 0.51)
+
+    assert getattr(exc_info.value, "status_code", None) == 429
+    assert database.get_usage_minutes("platform:u") == pytest.approx(599.5)
 
 
 def test_expired_platform_token_rejected(client, platform_keypair):

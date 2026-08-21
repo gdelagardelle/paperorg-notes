@@ -21,6 +21,11 @@ enum L10n {
         static let autoDetectLanguage = String(localized: "settings.language.auto_detect")
         static let autoDetectLanguageHint = String(localized: "settings.language.auto_detect_hint")
         static let transcriptionSection = String(localized: "settings.transcription.section")
+        static let providerSection = String(localized: "settings.providers.title")
+        static let providerHint = String(localized: "settings.providers.hint")
+        static let openAIKey = String(localized: "settings.providers.openai_key")
+        static let elevenLabsKey = String(localized: "settings.providers.elevenlabs_key")
+        static let luxASRKey = String(localized: "settings.providers.luxasr_key")
         static let pdfBrandingSection = String(localized: "settings.pdf.section")
         static let pdfBrandingHint = String(localized: "settings.pdf.hint")
         static let brandName = String(localized: "settings.pdf.brand_name")
@@ -39,6 +44,13 @@ enum L10n {
         static let proFallbackPrice = String(localized: "plan.pro.fallback_price")
     }
 
+    enum Subscription {
+        static let productUnavailable = String(localized: "subscription.product_unavailable")
+        static let purchasePending = String(localized: "subscription.purchase_pending")
+        static let verificationPending = String(localized: "subscription.verification_pending")
+        static let entitlementUnavailable = String(localized: "subscription.entitlement_unavailable")
+    }
+
     enum Pro {
         static let usageWarning = String(localized: "pro.usage.warning")
         static let includedTranscription = String(localized: "pro.usage.included")
@@ -51,12 +63,11 @@ enum L10n {
     enum Included {
         static let title = String(localized: "included.title")
         static let detail = String(localized: "included.detail")
-        static let signInLabel = String(localized: "included.sign_in_label")
+        static let start = String(localized: "included.start")
         static let useOwnKeys = String(localized: "included.use_own_keys")
         static let upgrade = String(localized: "included.upgrade")
         static let connecting = String(localized: "included.connecting")
         static let unavailable = String(localized: "included.unavailable")
-        static let signInFailed = String(localized: "included.sign_in_failed")
         static let active = String(localized: "included.active")
 
         static func remaining(_ minutes: Int) -> String {

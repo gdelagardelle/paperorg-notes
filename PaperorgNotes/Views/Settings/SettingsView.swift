@@ -87,27 +87,27 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section {
+                Section(L10n.Settings.providerSection) {
                     if environment.subscriptionService.isProActive {
                         SettingsSectionHint(text: "Your Pro plan includes cloud transcription through Paperorg's secure backend.")
                     } else {
-                        SettingsSectionHint(text: "Free plan: add your OpenAI API key below (required). ElevenLabs is recommended for Lëtzebuergesch.")
+                        SettingsSectionHint(text: L10n.Settings.providerHint)
                     }
 
                     if !environment.subscriptionService.isProActive {
-                        SecureField("OpenAI API Key", text: $openAIKey)
+                        SecureField(L10n.Settings.openAIKey, text: $openAIKey)
                             .textContentType(.password)
                             .onChange(of: openAIKey) { _, val in
                                 settings.openAIAPIKey = val.isEmpty ? nil : val
                             }
                         
-                        SecureField("ElevenLabs API Key", text: $elevenLabsKey)
+                        SecureField(L10n.Settings.elevenLabsKey, text: $elevenLabsKey)
                             .textContentType(.password)
                             .onChange(of: elevenLabsKey) { _, val in
                                 settings.elevenLabsAPIKey = val.isEmpty ? nil : val
                             }
                         
-                        SecureField("LuxASR API Key (optional)", text: $luxASRKey)
+                        SecureField(L10n.Settings.luxASRKey, text: $luxASRKey)
                             .textContentType(.password)
                             .onChange(of: luxASRKey) { _, val in
                                 settings.luxASRAPIKey = val.isEmpty ? nil : val

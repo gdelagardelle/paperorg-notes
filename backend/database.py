@@ -51,6 +51,16 @@ CREATE TABLE IF NOT EXISTS subscription_links (
     updated_at TEXT NOT NULL,
     FOREIGN KEY(user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS request_rate_limits (
+    user_id TEXT NOT NULL,
+    operation TEXT NOT NULL,
+    window_key TEXT NOT NULL,
+    request_count INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, operation, window_key),
+    FOREIGN KEY(user_id) REFERENCES users(id)
+);
 """
 
 _POSTGRES_SCHEMA = """
@@ -87,6 +97,15 @@ CREATE TABLE IF NOT EXISTS subscription_links (
     user_id TEXT NOT NULL REFERENCES users(id),
     product_id TEXT NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS request_rate_limits (
+    user_id TEXT NOT NULL REFERENCES users(id),
+    operation TEXT NOT NULL,
+    window_key TEXT NOT NULL,
+    request_count INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (user_id, operation, window_key)
 );
 """
 
@@ -311,6 +330,88 @@ def add_usage_minutes(user_id: str, minutes: float, key: Optional[str] = None) -
             (user_id, key),
         ).fetchone()
         return float(row["minutes_used"])
+
+
+def reserve_usage_minutes(
+    user_id: str,
+    minutes: float,
+    monthly_limit: float,
+    key: Optional[str] = None,
+) -> Optional[float]:
+    """Atomically reserve metered time without allowing a concurrent overspend.
+
+    The conditional upsert is the enforcement point: a request only obtains a
+    reservation if adding its server-measured duration keeps the monthly total
+    at or below the applicable plan limit.  Checking and incrementing in
+    separate calls is unsafe because concurrent uploads can both pass a stale
+    read before either one records usage.
+    """
+    if minutes <= 0 or monthly_limit <= 0 or minutes > monthly_limit:
+        return None
+
+    key = key or period_key()
+    now = utc_now()
+    with connect() as conn:
+        row = conn.execute(
+            """
+            INSERT INTO usage_records (user_id, period_key, minutes_used, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(user_id, period_key) DO UPDATE SET
+                minutes_used = usage_records.minutes_used + EXCLUDED.minutes_used,
+                updated_at = EXCLUDED.updated_at
+            WHERE usage_records.minutes_used + EXCLUDED.minutes_used <= ?
+            RETURNING minutes_used
+            """,
+            (user_id, key, minutes, now, monthly_limit),
+        ).fetchone()
+        return float(row["minutes_used"]) if row else None
+
+
+def release_usage_minutes(
+    user_id: str,
+    minutes: float,
+    key: Optional[str] = None,
+) -> None:
+    """Release a reservation when the upstream provider rejects the work."""
+    if minutes <= 0:
+        return
+    key = key or period_key()
+    with connect() as conn:
+        floor = "GREATEST" if uses_postgres() else "MAX"
+        conn.execute(
+            f"""
+            UPDATE usage_records
+            SET minutes_used = {floor}(0, minutes_used - ?), updated_at = ?
+            WHERE user_id = ? AND period_key = ?
+            """,
+            (minutes, utc_now(), user_id, key),
+        )
+
+
+def reserve_rate_limited_request(
+    user_id: str,
+    operation: str,
+    window_key: str,
+    max_requests: int,
+) -> bool:
+    """Persistently admit one request, including across workers and restarts."""
+    if max_requests <= 0:
+        return False
+    with connect() as conn:
+        row = conn.execute(
+            """
+            INSERT INTO request_rate_limits
+                (user_id, operation, window_key, request_count, updated_at)
+            VALUES (?, ?, ?, 1, ?)
+            ON CONFLICT(user_id, operation, window_key) DO UPDATE SET
+                request_count = request_rate_limits.request_count + 1,
+                updated_at = EXCLUDED.updated_at
+            WHERE request_rate_limits.request_count < ?
+            RETURNING request_count
+            """,
+            (user_id, operation, window_key, utc_now(), max_requests),
+        ).fetchone()
+        return row is not None
 
 
 def log_subscription_event(

@@ -1,5 +1,6 @@
 import asyncio
 import json
+import math
 import re
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -24,7 +25,6 @@ from platform_client import (
 )
 from config import settings
 from database import (
-    add_usage_minutes,
     check_connection,
     get_or_create_user,
     get_or_create_apple_user,
@@ -34,6 +34,9 @@ from database import (
     link_subscription,
     log_subscription_event,
     period_key,
+    release_usage_minutes,
+    reserve_rate_limited_request,
+    reserve_usage_minutes,
     set_user_pro,
     uses_postgres,
 )
@@ -100,7 +103,24 @@ class SummarizeRequest(BaseModel):
 
 @app.on_event("startup")
 def startup() -> None:
+    validate_production_security()
     init_db()
+
+
+def validate_production_security() -> None:
+    """Refuse production-shaped configurations that weaken the trust boundary."""
+    if not uses_postgres():
+        return
+    if settings.paperorg_dev_mode:
+        raise RuntimeError("PAPERORG_DEV_MODE must be false in production.")
+    if len(settings.paperorg_jwt_secret) < 32:
+        raise RuntimeError("PAPERORG_JWT_SECRET must be at least 32 characters in production.")
+    if settings.free_included_minutes_enabled and not (
+        settings.platform_api_url and settings.platform_internal_token
+    ):
+        raise RuntimeError(
+            "Included Free minutes require the Paperorg Platform credential vault."
+        )
 
 
 def user_is_pro(user_row) -> bool:
@@ -133,7 +153,6 @@ def user_has_free_included_minutes(user) -> bool:
     return (
         settings.free_included_minutes_enabled
         and not user_is_pro(user)
-        and bool(user["apple_subject"])
     )
 
 
@@ -148,11 +167,11 @@ def require_processing_user(principal: dict[str, Any]):
     user = get_local_user(principal)
     if user_is_pro(user):
         return user
-    if principal.get("source") == "apple" and user_has_free_included_minutes(user):
+    if user_has_free_included_minutes(user):
         return user
     raise HTTPException(
         status_code=status.HTTP_402_PAYMENT_REQUIRED,
-        detail="Sign in with Apple for included minutes, add your own key, or subscribe to Pro.",
+        detail="Included minutes are unavailable. Add your own key or subscribe to Pro.",
     )
 
 
@@ -172,7 +191,14 @@ def require_pro_user(principal: dict[str, Any]):
 def enforce_usage_limit(user, audio_minutes: float) -> None:
     if isinstance(user, dict) and user.get("platform"):
         remaining = platform_minutes_remaining(user["bearer"])
-        if remaining is not None and audio_minutes > remaining:
+        if remaining is None:
+            # A Platform identity must never receive metered provider work when
+            # its authoritative ledger cannot be checked.
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Usage ledger is temporarily unavailable. Try again shortly.",
+            )
+        if audio_minutes > remaining:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail="Monthly limit reached. Resets next month.",
@@ -195,13 +221,78 @@ def enforce_usage_limit(user, audio_minutes: float) -> None:
         )
 
 
-def record_usage(user, audio_minutes: float, provider: str = "unknown") -> None:
+def usage_limit_for(user) -> float:
+    if isinstance(user, dict) and user.get("platform"):
+        # Platform's current balance is checked separately, but Notes also
+        # keeps an atomic local ceiling.  The latter closes the race between a
+        # balance read and reporting a completed provider call.
+        return float(settings.pro_minutes_per_month)
+    if user_is_pro(user):
+        return float(settings.pro_minutes_per_month)
+    if user_has_free_included_minutes(user):
+        return float(settings.free_minutes_per_month)
+    return 0.0
+
+
+def enforce_transcription_request_limit(user) -> None:
+    """Bound short-request abuse independently of the monthly minute ledger."""
+    now = datetime.now(timezone.utc)
+    window = now.strftime("%Y%m%d%H") + f"-{now.minute // 15}"
+    allowed = reserve_rate_limited_request(
+        metering_user_id(user),
+        "transcription",
+        window,
+        settings.transcription_requests_per_15_minutes,
+    )
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many transcription requests. Try again shortly.",
+        )
+
+
+def reserve_transcription_usage(user, audio_minutes: float) -> None:
+    """Claim quota before an upstream provider receives audio.
+
+    We round the server-read M4A duration up to a whole second so fractional
+    metadata cannot create a small undercount.  A successful reservation is
+    final; failures after reservation release the same amount.
+    """
+    if isinstance(user, dict) and user.get("platform"):
+        # The external check is fail-closed; the reservation below is the
+        # local atomic ceiling that prevents concurrent overspend before the
+        # Platform receives its post-completion usage event.
+        enforce_usage_limit(user, audio_minutes)
+    metered_minutes = max(math.ceil(audio_minutes * 60) / 60, 1 / 60)
+    if reserve_usage_minutes(
+        metering_user_id(user), metered_minutes, usage_limit_for(user)
+    ) is None:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Monthly limit reached. Resets next month or upgrade to Pro.",
+        )
+
+
+def release_transcription_usage(user, audio_minutes: float) -> None:
+    metered_minutes = max(math.ceil(audio_minutes * 60) / 60, 1 / 60)
+    release_usage_minutes(metering_user_id(user), metered_minutes)
+
+
+def metering_user_id(user) -> str:
+    """Return a database-backed identity for both local and Platform users."""
+    if isinstance(user, dict) and user.get("platform"):
+        # The Platform JWT's subject is verified before this point.  Mirroring
+        # it into a private local row lets SQLite/Postgres enforce the exact
+        # same atomic limit and persistent request rate limit as legacy users.
+        return get_or_create_user(f"platform:{user['id']}")["id"]
+    return user["id"]
+
+
+def record_platform_usage(user, audio_minutes: float, provider: str) -> None:
     if isinstance(user, dict) and user.get("platform"):
         report_platform_usage(
             user["bearer"], user["id"], max(audio_minutes, 0.1), provider
         )
-        return
-    add_usage_minutes(user["id"], max(audio_minutes, 0.1))
 
 
 async def read_limited_upload(upload: UploadFile, max_bytes: int) -> bytes:
@@ -414,7 +505,8 @@ async def transcribe_openai(
         minutes = duration_seconds(audio_bytes) / 60
     except AudioDurationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    enforce_usage_limit(user, minutes)
+    enforce_transcription_request_limit(user)
+    reserve_transcription_usage(user, minutes)
     data: dict[str, Any] = {
         "model": "gpt-4o-transcribe",
         "response_format": "json",
@@ -426,18 +518,21 @@ async def transcribe_openai(
 
     files = {"file": (file.filename or "audio.m4a", audio_bytes, file.content_type or "audio/m4a")}
 
-    async with httpx.AsyncClient(timeout=300) as client:
-        response = await client.post(
-            "https://api.openai.com/v1/audio/transcriptions",
-            headers={"Authorization": f"Bearer {openai_key}"},
-            data=data,
-            files=files,
-        )
+    try:
+        async with httpx.AsyncClient(timeout=300) as client:
+            response = await client.post(
+                "https://api.openai.com/v1/audio/transcriptions",
+                headers={"Authorization": f"Bearer {openai_key}"},
+                data=data,
+                files=files,
+            )
+        if response.status_code >= 400:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+    except Exception:
+        release_transcription_usage(user, minutes)
+        raise
 
-    if response.status_code >= 400:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
-
-    record_usage(user, minutes, "openai")
+    record_platform_usage(user, minutes, "openai")
     return response.json()
 
 
@@ -458,7 +553,8 @@ async def transcribe_elevenlabs(
         minutes = duration_seconds(audio_bytes) / 60
     except AudioDurationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    enforce_usage_limit(user, minutes)
+    enforce_transcription_request_limit(user)
+    reserve_transcription_usage(user, minutes)
     data = {
         "model_id": "scribe_v2",
         "timestamps_granularity": "word",
@@ -468,18 +564,21 @@ async def transcribe_elevenlabs(
         data["language_code"] = language_code
     files = {"file": (file.filename or "audio.m4a", audio_bytes, file.content_type or "audio/m4a")}
 
-    async with httpx.AsyncClient(timeout=300) as client:
-        response = await client.post(
-            "https://api.elevenlabs.io/v1/speech-to-text",
-            headers={"xi-api-key": elevenlabs_key},
-            data=data,
-            files=files,
-        )
+    try:
+        async with httpx.AsyncClient(timeout=300) as client:
+            response = await client.post(
+                "https://api.elevenlabs.io/v1/speech-to-text",
+                headers={"xi-api-key": elevenlabs_key},
+                data=data,
+                files=files,
+            )
+        if response.status_code >= 400:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+    except Exception:
+        release_transcription_usage(user, minutes)
+        raise
 
-    if response.status_code >= 400:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
-
-    record_usage(user, minutes, "elevenlabs")
+    record_platform_usage(user, minutes, "elevenlabs")
     return response.json()
 
 
@@ -496,7 +595,8 @@ async def transcribe_luxasr(
         minutes = duration_seconds(audio_bytes) / 60
     except AudioDurationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    enforce_usage_limit(user, minutes)
+    enforce_transcription_request_limit(user)
+    reserve_transcription_usage(user, minutes)
     headers = {"Content-Type": file.content_type or "audio/m4a", "X-Filename": file.filename or "audio.m4a"}
     luxasr_key = resolve_provider_key("luxasr", settings.luxasr_api_key)
     if luxasr_key:
@@ -506,31 +606,34 @@ async def transcribe_luxasr(
     if prompt:
         params["prompt"] = prompt[:900]
 
-    async with httpx.AsyncClient(timeout=300, base_url="https://luxasr.uni.lu") as client:
-        submit = await client.post("/asr2", params=params, content=audio_bytes, headers=headers)
-        if submit.status_code >= 400:
-            raise HTTPException(status_code=submit.status_code, detail=submit.text)
+    try:
+        async with httpx.AsyncClient(timeout=300, base_url="https://luxasr.uni.lu") as client:
+            submit = await client.post("/asr2", params=params, content=audio_bytes, headers=headers)
+            if submit.status_code >= 400:
+                raise HTTPException(status_code=submit.status_code, detail=submit.text)
 
-        payload = submit.json()
-        job_id = payload.get("job_id")
-        if not job_id:
-            raise HTTPException(status_code=502, detail="LuxASR did not return a job ID.")
+            payload = submit.json()
+            job_id = payload.get("job_id")
+            if not job_id:
+                raise HTTPException(status_code=502, detail="LuxASR did not return a job ID.")
 
-        for _ in range(120):
-            status_response = await client.get(f"/v3/asr/jobs/{job_id}")
-            status_payload = status_response.json()
-            job_status = status_payload.get("status")
-            if job_status == "completed":
-                result = await client.get(f"/v3/asr/jobs/{job_id}/result")
-                if result.status_code >= 400:
-                    raise HTTPException(status_code=result.status_code, detail=result.text)
-                record_usage(user, minutes, "luxasr")
-                return result.json()
-            if job_status == "failed":
-                raise HTTPException(status_code=502, detail="LuxASR job failed.")
-            await asyncio.sleep(2)
-
-    raise HTTPException(status_code=504, detail="LuxASR timed out.")
+            for _ in range(120):
+                status_response = await client.get(f"/v3/asr/jobs/{job_id}")
+                status_payload = status_response.json()
+                job_status = status_payload.get("status")
+                if job_status == "completed":
+                    result = await client.get(f"/v3/asr/jobs/{job_id}/result")
+                    if result.status_code >= 400:
+                        raise HTTPException(status_code=result.status_code, detail=result.text)
+                    record_platform_usage(user, minutes, "luxasr")
+                    return result.json()
+                if job_status == "failed":
+                    raise HTTPException(status_code=502, detail="LuxASR job failed.")
+                await asyncio.sleep(2)
+        raise HTTPException(status_code=504, detail="LuxASR timed out.")
+    except Exception:
+        release_transcription_usage(user, minutes)
+        raise
 
 
 @app.post("/v1/summarize")
@@ -539,7 +642,10 @@ async def summarize(
     principal: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
     user = require_processing_user(principal)
-    if not user_is_pro(user):
+    # Platform principals are already entitlement-checked in
+    # require_processing_user.  They are not local database rows, so do not
+    # feed them into the legacy row-based Pro check.
+    if not (isinstance(user, dict) and user.get("platform")) and not user_is_pro(user):
         enforce_user_rate_limit(
             user["id"], key_prefix="free-summary", max_requests=12, window_seconds=3600
         )

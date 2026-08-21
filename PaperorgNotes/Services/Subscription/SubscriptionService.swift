@@ -1,18 +1,33 @@
 import Foundation
 import StoreKit
 
+@MainActor
+protocol SubscriptionVerifying: AnyObject {
+    func refreshUsage() async throws -> ProUsageInfo
+
+    func verifySubscription(
+        productID: String,
+        transactionID: String?,
+        signedTransactionInfo: String?
+    ) async throws -> ProUsageInfo
+
+    func devActivatePro() async throws -> ProUsageInfo
+}
+
+extension ProBackendClient: SubscriptionVerifying {}
+
 @Observable
 @MainActor
 final class SubscriptionService {
     private let settings: SettingsService
-    private let proBackend: ProBackendClient
+    private let proBackend: any SubscriptionVerifying
 
     private(set) var products: [Product] = []
     private(set) var purchaseInProgress = false
     private(set) var lastError: String?
     private var updatesTask: Task<Void, Never>?
 
-    init(settings: SettingsService, proBackend: ProBackendClient) {
+    init(settings: SettingsService, proBackend: any SubscriptionVerifying) {
         self.settings = settings
         self.proBackend = proBackend
         updatesTask = listenForTransactions()
@@ -71,7 +86,7 @@ final class SubscriptionService {
 
     func purchasePro() async -> Bool {
         guard let product = products.first else {
-            lastError = "Subscription product unavailable. Try again later."
+            lastError = L10n.Subscription.productUnavailable
             return false
         }
 
@@ -83,14 +98,15 @@ final class SubscriptionService {
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
-                await handle(transaction: transaction)
-                await transaction.finish()
-                settings.selectedPlan = .pro
-                return true
+                let confirmed = await handle(transaction: transaction)
+                if confirmed {
+                    await transaction.finish()
+                }
+                return confirmed
             case .userCancelled:
                 return false
             case .pending:
-                lastError = "Purchase is pending approval."
+                lastError = L10n.Subscription.purchasePending
                 return false
             @unknown default:
                 return false
@@ -107,7 +123,9 @@ final class SubscriptionService {
             for await result in Transaction.currentEntitlements {
                 if let transaction = try? checkVerified(result),
                    transaction.productID == SubscriptionProduct.proMonthly {
-                    await handle(transaction: transaction)
+                    if await handle(transaction: transaction) {
+                        await transaction.finish()
+                    }
                 }
             }
             await refreshEntitlements()
@@ -145,25 +163,46 @@ final class SubscriptionService {
         Task {
             for await result in Transaction.updates {
                 if let transaction = try? checkVerified(result) {
-                    await handle(transaction: transaction)
-                    await transaction.finish()
+                    if await handle(transaction: transaction) {
+                        await transaction.finish()
+                    }
                 }
             }
         }
     }
 
-    private func handle(transaction: Transaction) async {
-        guard transaction.productID == SubscriptionProduct.proMonthly else { return }
+    @discardableResult
+    private func handle(transaction: Transaction) async -> Bool {
+        await confirmSubscription(
+            productID: transaction.productID,
+            transactionID: String(transaction.id)
+        )
+    }
+
+    /// Pro stays locked until the backend has independently confirmed the
+    /// StoreKit transaction with Apple. This prevents a successful sheet from
+    /// being presented as an active entitlement when verification is unavailable.
+    @discardableResult
+    func confirmSubscription(productID: String, transactionID: String?) async -> Bool {
+        guard productID == SubscriptionProduct.proMonthly else { return false }
         do {
-            _ = try await proBackend.verifySubscription(
-                productID: transaction.productID,
-                transactionID: String(transaction.id),
+            let usage = try await proBackend.verifySubscription(
+                productID: productID,
+                transactionID: transactionID,
                 signedTransactionInfo: nil
             )
+            guard usage.isPro else {
+                lastError = L10n.Subscription.entitlementUnavailable
+                return false
+            }
+            settings.cachedProUsage = usage
             settings.selectedPlan = .pro
             settings.applyProEntitlements()
+            lastError = nil
+            return true
         } catch {
-            lastError = error.localizedDescription
+            lastError = L10n.Subscription.verificationPending
+            return false
         }
     }
 

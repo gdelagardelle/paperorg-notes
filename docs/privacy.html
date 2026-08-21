@@ -42,7 +42,7 @@
 <body>
   <main>
     <h1>Privacy Policy</h1>
-    <p class="muted"><strong>Paperorg Notes</strong> · Last updated: 12 July 2026</p>
+    <p class="muted"><strong>Paperorg Notes</strong> · Last updated: 21 August 2026</p>
 
     <p>
       Paperorg Notes (&ldquo;the App&rdquo;) is a voice recording and transcription app for iOS,
@@ -54,9 +54,9 @@
     <h2>1. Summary</h2>
     <ul>
       <li>Audio and transcripts are stored <strong>on your device</strong> by default.</li>
-      <li><strong>Free plan:</strong> transcription may send audio to third-party services you configure (OpenAI, ElevenLabs, LuxASR) using your own API keys.</li>
-      <li><strong>Paperorg Pro:</strong> transcription is processed via our secure backend; audio is sent to our server and then to AI providers — you do not need to supply API keys.</li>
-      <li>Pro subscriptions are managed through Apple; we store a device identifier and usage minutes on our backend to enforce plan limits.</li>
+      <li><strong>Free plan:</strong> includes 30 minutes of cloud transcription and AI summaries per month, without API keys or sign-in. Audio is processed through the Paperorg backend and its selected AI processors.</li>
+      <li><strong>Paperorg Pro:</strong> transcription is processed via our secure backend; audio is sent to our server and then to AI processors — you do not need to supply API keys.</li>
+      <li>For cloud processing, we store a random device identifier and monthly usage minutes to enforce the applicable plan limit. Pro subscriptions are managed through Apple.</li>
       <li>We do <strong>not</strong> sell your data or use it for advertising.</li>
       <li>We do <strong>not</strong> use your content to train AI models unless a provider&apos;s terms state otherwise and you have consented.</li>
     </ul>
@@ -88,35 +88,37 @@
           <td>On your iPhone (UserDefaults)</td>
         </tr>
         <tr>
-          <td>Pro subscription status</td>
-          <td>Verify Paperorg Pro; enforce monthly transcription limits</td>
-          <td>Paperorg backend (device ID, usage minutes, subscription expiry)</td>
+          <td>Cloud-processing identifier and usage</td>
+          <td>Enforce Free and Pro monthly transcription limits; verify Pro subscriptions</td>
+          <td>Paperorg backend (random device ID, usage minutes, subscription expiry where applicable)</td>
         </tr>
       </tbody>
     </table>
 
-    <h2>3. Paperorg Pro (subscription)</h2>
+    <h2>3. Cloud Processing and Paperorg Pro</h2>
     <p>
-      If you subscribe to <strong>Paperorg Pro</strong>, audio for transcription and text for summarisation
-      are sent to our backend over HTTPS. Our server holds provider API keys and forwards requests to
-      OpenAI, ElevenLabs, or LuxASR on your behalf. We record how many transcription minutes you use
-      per month to enforce plan limits (currently 600 minutes/month).
+      The included Free allowance (30 minutes per month) and <strong>Paperorg Pro</strong> use cloud processing.
+      Audio for transcription and text for summarisation are sent to our backend over HTTPS. Our server holds
+      the provider credentials and forwards the necessary request to enabled AI processors, such as OpenAI,
+      ElevenLabs, or LuxASR, on your behalf. We record the transcription minutes used per month to enforce
+      the plan limit. Pro currently includes 600 minutes per month.
     </p>
     <ul>
-      <li>We link your subscription to a random <strong>device identifier</strong> generated on your iPhone.</li>
-      <li>We receive subscription events from Apple (purchase, renewal, cancellation).</li>
-      <li>We do <strong>not</strong> store your transcripts or summaries on our servers — they remain on your device.</li>
+      <li>The Free allowance is associated with a random <strong>device identifier</strong> generated on your iPhone; it is not an account and does not transfer between devices.</li>
+      <li>For Pro, we receive subscription events from Apple (purchase, renewal, cancellation).</li>
+      <li>The application does not create database records for audio, transcripts, or summaries; the originals remain on your device. AI processors may handle submitted content under their own terms.</li>
       <li>Pro audio retention (90 days on device) is configurable in the App.</li>
     </ul>
 
     <h2>4. Third-Party Transcription Services</h2>
     <p>
-      On the <strong>Free plan</strong>, when you transcribe audio, the App may send audio files to external providers
-      <strong>only after you have given explicit consent</strong> for that provider in Settings.
-      You supply your own API keys (bring-your-own-key model).
+      When you use included Free minutes or <strong>Paperorg Pro</strong>, you consent through the App&apos;s privacy
+      screen to the cloud processing described in section 3. The App sends the required audio and/or transcript
+      to Paperorg and the enabled AI processor to carry out your request.
     </p>
     <p>
-      On <strong>Paperorg Pro</strong>, you consent to our backend processing audio as described in section 3.
+      If you instead configure your own provider key, the App sends data directly to that provider only after
+      you enable that provider&apos;s consent in Settings. Your personal key is stored in the iOS Keychain.
     </p>
     <table>
       <thead>
@@ -153,7 +155,7 @@
     <h2>5. Legal Basis (GDPR)</h2>
     <p>For users in the European Economic Area and Luxembourg:</p>
     <ul>
-      <li><strong>Consent</strong> — processing audio via third-party APIs, after you opt in per provider.</li>
+      <li><strong>Consent</strong> — cloud processing of the audio and text required for a transcription or summary request, after you accept this policy; separate consent applies when you enable a personal provider key.</li>
       <li><strong>Contract / legitimate use</strong> — local recording, storage, and features you request on your device.</li>
     </ul>
 
@@ -164,7 +166,7 @@
       <li><strong>Erasure</strong> — delete all data, including audio, transcripts, and API keys.</li>
       <li><strong>Rectification</strong> — edit transcripts; corrected text is stored separately from the original.</li>
       <li><strong>Portability</strong> — export as JSON, plain text, Markdown, or PDF.</li>
-      <li><strong>Object / restrict</strong> — disable cloud providers; use on-device transcription where available.</li>
+      <li><strong>Object / restrict</strong> — do not activate included cloud minutes or Pro; use on-device transcription where available, or revoke consent for a personal provider in Settings.</li>
     </ul>
     <p>
       You may also contact us at
@@ -176,12 +178,12 @@
     <ul>
       <li>Data remains on your device until you delete it or uninstall the App.</li>
       <li>You may enable &ldquo;Delete audio after transcription&rdquo; or automatic deletion after a set number of days.</li>
-      <li>Third-party providers may retain data according to their own policies for the duration of API processing.</li>
+      <li>Third-party AI processors may retain submitted data according to their own policies and applicable service terms.</li>
     </ul>
 
     <h2>8. Security</h2>
     <ul>
-      <li>API keys are stored in the iOS Keychain.</li>
+      <li>Optional personal API keys are stored in the iOS Keychain; Paperorg-held provider credentials never enter the App.</li>
       <li>Audio files use iOS Data Protection.</li>
       <li>All network communication with transcription providers uses HTTPS (TLS).</li>
       <li>Optional Face ID lock protects access to the App.</li>

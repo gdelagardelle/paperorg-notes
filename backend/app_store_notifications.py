@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from app_store import AppStoreVerificationError, decode_and_verify_jws, expires_at_from_transaction
+from app_store import (
+    AppStoreVerificationError,
+    decode_and_verify_notification,
+    decode_and_verify_transaction,
+    expires_at_from_transaction,
+)
 from config import settings
 from database import (
     find_user_by_original_transaction,
@@ -30,10 +35,7 @@ INACTIVE_NOTIFICATIONS = {
 
 
 def handle_signed_notification(signed_payload: str) -> dict[str, str]:
-    notification = decode_and_verify_jws(
-        signed_payload,
-        bundle_id=settings.apple_bundle_id,
-    )
+    notification = decode_and_verify_notification(signed_payload)
     notification_type = notification.get("notificationType", "UNKNOWN")
     subtype = notification.get("subtype")
     data = notification.get("data") or {}
@@ -49,7 +51,7 @@ def handle_signed_notification(signed_payload: str) -> dict[str, str]:
             "reason": "missing_transaction",
         }
 
-    transaction = decode_and_verify_jws(
+    transaction = decode_and_verify_transaction(
         signed_transaction,
         bundle_id=settings.apple_bundle_id,
         product_id=settings.apple_pro_product_id,
@@ -67,12 +69,17 @@ def handle_signed_notification(signed_payload: str) -> dict[str, str]:
             set_user_pro(user_id, True, expires_at)
         if user_id and original_transaction_id:
             link_subscription(user_id, original_transaction_id, product_id)
-        log_subscription_event(
-            user_id or "unlinked",
-            product_id,
-            transaction_id,
-            event_label,
-        )
+        # Apple can notify us before the device has linked the purchase.  The
+        # event table intentionally has a real-user foreign key, so preserve
+        # the valid notification response without fabricating an "unlinked"
+        # user (which would fail the transaction).
+        if user_id:
+            log_subscription_event(
+                user_id,
+                product_id,
+                transaction_id,
+                event_label,
+            )
         return {
             "status": "activated",
             "notification_type": event_label,
@@ -82,24 +89,26 @@ def handle_signed_notification(signed_payload: str) -> dict[str, str]:
     if notification_type in INACTIVE_NOTIFICATIONS:
         if user_id:
             set_user_pro(user_id, False, None)
-        log_subscription_event(
-            user_id or "unlinked",
-            product_id,
-            transaction_id,
-            event_label,
-        )
+        if user_id:
+            log_subscription_event(
+                user_id,
+                product_id,
+                transaction_id,
+                event_label,
+            )
         return {
             "status": "deactivated",
             "notification_type": event_label,
             "user_id": user_id or "",
         }
 
-    log_subscription_event(
-        user_id or "unlinked",
-        product_id,
-        transaction_id,
-        event_label,
-    )
+    if user_id:
+        log_subscription_event(
+            user_id,
+            product_id,
+            transaction_id,
+            event_label,
+        )
     return {
         "status": "ignored",
         "notification_type": event_label,

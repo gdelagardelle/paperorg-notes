@@ -6,7 +6,8 @@ Capabilities, each independently env-gated:
 - Check/report usage against the Platform ledger, acting as the user
   (their own bearer token is forwarded — no service credential involved).
 - Resolve provider API keys from the Platform credentials vault
-  (PLATFORM_INTERNAL_TOKEN), falling back to local env vars.
+  (PLATFORM_INTERNAL_TOKEN). When that vault is configured, it is
+  authoritative; local env vars are used only outside Platform mode.
 - Relay outbound email through the Platform SMTP configured in the admin
   (PLATFORM_INTERNAL_TOKEN), falling back to local EMAIL_SMTP_* env vars.
 """
@@ -27,7 +28,8 @@ from config import settings
 _JWKS_TTL_SECONDS = 3600
 _jwks_cache: dict[str, Any] = {"keys": None, "fetched_at": 0.0}
 
-_CREDENTIAL_TTL_SECONDS = 600
+_CREDENTIAL_TTL_SECONDS = 60
+_CREDENTIAL_MISS_TTL_SECONDS = 15
 _credential_cache: dict[str, tuple[float, Optional[str]]] = {}
 
 _EMAIL_STATUS_TTL_SECONDS = 120
@@ -142,26 +144,44 @@ def report_platform_usage(
 
 
 def resolve_provider_key(provider: str, env_value: str) -> str:
-    """Vault key if the internal token is configured, else the env value."""
+    """Resolve a provider key without ever exposing it to a mobile client.
+
+    A configured Platform vault is authoritative. In that mode, a revoked,
+    absent, malformed, or temporarily unreachable remote credential must never
+    silently fall back to an older local environment key: remote operators need
+    disable/rotation to take effect predictably. Previously validated secrets
+    are retained for at most one minute to tolerate a brief Platform outage.
+    """
     if not settings.platform_api_url or not settings.platform_internal_token:
         return env_value
+
     cached = _credential_cache.get(provider)
-    if cached and time.time() - cached[0] < _CREDENTIAL_TTL_SECONDS:
-        return cached[1] or env_value
-    secret: Optional[str] = None
+    if cached:
+        cached_at, cached_secret = cached
+        ttl = _CREDENTIAL_TTL_SECONDS if cached_secret else _CREDENTIAL_MISS_TTL_SECONDS
+        if time.time() - cached_at < ttl:
+            return cached_secret or ""
+
     try:
         response = httpx.get(
             f"{settings.platform_api_url}/internal/v1/credentials/resolve",
             params={"provider": provider, "app_id": "notes"},
-            headers={"Authorization": f"Bearer {settings.platform_internal_token}"},
+            headers=_internal_headers(),
             timeout=10,
         )
-        if response.status_code == 200:
-            secret = response.json().get("secret")
-    except httpx.HTTPError:
-        secret = None
+        if response.status_code == 404:
+            _credential_cache[provider] = (time.time(), None)
+            return ""
+        response.raise_for_status()
+        payload = response.json()
+        secret = payload.get("secret")
+        if payload.get("provider") != provider or not isinstance(secret, str) or not secret:
+            return ""
+    except (httpx.HTTPError, ValueError, TypeError):
+        return ""
+
     _credential_cache[provider] = (time.time(), secret)
-    return secret or env_value
+    return secret
 
 
 def platform_email_relay_available() -> bool:

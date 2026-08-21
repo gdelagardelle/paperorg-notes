@@ -11,10 +11,10 @@ Use this when completing **App Store Connect → App Privacy** and listing metad
 
 | Data type | Collected | Purpose | Notes |
 |-----------|-----------|---------|-------|
-| **User ID** | Yes (Pro) | App functionality | Random device UUID sent to Paperorg backend |
+| **User ID / Device ID** | Yes (cloud processing) | App functionality | Random device UUID sent to Paperorg backend to enforce Free and Pro usage limits |
 | **Purchase history** | Yes (Pro) | App functionality | StoreKit subscription; verified server-side |
-| **Audio data** | Yes | App functionality | Recorded on device; sent to AI providers for transcription |
-| **Other user content** | Yes | App functionality | Transcripts, summaries (stored on device) |
+| **Audio data** | Yes (cloud processing) | App functionality | Sent to Paperorg and enabled AI processors for transcription |
+| **Other user content** | Yes (cloud processing) | App functionality | Transcript text sent to Paperorg and enabled AI processors for requested summaries; originals remain on device |
 | **Email address** | Optional | App functionality | Only if user configures SMTP recipients in Settings |
 
 ## Data not collected
@@ -27,23 +27,25 @@ Use this when completing **App Store Connect → App Privacy** and listing metad
 
 ---
 
-## Third-party data sharing (Free plan)
+## Third-party data sharing (included Free and Pro cloud processing)
 
-When user configures BYOK and consents per provider:
-
-| Recipient | Data | Purpose |
-|-----------|------|---------|
-| OpenAI | Audio, transcript text | Transcription & summarisation |
-| ElevenLabs | Audio | Transcription |
-| LuxASR | Audio | Transcription (Luxembourgish) |
-
-## Third-party data sharing (Pro plan)
+When the user accepts the in-app privacy policy and uses the included Free allowance or Pro:
 
 | Recipient | Data | Purpose |
 |-----------|------|---------|
-| Paperorg backend | Audio, device ID, usage minutes | Pro transcription proxy |
-| OpenAI / ElevenLabs / LuxASR | Audio (via our backend) | Transcription & summarisation |
-| Apple | Purchase data | Subscription billing |
+| Paperorg backend | Audio, transcript text, random device ID, monthly usage | Cloud transcription and summaries; enforce usage limits |
+| OpenAI / ElevenLabs / LuxASR | Audio and/or transcript text (via Paperorg backend) | Transcription & summarisation |
+| Apple | Purchase data (Pro only) | Subscription billing |
+
+## Third-party data sharing (optional personal keys)
+
+When a user adds their own provider key and consents to the provider in Settings:
+
+| Recipient | Data | Purpose |
+|-----------|------|---------|
+| OpenAI | Audio, transcript text | Direct transcription & summarisation |
+| ElevenLabs | Audio | Direct transcription |
+| LuxASR | Audio | Direct transcription (Luxembourgish) |
 
 ---
 
@@ -66,12 +68,12 @@ When user configures BYOK and consents per provider:
 **Subtitle:** Voice notes with Luxembourgish transcription
 
 **Promotional text (170 chars):**  
-Record meetings and voice notes in Lëtzebuergesch, French, German, and more. AI summaries, action items, and PDF export — Free with your keys or Pro with everything included.
+Record meetings and voice notes in Lëtzebuergesch, French, German, and more. AI summaries, action items, and PDF export — 30 Free cloud minutes each month, with Pro for more.
 
 **Description (opening):**  
 Paperorg Notes turns voice into structured notes. Record on your iPhone, transcribe in Luxembourgish and multiple languages, and get meeting summaries, action items, and email drafts.
 
-**Free plan:** Use your own OpenAI and ElevenLabs API keys.  
+**Free plan:** 30 minutes/month of cloud transcription and AI summaries. No API key or sign-in required; personal keys are optional.
 **Paperorg Pro:** 600 minutes/month included — no API setup required.
 
 **Keywords:** voice notes, transcription, Luxembourgish, Lëtzebuergesch, meeting notes, AI summary, dictation, minutes
@@ -100,7 +102,7 @@ Paperorg Notes turns voice into structured notes. Record on your iPhone, transcr
 - Pro subscription: `com.paperorg.notes.pro.monthly`
 - Sandbox test account available on request
 - Backend URL: `[your production URL]` — required for Pro transcription
-- Free tier works without backend (BYOK direct to OpenAI)
+- Free and Pro cloud processing require the Paperorg backend; personal keys are an optional direct-processing path
 
 ---
 

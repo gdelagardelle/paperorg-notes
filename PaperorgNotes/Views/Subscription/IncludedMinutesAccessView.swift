@@ -1,4 +1,3 @@
-import AuthenticationServices
 import SwiftUI
 
 struct IncludedMinutesAccessView: View {
@@ -22,14 +21,11 @@ struct IncludedMinutesAccessView: View {
                 Text(L10n.Included.detail)
                     .foregroundStyle(AppTheme.textSecondary)
 
-                SignInWithAppleButton(.continue) { request in
-                    request.requestedScopes = []
-                } onCompletion: { result in
-                    handle(result)
+                Button(L10n.Included.start) {
+                    activateIncludedMinutes()
                 }
-                .frame(height: 50)
+                .buttonStyle(AccentButtonStyle())
                 .disabled(isWorking)
-                .accessibilityLabel(L10n.Included.signInLabel)
 
                 Button(L10n.Included.useOwnKeys) {
                     dismiss()
@@ -68,20 +64,12 @@ struct IncludedMinutesAccessView: View {
         }
     }
 
-    private func handle(_ result: Result<ASAuthorization, Error>) {
-        guard case .success(let authorization) = result,
-              let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
-              let tokenData = credential.identityToken,
-              let identityToken = String(data: tokenData, encoding: .utf8) else {
-            message = L10n.Included.signInFailed
-            return
-        }
-
+    private func activateIncludedMinutes() {
         isWorking = true
         message = nil
         Task {
             do {
-                let usage = try await environment.proBackendClient.signInWithApple(identityToken: identityToken)
+                let usage = try await environment.proBackendClient.register()
                 if usage.minutesLimit > 0 {
                     dismiss()
                 } else {

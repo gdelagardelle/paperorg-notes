@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import base64
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -10,8 +9,12 @@ from typing import Any, Optional
 
 import httpx
 import jwt
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
+from appstoreserverlibrary.models.Environment import Environment
+from appstoreserverlibrary.signed_data_verifier import (
+    SignedDataVerifier,
+    VerificationException,
+)
+from config import settings
 
 PRODUCTION_BASE_URL = "https://api.storekit.itunes.apple.com"
 SANDBOX_BASE_URL = "https://api.storekit-sandbox.itunes.apple.com"
@@ -47,40 +50,67 @@ def generate_app_store_api_token(
     return jwt.encode(payload, private_key_bytes, algorithm="ES256", headers=headers)
 
 
-def _public_key_from_x5c(x5c_chain: list[str]) -> Any:
-    cert_der = base64.b64decode(x5c_chain[0])
-    cert = x509.load_der_x509_certificate(cert_der, default_backend())
-    return cert.public_key()
+def _signed_data_verifier() -> SignedDataVerifier:
+    root_directory = Path(settings.apple_root_certificates_dir)
+    if not settings.apple_root_certificates_dir or not root_directory.is_dir():
+        raise AppStoreVerificationError(
+            "Apple root certificates are not configured on the backend."
+        )
+    root_certificates = [path.read_bytes() for path in root_directory.iterdir() if path.is_file()]
+    if not root_certificates:
+        raise AppStoreVerificationError("Apple root certificate directory is empty.")
+    environment = Environment.SANDBOX if settings.apple_use_sandbox else Environment.PRODUCTION
+    app_apple_id = None if settings.apple_use_sandbox else settings.apple_app_id
+    return SignedDataVerifier(
+        root_certificates,
+        True,
+        environment,
+        settings.apple_bundle_id,
+        app_apple_id,
+    )
 
 
-def decode_and_verify_jws(
+def decode_and_verify_transaction(
     signed_payload: str,
     *,
     bundle_id: str,
     product_id: Optional[str] = None,
 ) -> dict[str, Any]:
-    header = jwt.get_unverified_header(signed_payload)
-    x5c = header.get("x5c")
-    if not x5c:
-        raise AppStoreVerificationError("Missing certificate chain in Apple JWS.")
-
-    public_key = _public_key_from_x5c(x5c)
-    payload = jwt.decode(
-        signed_payload,
-        public_key,
-        algorithms=["ES256"],
-        options={"verify_aud": False},
-    )
-
-    if payload.get("bundleId") and payload.get("bundleId") != bundle_id:
+    """Verify the Apple certificate chain before trusting transaction fields."""
+    try:
+        payload = _signed_data_verifier().verify_and_decode_signed_transaction(signed_payload)
+    except (VerificationException, OSError, ValueError) as exc:
+        raise AppStoreVerificationError("Invalid Apple signed transaction.") from exc
+    if payload.bundleId != bundle_id:
         raise AppStoreVerificationError("Subscription bundle ID does not match this app.")
-    if product_id and payload.get("productId") and payload.get("productId") != product_id:
+    if product_id and payload.productId != product_id:
         raise AppStoreVerificationError("Subscription product ID does not match Paperorg Pro.")
-
-    if payload.get("revocationDate") and product_id:
+    if payload.revocationDate and product_id:
         raise AppStoreVerificationError("This subscription transaction was revoked.")
+    return {
+        "expiresDate": payload.expiresDate,
+        "originalTransactionId": payload.originalTransactionId,
+        "transactionId": payload.transactionId,
+        "productId": payload.productId,
+        "revocationDate": payload.revocationDate,
+    }
 
-    return payload
+
+def decode_and_verify_notification(signed_payload: str) -> dict[str, Any]:
+    """Verify App Store notification JWS against configured Apple roots."""
+    try:
+        payload = _signed_data_verifier().verify_and_decode_notification(signed_payload)
+    except (VerificationException, OSError, ValueError) as exc:
+        raise AppStoreVerificationError("Invalid App Store notification.") from exc
+    return {
+        "notificationType": getattr(payload.notificationType, "value", payload.notificationType),
+        "subtype": getattr(payload.subtype, "value", payload.subtype),
+        "data": {
+            "signedTransactionInfo": getattr(payload.data, "signedTransactionInfo", None)
+            if payload.data
+            else None,
+        },
+    }
 
 
 def fetch_signed_transaction_info(
@@ -160,7 +190,7 @@ def verify_pro_subscription(
         use_sandbox=use_sandbox,
     )
 
-    payload = decode_and_verify_jws(
+    payload = decode_and_verify_transaction(
         signed_payload,
         bundle_id=bundle_id,
         product_id=product_id,

@@ -13,15 +13,40 @@ Copy `backend/.env.example` → production secrets:
 | `PAPERORG_JWT_SECRET` | Long random string (32+ bytes) |
 | `PAPERORG_DEV_MODE` | `false` |
 | `DATABASE_URL` | `postgresql://user:pass@host:5432/dbname` |
-| `OPENAI_API_KEY` | Server-side key |
-| `ELEVENLABS_API_KEY` | Server-side key |
 | `PRO_MINUTES_PER_MONTH` | `600` |
+| `FREE_MINUTES_PER_MONTH` | `30` |
+| `TRANSCRIPTION_REQUESTS_PER_15_MINUTES` | `12` |
 | `APPLE_BUNDLE_ID` | `com.paperorg.notes` |
 | `APPLE_PRO_PRODUCT_ID` | `com.paperorg.notes.pro.monthly` |
 | `APPLE_ISSUER_ID` | App Store Connect → Keys |
 | `APPLE_KEY_ID` | App Store Connect → Keys |
 | `APPLE_PRIVATE_KEY` | Path to `.p8` or PEM string |
 | `APPLE_USE_SANDBOX` | `false` (prod) / `true` (staging) |
+| `APPLE_ROOT_CERTIFICATES_DIR` | Absolute directory containing Apple PKI root certificates |
+| `APPLE_APP_ID` | `6789115903` in production |
+
+### Preferred provider-key source: Paperorg Platform vault
+
+For production, use the existing Paperorg Platform credentials vault instead
+of placing provider keys in notes-api environment variables:
+
+| Variable | Production value |
+|----------|------------------|
+| `PLATFORM_API_URL` | `https://poplatform.paperorg.com` |
+| `PLATFORM_INTERNAL_TOKEN` | Scoped internal service token |
+
+Create credentials in the Platform admin with scope **app**, `app_id=notes`,
+and provider `openai`, `elevenlabs`, or `luxasr`. When both Platform variables
+are configured, the vault is authoritative: notes-api uses only the matching
+active Platform credential, caches a validated credential for at most 60
+seconds, and fails closed when it is removed or unavailable. This means a
+remote disable or rotation cannot silently continue using a stale local key.
+
+Provider keys must never be present in the iOS app, its build settings, or a
+production notes-api environment. Download the App Store verification roots
+from Apple PKI into the service's protected filesystem and set
+`APPLE_ROOT_CERTIFICATES_DIR`; subscription verification deliberately fails
+closed if the trusted roots are absent.
 
 ---
 
@@ -98,7 +123,8 @@ Archive with **Release** configuration for TestFlight.
 
 1. iOS purchase (StoreKit sandbox or production)
 2. App sends `POST /v1/subscription/verify` with `transaction_id`
-3. Backend calls App Store Server API → verifies JWS → sets Pro + expiry
+3. Backend calls App Store Server API → verifies the JWS certificate chain
+   against Apple roots → sets Pro + expiry
 4. `GET /v1/usage` returns `is_pro: true`
 
 ---
@@ -128,4 +154,4 @@ Deploy a second instance with `APPLE_USE_SANDBOX=true` and use a **Staging** Xco
 
 ---
 
-*Last updated: 2026-07-12*
+*Last updated: 2026-08-21*

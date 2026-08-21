@@ -414,4 +414,132 @@ final class ProUsageInfoDecodingTests: XCTestCase {
         XCTAssertTrue(settings.shouldSuggestIncludedMinutesUpgrade(afterCompletedNotes: 0))
     }
 }
+
+@MainActor
+final class SubscriptionEntitlementConfirmationTests: XCTestCase {
+    func testVerificationFailureDoesNotGrantPro() async {
+        let suiteName = "SubscriptionEntitlementConfirmationFailure"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .failure)
+        )
+
+        let confirmed = await service.confirmSubscription(
+            productID: SubscriptionProduct.proMonthly,
+            transactionID: "123"
+        )
+
+        XCTAssertFalse(confirmed)
+        XCTAssertEqual(settings.selectedPlan, .free)
+        XCTAssertFalse(service.isProActive)
+        XCTAssertEqual(service.lastError, L10n.Subscription.verificationPending)
+    }
+
+    func testVerifiedSubscriptionGrantsPro() async {
+        let suiteName = "SubscriptionEntitlementConfirmationSuccess"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let usage = ProUsageInfo(
+            isPro: true,
+            minutesLimit: 600,
+            minutesUsed: 0,
+            minutesRemaining: 600,
+            periodKey: "2026-08",
+            proExpiresAt: "2026-09-01T00:00:00Z"
+        )
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .success(usage))
+        )
+
+        let confirmed = await service.confirmSubscription(
+            productID: SubscriptionProduct.proMonthly,
+            transactionID: "123"
+        )
+
+        XCTAssertTrue(confirmed)
+        XCTAssertEqual(settings.selectedPlan, .pro)
+        XCTAssertTrue(service.isProActive)
+        XCTAssertEqual(service.usageInfo, usage)
+        XCTAssertNil(service.lastError)
+    }
+
+    func testUnentitledVerificationDoesNotGrantPro() async {
+        let suiteName = "SubscriptionEntitlementConfirmationUnentitled"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let usage = ProUsageInfo(
+            isPro: false,
+            minutesLimit: 30,
+            minutesUsed: 0,
+            minutesRemaining: 30,
+            periodKey: "2026-08",
+            proExpiresAt: nil
+        )
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .success(usage))
+        )
+
+        let confirmed = await service.confirmSubscription(
+            productID: SubscriptionProduct.proMonthly,
+            transactionID: "123"
+        )
+
+        XCTAssertFalse(confirmed)
+        XCTAssertEqual(settings.selectedPlan, .free)
+        XCTAssertFalse(service.isProActive)
+        XCTAssertEqual(service.lastError, L10n.Subscription.entitlementUnavailable)
+    }
+}
+
+@MainActor
+private final class TestSubscriptionVerifier: SubscriptionVerifying {
+    enum Outcome {
+        case success(ProUsageInfo)
+        case failure
+    }
+
+    private let outcome: Outcome
+
+    init(outcome: Outcome) {
+        self.outcome = outcome
+    }
+
+    func refreshUsage() async throws -> ProUsageInfo {
+        try result()
+    }
+
+    func verifySubscription(
+        productID: String,
+        transactionID: String?,
+        signedTransactionInfo: String?
+    ) async throws -> ProUsageInfo {
+        try result()
+    }
+
+    func devActivatePro() async throws -> ProUsageInfo {
+        try result()
+    }
+
+    private func result() throws -> ProUsageInfo {
+        switch outcome {
+        case .success(let usage):
+            return usage
+        case .failure:
+            throw ProBackendError.serverError("Verification unavailable")
+        }
+    }
+}
 #endif

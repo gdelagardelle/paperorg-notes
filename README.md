@@ -17,14 +17,14 @@ A production-grade native iOS app for voice recording, multilingual transcriptio
 | | **Free** | **Pro** |
 |---|----------|---------|
 | Price | €0 | Subscription |
-| API keys | Your OpenAI + ElevenLabs (BYOK) | Included — no setup |
-| Transcription | Direct to providers | Via Paperorg backend |
-| Minutes | Unlimited (you pay providers) | 600 min/month included |
+| API keys | None required; personal keys are optional | Included — no setup |
+| Transcription | 30 minutes/month via Paperorg backend | Via Paperorg backend |
+| Minutes | 30 min/month included; personal keys are not metered by Paperorg | 600 min/month included |
 | Vocabulary | 20 custom terms | Unlimited |
 | Audio retention | Your settings | 90 days included |
 
 ### Free plan
-Launch the app → **Settings → Transcription** → add OpenAI key (required) and ElevenLabs (recommended for Lëtzebuergesch).
+Launch the app and use the included 30 monthly minutes—no sign-in and no API key are required. Personal provider keys remain available in **Settings → Advanced Providers** for users who prefer to pay the provider directly.
 
 ### Pro plan
 Requires the [Paperorg Pro backend](backend/README.md). For local development:
@@ -53,7 +53,7 @@ Product ID: `com.paperorg.notes.pro.monthly`
 - Xcode 16+
 - iOS 17.0+
 - Swift 5.9+
-- API keys for transcription providers (**Free** BYOK) or **Pro** subscription + backend
+- A Paperorg backend for included Free and Pro processing; personal provider keys are optional for direct processing
 
 ## Getting Started
 
@@ -77,11 +77,11 @@ open PaperorgNotes.xcodeproj
 
 In Xcode, set your **Development Team** for the `PaperorgNotes` target.
 
-### 3. Add API Keys
+### 3. Optional: Add Personal Provider Keys
 
-Launch the app → **Settings** → enter API keys and consent to providers:
+Included Free and Pro processing uses the Paperorg backend. For direct processing with your own paid provider account, open **Settings → Advanced Providers**, enter a key, and consent to that provider:
 
-- **OpenAI** — required for DE/FR/EN/PT transcription and AI summaries
+- **OpenAI** — optional direct processing for DE/FR/EN/PT transcription and AI summaries
 - **ElevenLabs** — recommended fallback, especially for Luxembourgish
 - **LuxASR** — best Luxembourgish accuracy ([luxasr.uni.lu](https://luxasr.uni.lu))
 

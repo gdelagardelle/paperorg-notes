@@ -3643,31 +3643,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starten Sie kostenlos mit eigenen API-Schlüsseln oder upgraden Sie auf Pro mit allem inklusive."
+            "value": "Starten Sie kostenlos mit 30 Minuten Transkription und KI-Zusammenfassungen. Eigene API-Schlüssel sind optional."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start free with your own API keys, or upgrade to Pro for everything included."
+            "value": "Start free with 30 minutes of transcription and AI summaries. Your own API keys are optional."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Commencez gratuitement avec vos propres clés API, ou passez à Pro pour tout inclure."
+            "value": "Commencez gratuitement avec 30 minutes de transcription et de résumés IA. Vos propres clés API sont facultatives."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start gratis mat Ären eegene API Schlësselen, oder Upgrade op Pro fir alles abegraff."
+            "value": "Start gratis mat 30 Minutte Transkriptioun an AI-Zesummefaassungen. Är eegen API-Schlëssele sinn optional."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Comece gratuitamente com as suas próprias chaves API ou mude para o Pro com tudo incluído."
+            "value": "Comece gratuitamente com 30 minutos de transcrição e resumos de IA. As suas próprias chaves API são opcionais."
           }
         }
       }
@@ -3748,31 +3748,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "ElevenLabs empfohlen für Lëtzebuergesch"
+            "value": "Optional: ElevenLabs für Lëtzebuergesch"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "ElevenLabs recommended for Lëtzebuergesch"
+            "value": "Optional: ElevenLabs for Lëtzebuergesch"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "ElevenLabs recommandé pour le lëtzebuergesch"
+            "value": "Facultatif : ElevenLabs pour le luxembourgeois"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "ElevenLabs recommandéiert fir Lëtzebuergesch"
+            "value": "Optional: ElevenLabs fir Lëtzebuergesch"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "ElevenLabs recomendado para Lëtzebuergesch"
+            "value": "Opcional: ElevenLabs para Lëtzebuergesch"
           }
         }
       }
@@ -3783,31 +3783,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erfordert Ihren OpenAI-API-Schlüssel"
+            "value": "Optional: eigener OpenAI-API-Schlüssel"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Requires your OpenAI API key"
+            "value": "Optional: your own OpenAI API key"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nécessite votre clé API OpenAI"
+            "value": "Facultatif : votre propre clé API OpenAI"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verlaangt Ären OpenAI API Schlëssel"
+            "value": "Optional: Ären eegenen OpenAI API-Schlëssel"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Requer a sua chave API da OpenAI"
+            "value": "Opcional: a sua própria chave API da OpenAI"
           }
         }
       }
@@ -3886,31 +3886,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Konto wird verbunden…"
+            "value": "Inklusive Minuten werden eingerichtet…"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connecting your account…"
+            "value": "Setting up your included minutes…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connexion de votre compte…"
+            "value": "Configuration de vos minutes incluses…"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Äre Kont verbënnt ..."
+            "value": "Är abegraff Minutte ginn ageriicht…"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "A ligar a sua conta…"
+            "value": "A configurar os seus minutos incluídos…"
           }
         }
       }
@@ -3920,31 +3920,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Melden Sie sich mit Apple an, um Ihre inklusive Transkription und KI-Zusammenfassungen zu nutzen. Ihr monatliches Guthaben ist an Ihr Konto gebunden, nicht an dieses Gerät."
+            "value": "Nutzen Sie Ihre 30 Minuten Transkription und KI-Zusammenfassungen pro Monat – ohne Anmeldung oder API-Schlüssel. Das Guthaben ist an dieses Gerät gebunden."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in with Apple to use your included transcription and AI summaries. Your monthly allowance follows your account, not this device."
+            "value": "Use your 30 monthly minutes of transcription and AI summaries—no sign-in or API keys required. Your allowance is tied to this device."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connectez-vous avec Apple pour utiliser vos transcriptions et résumés IA inclus. Votre quota mensuel est lié à votre compte, et non à cet appareil."
+            "value": "Utilisez vos 30 minutes mensuelles de transcription et de résumés IA, sans connexion ni clé API. Votre quota est lié à cet appareil."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mellt Iech mat Apple un fir Är abegraff Transkriptioun an AI Zesummefaassungen ze benotzen. Är monatlecht Zoulag follegt Äre Kont, net dësem Apparat."
+            "value": "Benotzt Är 30 Minutte Transkriptioun an AI-Zesummefaassungen all Mount – ouni Umeldung oder API-Schlësselen. Äert Guthaben ass un dësen Apparat gebonnen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inicie sessão com a Apple para usar a transcrição e os resumos de IA incluídos. A sua franquia mensal acompanha a sua conta, não este dispositivo."
+            "value": "Use os seus 30 minutos mensais de transcrição e resumos de IA, sem iniciar sessão nem usar chaves API. A sua franquia está associada a este dispositivo."
           }
         }
       }
@@ -4049,6 +4049,15 @@
             "value": "Iniciar sessão com a Apple para usar minutos incluídos"
           }
         }
+      }
+    },
+    "included.start": {
+      "localizations": {
+        "de": { "stringUnit": { "state": "translated", "value": "Inklusive Minuten nutzen" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Use included minutes" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Utiliser les minutes incluses" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Abegraff Minutte benotzen" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Usar minutos incluídos" } }
       }
     },
     "included.title": {
@@ -5019,31 +5028,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes zeichnet Audio auf Ihrem Gerät auf. Im Free-Plan nutzt die Transkription Ihre eigenen OpenAI- und ElevenLabs-Schlüssel. Paperorg Pro enthält Cloud-Transkription ohne Schlüssel."
+            "value": "Paperorg Notes zeichnet Audio auf Ihrem Gerät auf. Free umfasst 30 Minuten Cloud-Transkription und KI-Zusammenfassungen pro Monat, ohne API-Schlüssel. Eigene Schlüssel sind optional."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes records audio on your device. On the Free plan, transcription uses your own OpenAI and ElevenLabs keys. Paperorg Pro includes cloud transcription with no keys required."
+            "value": "Paperorg Notes records audio on your device. Free includes 30 minutes of cloud transcription and AI summaries each month, with no API keys required. Your own keys are optional."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes enregistre l'audio sur votre appareil. Avec l'offre gratuite, la transcription utilise vos propres clés OpenAI et ElevenLabs. Paperorg Pro inclut la transcription cloud sans clés."
+            "value": "Paperorg Notes enregistre l’audio sur votre appareil. L’offre gratuite comprend 30 minutes mensuelles de transcription cloud et de résumés IA, sans clé API. Vos propres clés sont facultatives."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes registréiert Audio op Ärem Apparat. Am Gratis Plang benotzt d'Transkriptioun Är eege OpenAI an ElevenLabs Schlësselen. Paperorg Pro enthält Cloud Transkriptioun ouni Schlësselen erfuerderlech."
+            "value": "Paperorg Notes registréiert Audio op Ärem Apparat. Free enthält all Mount 30 Minutte Cloud-Transkriptioun an AI-Zesummefaassungen, ouni API-Schlësselen. Är eege Schlëssele sinn optional."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Paperorg Notes grava áudio no seu dispositivo. No plano gratuito, a transcrição usa as suas próprias chaves OpenAI e ElevenLabs. O Paperorg Pro inclui transcrição na cloud sem necessidade de chaves."
+            "value": "O Paperorg Notes grava áudio no seu dispositivo. O plano gratuito inclui 30 minutos mensais de transcrição na cloud e resumos de IA, sem necessidade de chaves API. As suas próprias chaves são opcionais."
           }
         }
       }
@@ -5054,31 +5063,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Anbieter-Zustimmung wird in den Einstellungen separat abgefragt, bevor Audio das Gerät verlässt."
+            "value": "Cloud-Transkription sendet Audio sicher an Paperorg und ausgewählte KI-Dienstleister. Für eigene Schlüssel verwalten Sie die Anbieter-Zustimmung in den Einstellungen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider consent is requested separately for each transcription provider in Settings before audio is sent off-device."
+            "value": "Cloud transcription securely sends audio to Paperorg and selected AI processors. For your own keys, manage provider consent in Settings."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le consentement par fournisseur est demandé séparément dans Réglages avant l'envoi de l'audio."
+            "value": "La transcription cloud envoie l’audio de manière sécurisée à Paperorg et aux prestataires IA sélectionnés. Pour vos propres clés, gérez le consentement dans Réglages."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "D'Zoustëmmung vum Fournisseur gëtt separat fir all Transkriptiounsprovider an Astellungen ugefrot ier den Audio vum Apparat geschéckt gëtt."
+            "value": "Cloud-Transkriptioun schéckt Audio sécher un Paperorg an ausgewielten AI-Provider. Fir Är eege Schlëssele geréiert Dir d'Provider-Zoustëmmung an den Astellungen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O consentimento do fornecedor é pedido separadamente para cada fornecedor de transcrição nas Definições antes de o áudio sair do dispositivo."
+            "value": "A transcrição na cloud envia o áudio de forma segura para a Paperorg e para os processadores de IA selecionados. Para as suas próprias chaves, faça a gestão do consentimento nas Definições."
           }
         }
       }
@@ -5299,31 +5308,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihre Daten werden gemäß den Bedingungen jedes Anbieters verarbeitet."
+            "value": "Bei Cloud-Minuten verarbeitet Paperorg die notwendige Audio- und Textanfrage über ausgewählte KI-Dienstleister."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your data is handled according to each provider's terms and your configured account settings."
+            "value": "With cloud minutes, Paperorg routes the required audio and text request through selected AI processors."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vos données sont traitées selon les conditions de chaque fournisseur."
+            "value": "Avec les minutes cloud, Paperorg achemine les demandes audio et texte nécessaires vers des prestataires IA sélectionnés."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Är Donnéeën ginn no de Konditioune vun all Provider an Äre konfiguréierte Kontastellunge gehandhabt."
+            "value": "Mat Cloud-Minutte leet Paperorg déi néideg Audio- an Textufro iwwer ausgewielten AI-Provider weider."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os seus dados são tratados de acordo com os termos de cada fornecedor e com as definições da sua conta."
+            "value": "Com minutos na cloud, a Paperorg encaminha o pedido de áudio e texto necessário através de processadores de IA selecionados."
           }
         }
       }
@@ -5334,31 +5343,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anbieterbedingungen"
+            "value": "Cloud-Verarbeitung"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider Terms"
+            "value": "Cloud Processing"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conditions des fournisseurs"
+            "value": "Traitement cloud"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provider Konditioune"
+            "value": "Cloud-Veraarbechtung"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Termos dos fornecedores"
+            "value": "Processamento na cloud"
           }
         }
       }
@@ -6208,33 +6217,78 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Im Free-Plan verwenden Sie Ihre eigenen OpenAI- und ElevenLabs-API-Schlüssel."
+            "value": "Free enthält 30 Minuten Cloud-Transkription und KI-Zusammenfassungen. Eigene API-Schlüssel sind optional."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free plan uses your own OpenAI and ElevenLabs API keys."
+            "value": "Free includes 30 minutes of cloud transcription and AI summaries. Your own API keys are optional."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'offre gratuite utilise vos propres clés API OpenAI et ElevenLabs."
+            "value": "L’offre gratuite comprend 30 minutes de transcription cloud et de résumés IA. Vos propres clés API sont facultatives."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gratis Plang benotzt Ären eegene OpenAI an ElevenLabs API Schlësselen."
+            "value": "Free enthält 30 Minutte Cloud-Transkriptioun an AI-Zesummefaassungen. Är eegen API-Schlëssele sinn optional."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O plano gratuito usa as suas próprias chaves API OpenAI e ElevenLabs."
+            "value": "O plano gratuito inclui 30 minutos de transcrição na cloud e resumos de IA. As suas próprias chaves API são opcionais."
           }
         }
+      }
+    },
+    "settings.providers.elevenlabs_key": {
+      "localizations": {
+        "de": { "stringUnit": { "state": "translated", "value": "ElevenLabs-API-Schlüssel" } },
+        "en": { "stringUnit": { "state": "translated", "value": "ElevenLabs API Key" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Clé API ElevenLabs" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "ElevenLabs API-Schlëssel" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Chave API ElevenLabs" } }
+      }
+    },
+    "settings.providers.hint": {
+      "localizations": {
+        "de": { "stringUnit": { "state": "translated", "value": "Optional: Verwenden Sie eigene API-Schlüssel für die direkte Verarbeitung. Es gelten die Gebühren Ihres Anbieters." } },
+        "en": { "stringUnit": { "state": "translated", "value": "Optional: use your own provider keys for direct processing. Your provider’s charges apply." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Facultatif : utilisez vos propres clés de fournisseur pour un traitement direct. Les frais de votre fournisseur s’appliquent." } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Optional: benotzt Är eege Provider-Schlëssele fir direkt Veraarbechtung. D’Käschte vun Ärem Provider gëllen." } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Opcional: use as suas próprias chaves de fornecedor para processamento direto. Aplicam-se os custos do seu fornecedor." } }
+      }
+    },
+    "settings.providers.luxasr_key": {
+      "localizations": {
+        "de": { "stringUnit": { "state": "translated", "value": "LuxASR-API-Schlüssel (optional)" } },
+        "en": { "stringUnit": { "state": "translated", "value": "LuxASR API Key (optional)" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Clé API LuxASR (facultatif)" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "LuxASR API-Schlëssel (optional)" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Chave API LuxASR (opcional)" } }
+      }
+    },
+    "settings.providers.openai_key": {
+      "localizations": {
+        "de": { "stringUnit": { "state": "translated", "value": "OpenAI-API-Schlüssel" } },
+        "en": { "stringUnit": { "state": "translated", "value": "OpenAI API Key" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Clé API OpenAI" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "OpenAI API-Schlëssel" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Chave API OpenAI" } }
+      }
+    },
+    "settings.providers.title": {
+      "localizations": {
+        "de": { "stringUnit": { "state": "translated", "value": "Erweiterte Anbieter" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Advanced Providers" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Fournisseurs avancés" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Erweidert Provider" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Fornecedores avançados" } }
       }
     },
     "settings.language.auto_detect": {
@@ -6313,31 +6367,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standardsprache"
+            "value": "Standard-Aufnahmesprache"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Default Language"
+            "value": "Default Recording Language"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Langue par défaut"
+            "value": "Langue d’enregistrement par défaut"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standard Sprooch"
+            "value": "Standard-Opnamesprooch"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Idioma predefinido"
+            "value": "Idioma de gravação predefinido"
           }
         }
       }
@@ -6933,6 +6987,142 @@
           "stringUnit": {
             "state": "translated",
             "value": "Transcrição"
+          }
+        }
+      }
+    },
+    "subscription.entitlement_unavailable": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihr Kauf wurde empfangen, aber Paperorg Pro konnte noch nicht aktiviert werden. Tippen Sie gleich auf „Käufe wiederherstellen“."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your purchase was received, but Paperorg Pro could not be activated yet. Tap Restore Purchases in a moment."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre achat a bien été reçu, mais Paperorg Pro n’a pas encore pu être activé. Touchez bientôt « Restaurer les achats »."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Äre Kaf gouf empfaangen, mee Paperorg Pro konnt nach net aktivéiert ginn. Tippt geschwënn op „Kaf restauréieren“."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A sua compra foi recebida, mas o Paperorg Pro ainda não pôde ser ativado. Toque em « Restaurar compras » dentro de instantes."
+          }
+        }
+      }
+    },
+    "subscription.product_unavailable": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Pro ist noch nicht zum Kauf verfügbar. Bitte versuchen Sie es später erneut."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Pro is not available for purchase yet. Please try again later."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Pro n’est pas encore disponible à l’achat. Veuillez réessayer plus tard."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paperorg Pro ass nach net fir de Kaf verfügbar. Probéiert et w.e.g. méi spéit nach eng Kéier."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Paperorg Pro ainda não está disponível para compra. Tente novamente mais tarde."
+          }
+        }
+      }
+    },
+    "subscription.purchase_pending": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Kauf wartet noch auf die Genehmigung."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchase is pending approval."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’achat est en attente d’approbation."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De Kaf waart nach op d’Geneemegung."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A compra está pendente de aprovação."
+          }
+        }
+      }
+    },
+    "subscription.verification_pending": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihr Kauf ist abgeschlossen, aber Paperorg Pro wird noch bestätigt. Tippen Sie gleich auf „Käufe wiederherstellen“."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your purchase is complete, but Paperorg Pro is still being confirmed. Tap Restore Purchases in a moment."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre achat est terminé, mais Paperorg Pro est encore en cours de confirmation. Touchez bientôt « Restaurer les achats »."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Äre Kaf ass ofgeschloss, mee Paperorg Pro gëtt nach confirméiert. Tippt geschwënn op „Kaf restauréieren“."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A sua compra está concluída, mas o Paperorg Pro ainda está a ser confirmado. Toque em « Restaurar compras » dentro de instantes."
           }
         }
       }
