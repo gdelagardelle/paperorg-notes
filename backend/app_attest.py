@@ -40,10 +40,63 @@ def _b64(value: str) -> bytes:
 
 
 def _der_nonce(value: bytes) -> bytes:
-    # Apple defines this extension as DER SEQUENCE { OCTET STRING nonce }.
-    if len(value) != 36 or value[:2] != b"0\"\x04 ":
+    """Extract the 32-byte nonce from Apple's DER certificate extension.
+
+    Apple's certificate extension is a DER SEQUENCE containing the nonce as an
+    OCTET STRING.  App Attest certificates in the wild may put that OCTET
+    STRING behind an explicit context-0 wrapper.  Decode only those documented
+    shapes; do not recursively search the certificate for a convenient value.
+    """
+    def read_element(data: bytes, index: int = 0) -> tuple[int, bytes, int]:
+        if index >= len(data):
+            raise AppAttestError("Invalid App Attest nonce extension.")
+        tag = data[index]
+        index += 1
+        if index >= len(data):
+            raise AppAttestError("Invalid App Attest nonce extension.")
+        first = data[index]
+        index += 1
+        if first < 0x80:
+            length = first
+        else:
+            size = first & 0x7F
+            if size == 0 or size > 2 or index + size > len(data):
+                raise AppAttestError("Invalid App Attest nonce extension.")
+            length_bytes = data[index : index + size]
+            # DER requires the shortest possible length encoding.
+            if length_bytes[0] == 0 or (size == 1 and length_bytes[0] < 0x80):
+                raise AppAttestError("Invalid App Attest nonce extension.")
+            length = int.from_bytes(length_bytes, "big")
+            index += size
+        end = index + length
+        if end > len(data):
+            raise AppAttestError("Invalid App Attest nonce extension.")
+        return tag, data[index:end], end
+
+    # cryptography exposes the extension's inner DER value. Accepting the
+    # optional outer OCTET STRING makes this safe for decoders that retain it.
+    tag, content, end = read_element(value)
+    if end != len(value):
         raise AppAttestError("Invalid App Attest nonce extension.")
-    return value[4:]
+    if tag == 0x04:
+        wrapped = content
+        tag, content, end = read_element(wrapped)
+        if end != len(wrapped):
+            raise AppAttestError("Invalid App Attest nonce extension.")
+    if tag != 0x30:
+        raise AppAttestError("Invalid App Attest nonce extension.")
+
+    tag, nonce, end = read_element(content)
+    if end != len(content):
+        raise AppAttestError("Invalid App Attest nonce extension.")
+    if tag == 0xA0:
+        wrapped = nonce
+        tag, nonce, end = read_element(wrapped)
+        if end != len(wrapped):
+            raise AppAttestError("Invalid App Attest nonce extension.")
+    if tag != 0x04 or len(nonce) != 32:
+        raise AppAttestError("Invalid App Attest nonce extension.")
+    return nonce
 
 
 def _verify_chain(certs: list[x509.Certificate]) -> x509.Certificate:

@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import json
+import logging
 import math
 from pathlib import Path
 import re
@@ -58,6 +59,8 @@ from email_delivery import (
     send_email,
 )
 from rate_limit import enforce_rate_limit, enforce_user_rate_limit
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Paperorg Notes Pro API", version="1.0.0")
 
@@ -465,6 +468,7 @@ def app_attest_verify(body: AppAttestVerificationRequest, principal: dict[str, A
     try:
         verify_attestation(user["id"], body.challenge_id, body.key_id, body.attestation_object)
     except AppAttestError as exc:
+        logger.warning("App Attest verification rejected: %s", exc)
         raise HTTPException(status_code=403, detail="Device integrity could not be verified.") from exc
     return {"status": "verified"}
 
