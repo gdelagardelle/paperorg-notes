@@ -27,6 +27,7 @@ final class RecordingService: NSObject {
     private var isStoppingIntentionally = false
     private var recorderHasFinished = false
     private var stopFinishContinuation: CheckedContinuation<Void, Never>?
+    private var pendingAudioSessionDeactivation: Task<Void, Never>?
 
     private static let recorderSettings: [String: Any] = [
         AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
@@ -56,6 +57,8 @@ final class RecordingService: NSObject {
         guard granted else { throw RecordingError.permissionDenied }
 
         do {
+            pendingAudioSessionDeactivation?.cancel()
+            pendingAudioSessionDeactivation = nil
             try configureAudioSession()
 
             sessionId = UUID()
@@ -81,7 +84,7 @@ final class RecordingService: NSObject {
             persistCheckpoint()
             persistActiveSession()
         } catch {
-            deactivateAudioSession()
+            releaseRecorderAndDeactivateAudioSession()
             resetState()
             throw RecordingError.setupFailed(error.localizedDescription)
         }
@@ -130,7 +133,7 @@ final class RecordingService: NSObject {
         defer {
             isStoppingIntentionally = false
             stopFinishContinuation = nil
-            deactivateAudioSession()
+            releaseRecorderAndDeactivateAudioSession()
 
             // A failed finalization must not leave the microphone reserved or
             // make the next recording appear to still be in progress. The
@@ -181,7 +184,7 @@ final class RecordingService: NSObject {
         defer {
             isStoppingIntentionally = false
             stopFinishContinuation = nil
-            deactivateAudioSession()
+            releaseRecorderAndDeactivateAudioSession()
             resetState()
         }
 
@@ -261,19 +264,37 @@ final class RecordingService: NSObject {
 
     private func configureAudioSession() throws {
         let session = AVAudioSession.sharedInstance()
+        // This view never plays while it records. Using the record-only
+        // category avoids retaining the VoIP-style speaker/Bluetooth route
+        // that .playAndRecord configures for calls.
         try session.setCategory(
-            .playAndRecord,
-            mode: .spokenAudio,
-            options: [.defaultToSpeaker, .allowBluetoothHFP, .duckOthers]
+            .record,
+            mode: .measurement,
+            options: []
         )
         try session.setActive(true)
     }
 
-    private func deactivateAudioSession() {
-        try? AVAudioSession.sharedInstance().setActive(
-            false,
-            options: .notifyOthersOnDeactivation
-        )
+    /// AVAudioRecorder can retain the input route until it is released. Clear
+    /// it before deactivation, otherwise iOS may reject deactivation as busy
+    /// and leave the system microphone unavailable to other apps.
+    private func releaseRecorderAndDeactivateAudioSession() {
+        recorder?.delegate = nil
+        recorder = nil
+
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            // The route can still be unwinding immediately after stop(). Retry
+            // once, but cancel that retry when a new recording is started.
+            pendingAudioSessionDeactivation?.cancel()
+            pendingAudioSessionDeactivation = Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                guard !Task.isCancelled, self?.state != .recording else { return }
+                try? session.setActive(false, options: .notifyOthersOnDeactivation)
+            }
+        }
     }
 
     private func startTimer() {
