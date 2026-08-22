@@ -21,8 +21,7 @@ struct PlanSelectionView: View {
                     features: [
                         String(localized: "plan.free.feature.record"),
                         String(localized: "plan.free.feature.included_minutes"),
-                        String(localized: "plan.free.feature.openai"),
-                        String(localized: "plan.free.feature.elevenlabs"),
+                        String(localized: "plan.free.feature.luxembourgish"),
                         String(localized: "plan.free.feature.vocabulary")
                     ],
                     buttonTitle: L10n.Plan.continueFree,

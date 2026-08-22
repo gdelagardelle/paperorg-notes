@@ -3643,31 +3643,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starten Sie kostenlos mit 30 Minuten Transkription und KI-Zusammenfassungen. Eigene API-Schlüssel sind optional."
+            "value": "Starten Sie gratis mit 30 Minuten Transkription und KI-Zusammenfassungen pro Monat. Ohne API-Schlüssel und ohne Anmeldung."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start free with 30 minutes of transcription and AI summaries. Your own API keys are optional."
+            "value": "Start free with 30 minutes of transcription and AI summaries each month. No API keys or sign-in required."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Commencez gratuitement avec 30 minutes de transcription et de résumés IA. Vos propres clés API sont facultatives."
+            "value": "Commencez gratuitement avec 30 minutes de transcription et de résumés IA par mois. Sans clé API ni inscription."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start gratis mat 30 Minutte Transkriptioun an AI-Zesummefaassungen. Är eegen API-Schlëssele sinn optional."
+            "value": "Fänkt gratis un mat 30 Minutte Transkriptioun an AI-Zesummefaassungen pro Mount. Ouni API-Schlësselen an ouni Umeldung."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Comece gratuitamente com 30 minutos de transcrição e resumos de IA. As suas próprias chaves API são opcionais."
+            "value": "Comece gratuitamente com 30 minutos de transcrição e resumos de IA por mês. Sem chaves API nem registo."
           }
         }
       }
@@ -3742,72 +3742,36 @@
         }
       }
     },
-    "plan.free.feature.elevenlabs": {
-      "extractionState": "stale",
+    "plan.free.feature.luxembourgish": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Optional: ElevenLabs für Lëtzebuergesch"
+            "value": "Lëtzebuergesch-Transkription inklusive"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Optional: ElevenLabs for Lëtzebuergesch"
+            "value": "Lëtzebuergesch transcription included"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Facultatif : ElevenLabs pour le luxembourgeois"
+            "value": "Transcription en luxembourgeois incluse"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Optional: ElevenLabs fir Lëtzebuergesch"
+            "value": "Lëtzebuergesch Transkriptioun abegraff"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opcional: ElevenLabs para Lëtzebuergesch"
-          }
-        }
-      }
-    },
-    "plan.free.feature.openai": {
-      "extractionState": "stale",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Optional: eigener OpenAI-API-Schlüssel"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Optional: your own OpenAI API key"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Facultatif : votre propre clé API OpenAI"
-          }
-        },
-        "lb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Optional: Ären eegenen OpenAI API-Schlëssel"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opcional: a sua própria chave API da OpenAI"
+            "value": "Transcrição em Lëtzebuergesch incluída"
           }
         }
       }
@@ -3983,40 +3947,6 @@
         }
       }
     },
-    "included.sign_in_failed": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Apple-Anmeldung konnte nicht abgeschlossen werden. Versuchen Sie es erneut oder verwenden Sie eigene API-Schlüssel."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple sign-in could not be completed. Try again or use your own API keys."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La connexion avec Apple n’a pas pu être terminée. Réessayez ou utilisez vos propres clés API."
-          }
-        },
-        "lb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple Umeldung konnt net ofgeschloss ginn. Probéiert nach eng Kéier oder benotzt Är eege API Schlësselen."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Não foi possível concluir o início de sessão com a Apple. Tente novamente ou utilize as suas próprias chaves API."
-          }
-        }
-      }
-    },
     "included.sign_in_label": {
       "localizations": {
         "de": {
@@ -4099,31 +4029,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inklusive Minuten sind noch nicht verfügbar. Sie können eigene API-Schlüssel verwenden oder Pro ausprobieren."
+            "value": "Inklusive Minuten sind noch nicht verfügbar. Sie können stattdessen Paperorg Pro ausprobieren."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Included minutes are not available yet. You can use your own API keys or try Pro."
+            "value": "Included minutes are not available yet. You can try Paperorg Pro instead."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les minutes incluses ne sont pas encore disponibles. Vous pouvez utiliser vos propres clés API ou essayer Pro."
+            "value": "Les minutes incluses ne sont pas encore disponibles. Vous pouvez essayer Paperorg Pro à la place."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "abegraff Minutte sinn nach net verfügbar. Dir kënnt Är eege API Schlësselen benotzen oder Pro probéieren."
+            "value": "Inklusiv Minutte sinn nach net verfügbar. Dir kënnt amplaz Paperorg Pro probéieren."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os minutos incluídos ainda não estão disponíveis. Pode usar as suas próprias chaves API ou experimentar o Pro."
+            "value": "Os minutos incluídos ainda não estão disponíveis. Pode experimentar o Paperorg Pro em alternativa."
           }
         }
       }
@@ -4162,70 +4092,36 @@
         }
       }
     },
-    "included.use_own_keys": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stattdessen eigene API-Schlüssel verwenden"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Use your own API keys instead"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Utiliser vos propres clés API"
-          }
-        },
-        "lb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Benotzt Är eege API Schlësselen amplaz"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usar antes as suas próprias chaves API"
-          }
-        }
-      }
-    },
     "plan.free.feature.included_minutes": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 Minuten/Monat mit Apple-Anmeldung"
+            "value": "30 Minuten/Monat, ohne Anmeldung"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutes/month with Sign in with Apple"
+            "value": "30 minutes/month, no sign-in needed"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutes/mois avec Connexion avec Apple"
+            "value": "30 minutes/mois, sans inscription"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 Minutten / Mount mat Umellen mat Apple"
+            "value": "30 Minutte/Mount, ouni Umeldung"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutos/mês com Iniciar sessão com a Apple"
+            "value": "30 minutos/mês, sem registo"
           }
         }
       }
@@ -6217,78 +6113,33 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free enthält 30 Minuten Cloud-Transkription und KI-Zusammenfassungen. Eigene API-Schlüssel sind optional."
+            "value": "Free umfasst 30 Minuten Cloud-Transkription und KI-Zusammenfassungen pro Monat. Ohne API-Schlüssel und ohne Anmeldung."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free includes 30 minutes of cloud transcription and AI summaries. Your own API keys are optional."
+            "value": "Free includes 30 minutes of cloud transcription and AI summaries each month. No API keys or sign-in required."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’offre gratuite comprend 30 minutes de transcription cloud et de résumés IA. Vos propres clés API sont facultatives."
+            "value": "L’offre gratuite comprend 30 minutes mensuelles de transcription cloud et de résumés IA. Sans clé API ni inscription."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free enthält 30 Minutte Cloud-Transkriptioun an AI-Zesummefaassungen. Är eegen API-Schlëssele sinn optional."
+            "value": "Free enthält all Mount 30 Minutte Cloud-Transkriptioun an AI-Zesummefaassungen. Ouni API-Schlësselen an ouni Umeldung."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O plano gratuito inclui 30 minutos de transcrição na cloud e resumos de IA. As suas próprias chaves API são opcionais."
+            "value": "O plano gratuito inclui 30 minutos mensais de transcrição na cloud e resumos de IA. Sem chaves API nem registo."
           }
         }
-      }
-    },
-    "settings.providers.elevenlabs_key": {
-      "localizations": {
-        "de": { "stringUnit": { "state": "translated", "value": "ElevenLabs-API-Schlüssel" } },
-        "en": { "stringUnit": { "state": "translated", "value": "ElevenLabs API Key" } },
-        "fr": { "stringUnit": { "state": "translated", "value": "Clé API ElevenLabs" } },
-        "lb": { "stringUnit": { "state": "translated", "value": "ElevenLabs API-Schlëssel" } },
-        "pt": { "stringUnit": { "state": "translated", "value": "Chave API ElevenLabs" } }
-      }
-    },
-    "settings.providers.hint": {
-      "localizations": {
-        "de": { "stringUnit": { "state": "translated", "value": "Optional: Verwenden Sie eigene API-Schlüssel für die direkte Verarbeitung. Es gelten die Gebühren Ihres Anbieters." } },
-        "en": { "stringUnit": { "state": "translated", "value": "Optional: use your own provider keys for direct processing. Your provider’s charges apply." } },
-        "fr": { "stringUnit": { "state": "translated", "value": "Facultatif : utilisez vos propres clés de fournisseur pour un traitement direct. Les frais de votre fournisseur s’appliquent." } },
-        "lb": { "stringUnit": { "state": "translated", "value": "Optional: benotzt Är eege Provider-Schlëssele fir direkt Veraarbechtung. D’Käschte vun Ärem Provider gëllen." } },
-        "pt": { "stringUnit": { "state": "translated", "value": "Opcional: use as suas próprias chaves de fornecedor para processamento direto. Aplicam-se os custos do seu fornecedor." } }
-      }
-    },
-    "settings.providers.luxasr_key": {
-      "localizations": {
-        "de": { "stringUnit": { "state": "translated", "value": "LuxASR-API-Schlüssel (optional)" } },
-        "en": { "stringUnit": { "state": "translated", "value": "LuxASR API Key (optional)" } },
-        "fr": { "stringUnit": { "state": "translated", "value": "Clé API LuxASR (facultatif)" } },
-        "lb": { "stringUnit": { "state": "translated", "value": "LuxASR API-Schlëssel (optional)" } },
-        "pt": { "stringUnit": { "state": "translated", "value": "Chave API LuxASR (opcional)" } }
-      }
-    },
-    "settings.providers.openai_key": {
-      "localizations": {
-        "de": { "stringUnit": { "state": "translated", "value": "OpenAI-API-Schlüssel" } },
-        "en": { "stringUnit": { "state": "translated", "value": "OpenAI API Key" } },
-        "fr": { "stringUnit": { "state": "translated", "value": "Clé API OpenAI" } },
-        "lb": { "stringUnit": { "state": "translated", "value": "OpenAI API-Schlëssel" } },
-        "pt": { "stringUnit": { "state": "translated", "value": "Chave API OpenAI" } }
-      }
-    },
-    "settings.providers.title": {
-      "localizations": {
-        "de": { "stringUnit": { "state": "translated", "value": "Erweiterte Anbieter" } },
-        "en": { "stringUnit": { "state": "translated", "value": "Advanced Providers" } },
-        "fr": { "stringUnit": { "state": "translated", "value": "Fournisseurs avancés" } },
-        "lb": { "stringUnit": { "state": "translated", "value": "Erweidert Provider" } },
-        "pt": { "stringUnit": { "state": "translated", "value": "Fornecedores avançados" } }
       }
     },
     "settings.language.auto_detect": {
@@ -7371,40 +7222,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Toque para voltar a Gravar e toque em Parar quando terminar"
-          }
-        }
-      }
-    },
-    "This permanently deletes all notes, audio, transcripts, and API keys.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This permanently deletes all notes, audio, transcripts, and API keys."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dadurch werden alle Notizen, Audiodateien, Transkripte und API-Schlüssel dauerhaft gelöscht."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cette action supprime définitivement toutes les notes, les données audio, les transcriptions et les clés API."
-          }
-        },
-        "lb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dëst läscht permanent all Notizen, Audiodateien, Transkriptiounen an API-Schlësselen."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esta ação elimina permanentemente todas as notas, áudios, transcrições e chaves API."
           }
         }
       }
