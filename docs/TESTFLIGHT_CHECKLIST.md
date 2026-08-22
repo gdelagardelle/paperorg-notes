@@ -1,5 +1,9 @@
 # Paperorg Notes — TestFlight & App Store Checklist
 
+> **The backend lives in a separate repository**,
+> [gdelagardelle/paperorg-notes-api](https://github.com/gdelagardelle/paperorg-notes-api).
+> `backend/...` paths below are relative to that repository, not this one.
+
 Use this before submitting build **1.0.0** to TestFlight.
 
 ---

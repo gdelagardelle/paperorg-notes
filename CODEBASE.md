@@ -7,9 +7,10 @@ Observed at adoption commit `7c6db33`.
 - iOS: Swift 5.9, SwiftUI, SwiftData; app entry
   `PaperorgNotes/App/PaperorgNotesApp.swift` and root routing in
   `PaperorgNotes/App/MainTabView.swift`.
-- Backend: FastAPI entry `backend/main.py`; configuration in
-  `backend/config.py`; SQLite locally and PostgreSQL in production through
-  `backend/database.py`.
+- Backend: a separate repository, `gdelagardelle/paperorg-notes-api`. FastAPI
+  entry `main.py`, configuration in `config.py`, PostgreSQL in production
+  through `database.py`. It is not vendored here; a copy used to live in
+  `backend/` and had drifted from the deployed service.
 - Subscription: StoreKit 2 client in
   `PaperorgNotes/Services/Subscription/SubscriptionService.swift`; product ID
   `com.paperorg.notes.pro.monthly`.
@@ -34,8 +35,9 @@ Observed at adoption commit `7c6db33`.
   access is centralized by `PaperorgNotes/Utilities/L10n.swift`.
 - Backend errors use FastAPI `HTTPException`; settings are typed fields in
   `Settings` and tests isolate SQLite by monkeypatching `database.DB_PATH`.
-- The app’s test suite is `PaperorgNotesTests/PaperorgNotesTests.swift`; the
-  backend uses pytest in `backend/tests/`.
+- The app’s test suite is `PaperorgNotesTests/PaperorgNotesTests.swift`, run in
+  CI by `.github/workflows/ci.yml`. Backend tests live in the backend
+  repository and run in its own CI.
 
 ## Adoption baseline
 

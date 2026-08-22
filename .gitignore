@@ -26,9 +26,6 @@ Recordings/
 benchmark_results.csv
 
 # Backend
-backend/.venv/
-backend/paperorg_pro.db
-backend/.env
 __pycache__/
 *.py[cod]
 .duo-build/last-dispatch.json
