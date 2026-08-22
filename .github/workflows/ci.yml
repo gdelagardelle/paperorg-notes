@@ -35,6 +35,7 @@ jobs:
           python Scripts/check_home_localization.py
           python Scripts/check_low_audio_recovery.py
           python Scripts/check_offline_transcription_recovery.py
+          python Scripts/check_server_only_processing.py
 
   build:
     name: build, test and release warnings

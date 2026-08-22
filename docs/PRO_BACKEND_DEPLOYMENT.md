@@ -1,5 +1,9 @@
 # Paperorg Pro Backend — Production Deployment
 
+> **The backend lives in a separate repository**,
+> [gdelagardelle/paperorg-notes-api](https://github.com/gdelagardelle/paperorg-notes-api).
+> `backend/...` paths below are relative to that repository, not this one.
+
 Quick reference while you deploy item #1. The iOS **Release** build reads `PAPERORG_PRO_BACKEND_URL` from Info.plist.
 
 ---

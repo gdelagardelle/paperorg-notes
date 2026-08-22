@@ -27,7 +27,10 @@ A production-grade native iOS app for voice recording, multilingual transcriptio
 Launch the app and use the included 30 monthly minutes when the service is available—no sign-in and no API key are required. Processing is routed through Paperorg's secure backend.
 
 ### Pro plan
-Requires the [Paperorg Pro backend](backend/README.md). For local development:
+Requires the Paperorg Pro backend, which lives in its own repository:
+[gdelagardelle/paperorg-notes-api](https://github.com/gdelagardelle/paperorg-notes-api).
+For local development (the script finds a checkout beside this repo, or set
+`PAPERORG_NOTES_API_DIR`):
 
 ```bash
 chmod +x Scripts/start-backend.sh
