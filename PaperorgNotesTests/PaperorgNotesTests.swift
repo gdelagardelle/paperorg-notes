@@ -325,6 +325,40 @@ final class KeychainServiceTests: XCTestCase {
 }
 
 final class ProUsageInfoDecodingTests: XCTestCase {
+    /// The Platform's /v1/usage carries a `metrics` envelope, which routes the
+    /// decoder down a branch that used to hardcode appAttestRequired to false.
+    /// A client holding a valid token never re-registers, so that branch was
+    /// the only place it could learn attestation had become required -- and it
+    /// threw the answer away, so the app sent no attestation and every
+    /// recording was refused.
+    func testPlatformUsageEnvelopeCarriesTheAttestFlag() throws {
+        let json = """
+        {
+          "app_id": "notes", "period_key": "2026-08", "is_pro": false,
+          "pro_expires_at": null, "minutes_limit": 30.0, "minutes_used": 0.0,
+          "minutes_remaining": 30.0, "app_attest_required": true,
+          "metrics": {"transcription.minutes": {"used": 0.0, "limit": 30.0, "remaining": 30.0}}
+        }
+        """.data(using: .utf8)!
+
+        let usage = try JSONDecoder().decode(ProUsageInfo.self, from: json)
+
+        XCTAssertTrue(usage.appAttestRequired)
+        XCTAssertEqual(usage.minutesLimit, 30)
+        XCTAssertEqual(usage.minutesRemaining, 30.0)
+        XCTAssertFalse(usage.isPro)
+    }
+
+    func testPlatformUsageEnvelopeWithoutTheFlagStaysFalse() throws {
+        let json = """
+        {"period_key": "2026-08", "is_pro": false,
+         "metrics": {"transcription.minutes": {"used": 0.0, "limit": 30.0, "remaining": 30.0}}}
+        """.data(using: .utf8)!
+
+        let usage = try JSONDecoder().decode(ProUsageInfo.self, from: json)
+        XCTAssertFalse(usage.appAttestRequired)
+    }
+
     func testServerErrorDoesNotExposeRawPayloadToUsers() {
         let rawPayload = #"{"message":"Route POST:/v1/auth/register not found","error":"Not Found","statusCode":404}"#
         let message = ProBackendError.serverError(rawPayload).localizedDescription
