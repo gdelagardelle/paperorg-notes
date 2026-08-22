@@ -29,3 +29,9 @@ benchmark_results.csv
 __pycache__/
 *.py[cod]
 .duo-build/last-dispatch.json
+
+# The backend moved to gdelagardelle/paperorg-notes-api and the vendored
+# copy is gone from git, but existing checkouts still have the untracked
+# leftovers it accumulated: a 58 MB .venv, a dev SQLite database, a pytest
+# cache. Ignore the whole path so they cannot be staged by accident.
+/backend/
