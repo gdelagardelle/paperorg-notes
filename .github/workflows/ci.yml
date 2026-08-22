@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guards:
+    name: contract guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Pure source inspection -- no Xcode, no simulator, a few seconds.
+      # check_localization_catalog is the one that matters most in practice:
+      # it fails on any key missing a de/en/fr/lb/pt value, on a placeholder
+      # mismatch between languages, and when Luxembourgish has drifted into
+      # being a copy of German.
+      - name: Localization and contract guards
+        run: |
+          python Scripts/check_localization_catalog.py
+          python Scripts/check_home_localization.py
+          python Scripts/check_low_audio_recovery.py
+          python Scripts/check_offline_transcription_recovery.py
+
+  build:
+    name: build, test and release warnings
+    # macOS runners bill at 10x on a private repository, so this stays off
+    # the push path. Pull requests and manual dispatch only.
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Printed rather than assumed: if a run ever fails on a toolchain
+      # difference, this step is where you find out which one.
+      - name: Report the toolchain
+        run: |
+          xcodebuild -version
+          echo "--- installed Xcodes ---"
+          ls /Applications | grep -i '^Xcode' || true
+          echo "--- iOS runtimes ---"
+          xcrun simctl list runtimes | grep -i ios || true
+
+      # project.yml declares deploymentTarget iOS 17.0, so any iPhone the
+      # runner offers will do. Picking one by name would break the day the
+      # image drops that device.
+      - name: Choose a simulator
+        id: sim
+        run: |
+          UDID=$(python3 Scripts/ci_pick_simulator.py)
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl list devices | grep "$UDID"
+
+      - name: Build and test
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project PaperorgNotes.xcodeproj \
+            -scheme PaperorgNotes \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath "$RUNNER_TEMP/dd" \
+            CODE_SIGNING_ALLOWED=NO \
+            build test
+
+      # Release configuration with Swift warnings promoted to errors. Runs
+      # after the tests because a warning is worth knowing about but is not
+      # worth hiding a real test failure behind.
+      - name: Release warnings
+        run: python3 Scripts/check_release_warnings.py
