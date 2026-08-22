@@ -5028,31 +5028,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes zeichnet Audio auf Ihrem Gerät auf. Free umfasst 30 Minuten Cloud-Transkription und KI-Zusammenfassungen pro Monat, ohne API-Schlüssel. Eigene Schlüssel sind optional."
+            "value": "Paperorg Notes zeichnet Audio auf Ihrem Gerät auf. Free umfasst 30 Minuten Cloud-Transkription und KI-Zusammenfassungen pro Monat, ohne API-Schlüssel und ohne Anmeldung."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes records audio on your device. Free includes 30 minutes of cloud transcription and AI summaries each month, with no API keys required. Your own keys are optional."
+            "value": "Paperorg Notes records audio on your device. Free includes 30 minutes of cloud transcription and AI summaries each month, with no API keys or sign-in required."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes enregistre l’audio sur votre appareil. L’offre gratuite comprend 30 minutes mensuelles de transcription cloud et de résumés IA, sans clé API. Vos propres clés sont facultatives."
+            "value": "Paperorg Notes enregistre l’audio sur votre appareil. L’offre gratuite comprend 30 minutes mensuelles de transcription cloud et de résumés IA, sans clé API ni inscription."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes registréiert Audio op Ärem Apparat. Free enthält all Mount 30 Minutte Cloud-Transkriptioun an AI-Zesummefaassungen, ouni API-Schlësselen. Är eege Schlëssele sinn optional."
+            "value": "Paperorg Notes registréiert Audio op Ärem Apparat. Free enthält all Mount 30 Minutte Cloud-Transkriptioun an AI-Zesummefaassungen, ouni API-Schlësselen an ouni Umeldung."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Paperorg Notes grava áudio no seu dispositivo. O plano gratuito inclui 30 minutos mensais de transcrição na cloud e resumos de IA, sem necessidade de chaves API. As suas próprias chaves são opcionais."
+            "value": "O Paperorg Notes grava áudio no seu dispositivo. O plano gratuito inclui 30 minutos mensais de transcrição na cloud e resumos de IA, sem chaves API nem registo."
           }
         }
       }
@@ -5063,31 +5063,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cloud-Transkription sendet Audio sicher an Paperorg und ausgewählte KI-Dienstleister. Für eigene Schlüssel verwalten Sie die Anbieter-Zustimmung in den Einstellungen."
+            "value": "Cloud-Transkription sendet Audio sicher an Paperorg und die für Ihre Anfrage erforderlichen KI-Dienstleister. Paperorg verwahrt die Anbieter-Zugangsdaten."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cloud transcription securely sends audio to Paperorg and selected AI processors. For your own keys, manage provider consent in Settings."
+            "value": "Cloud transcription securely sends audio to Paperorg and the AI processors needed for your request. Paperorg holds the provider credentials."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La transcription cloud envoie l’audio de manière sécurisée à Paperorg et aux prestataires IA sélectionnés. Pour vos propres clés, gérez le consentement dans Réglages."
+            "value": "La transcription cloud envoie l’audio de manière sécurisée à Paperorg et aux prestataires IA nécessaires à votre demande. Paperorg conserve les identifiants des prestataires."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cloud-Transkriptioun schéckt Audio sécher un Paperorg an ausgewielten AI-Provider. Fir Är eege Schlëssele geréiert Dir d'Provider-Zoustëmmung an den Astellungen."
+            "value": "Cloud-Transkriptioun schéckt Audio sécher un Paperorg an d'AI-Provider déi fir Är Ufro néideg sinn. Paperorg hält d'Provider-Zougangsdaten."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "A transcrição na cloud envia o áudio de forma segura para a Paperorg e para os processadores de IA selecionados. Para as suas próprias chaves, faça a gestão do consentimento nas Definições."
+            "value": "A transcrição na cloud envia o áudio de forma segura para a Paperorg e para os processadores de IA necessários ao seu pedido. A Paperorg guarda as credenciais dos fornecedores."
           }
         }
       }
@@ -5098,31 +5098,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sie wählen Anbieter und können alle Daten jederzeit löschen."
+            "value": "Sie können alle Daten jederzeit löschen."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You choose providers and can delete all data anytime."
+            "value": "You can delete all your data at any time."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vous choisissez les fournisseurs et pouvez tout supprimer."
+            "value": "Vous pouvez tout supprimer à tout moment."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dir wielt Ubidder a kënnt all Donnéeën zu all Moment läschen."
+            "value": "Dir kënnt all Donnéeën zu all Moment läschen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escolhe os fornecedores e pode eliminar todos os dados a qualquer momento."
+            "value": "Pode eliminar todos os dados a qualquer momento."
           }
         }
       }
