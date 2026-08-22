@@ -27,6 +27,14 @@ final class SubscriptionService {
     private(set) var lastError: String?
     private var updatesTask: Task<Void, Never>?
 
+    #if DEBUG
+    /// This entitlement exists only while a debug process is running under
+    /// Xcode's local StoreKit test environment. It is deliberately not
+    /// persisted, so a local test purchase can never become a TestFlight or
+    /// production entitlement.
+    private var xcodeStoreKitUsage: ProUsageInfo?
+    #endif
+
     init(settings: SettingsService, proBackend: any SubscriptionVerifying) {
         self.settings = settings
         self.proBackend = proBackend
@@ -34,11 +42,21 @@ final class SubscriptionService {
     }
 
     var isProActive: Bool {
-        settings.cachedProUsage?.isPro == true
+        #if DEBUG
+        if xcodeStoreKitUsage?.isPro == true {
+            return true
+        }
+        #endif
+        return settings.cachedProUsage?.isPro == true
     }
 
     var usageInfo: ProUsageInfo? {
-        settings.cachedProUsage
+        #if DEBUG
+        if let xcodeStoreKitUsage {
+            return xcodeStoreKitUsage
+        }
+        #endif
+        return settings.cachedProUsage
     }
 
     var selectedPlan: SubscriptionPlan {
@@ -47,13 +65,16 @@ final class SubscriptionService {
     }
 
     /// Loads the App Store product metadata used for the displayed price.
-    ///
-    /// StoreKit may not return a product until Apple's first-subscription
-    /// review is complete. The paywall can still explain the offering during
-    /// that transient state, so its initial load can be silent.
+    /// A missing result is kept separate from a purchase verification failure:
+    /// it means StoreKit did not return this product for the current storefront.
     func loadProducts(reportError: Bool = true) async {
         do {
             products = try await Product.products(for: [SubscriptionProduct.proMonthly])
+            if products.isEmpty, reportError {
+                lastError = L10n.Subscription.productUnavailable
+            } else if !products.isEmpty {
+                lastError = nil
+            }
         } catch {
             if reportError {
                 lastError = error.localizedDescription
@@ -172,12 +193,49 @@ final class SubscriptionService {
     }
 
     @discardableResult
-    private func handle(transaction: Transaction) async -> Bool {
-        await confirmSubscription(
+    func handle(transaction: Transaction) async -> Bool {
+        #if DEBUG
+        if transaction.environment == .xcode {
+            return grantXcodeStoreKitEntitlement(for: transaction.productID)
+        }
+        #endif
+        return await confirmSubscription(
             productID: transaction.productID,
             transactionID: String(transaction.id)
         )
     }
+
+    #if DEBUG
+    /// Xcode's local StoreKit receipts are intentionally not known to Apple's
+    /// App Store Server API. Keep that local-only path out of the backend and
+    /// grant a process-scoped entitlement solely for testing purchase, restore,
+    /// and Pro-gating UI. Release and TestFlight always use server verification.
+    @discardableResult
+    func grantXcodeStoreKitEntitlement(for productID: String) -> Bool {
+        guard productID == SubscriptionProduct.proMonthly else { return false }
+
+        let calendar = Calendar(identifier: .gregorian)
+        let now = Date()
+        let periodStart = calendar.dateInterval(of: .month, for: now)?.start ?? now
+        let periodEnd = calendar.date(byAdding: .month, value: 1, to: periodStart) ?? now
+        let periodFormatter = DateFormatter()
+        periodFormatter.locale = Locale(identifier: "en_US_POSIX")
+        periodFormatter.dateFormat = "yyyy-MM"
+
+        xcodeStoreKitUsage = ProUsageInfo(
+            isPro: true,
+            minutesLimit: 600,
+            minutesUsed: 0,
+            minutesRemaining: 600,
+            periodKey: periodFormatter.string(from: periodStart),
+            proExpiresAt: ISO8601DateFormatter().string(from: periodEnd)
+        )
+        settings.selectedPlan = .pro
+        settings.applyProEntitlements()
+        lastError = nil
+        return true
+    }
+    #endif
 
     /// Pro stays locked until the backend has independently confirmed the
     /// StoreKit transaction with Apple. This prevents a successful sheet from

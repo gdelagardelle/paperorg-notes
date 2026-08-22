@@ -12,6 +12,8 @@ struct ProBackendErrorRegression {
 }
 #else
 import AVFoundation
+import StoreKit
+import StoreKitTest
 import XCTest
 @testable import PaperorgNotes
 
@@ -426,6 +428,95 @@ final class ProUsageInfoDecodingTests: XCTestCase {
 
 @MainActor
 final class SubscriptionEntitlementConfirmationTests: XCTestCase {
+    #if DEBUG
+    func testXcodeStoreKitEntitlementIsProcessScoped() async {
+        let suiteName = "SubscriptionXcodeStoreKitEntitlement"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .failure)
+        )
+
+        let granted = service.grantXcodeStoreKitEntitlement(
+            for: SubscriptionProduct.proMonthly
+        )
+
+        XCTAssertTrue(granted)
+        XCTAssertTrue(service.isProActive)
+        XCTAssertEqual(service.usageInfo?.minutesLimit, 600)
+        XCTAssertNil(settings.cachedProUsage)
+        XCTAssertEqual(settings.selectedPlan, .pro)
+    }
+
+    func testXcodeStoreKitEntitlementRejectsUnknownProduct() async {
+        let suiteName = "SubscriptionXcodeStoreKitUnknownProduct"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .failure)
+        )
+
+        XCTAssertFalse(service.grantXcodeStoreKitEntitlement(for: "invalid.product"))
+        XCTAssertFalse(service.isProActive)
+        XCTAssertNil(settings.cachedProUsage)
+    }
+
+    func testLocalStoreKitPurchaseGrantsProcessScopedPro() async throws {
+        let configurationURL = try XCTUnwrap(
+            Bundle.main.url(forResource: "PaperorgPro", withExtension: "storekit")
+        )
+        let session = try SKTestSession(contentsOf: configurationURL)
+        session.resetToDefaultState()
+        session.clearTransactions()
+        session.disableDialogs = true
+
+        let products = try await Product.products(for: [SubscriptionProduct.proMonthly])
+        let product = try XCTUnwrap(products.first)
+        XCTAssertEqual(product.id, SubscriptionProduct.proMonthly)
+        XCTAssertEqual(product.displayPrice, "$5.99")
+
+        try session.buyProduct(productIdentifier: SubscriptionProduct.proMonthly)
+
+        var purchasedTransaction: Transaction?
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result,
+                  transaction.productID == SubscriptionProduct.proMonthly else {
+                continue
+            }
+            purchasedTransaction = transaction
+            break
+        }
+        let transaction = try XCTUnwrap(purchasedTransaction)
+        defer { Task { await transaction.finish() } }
+        XCTAssertEqual(transaction.environment, .xcode)
+
+        let suiteName = "SubscriptionLocalStoreKitPurchase"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .failure)
+        )
+
+        let granted = await service.handle(transaction: transaction)
+        XCTAssertTrue(granted)
+        XCTAssertTrue(service.isProActive)
+        XCTAssertEqual(service.usageInfo?.minutesLimit, 600)
+        XCTAssertNil(settings.cachedProUsage)
+    }
+    #endif
+
     func testVerificationFailureDoesNotGrantPro() async {
         let suiteName = "SubscriptionEntitlementConfirmationFailure"
         let defaults = UserDefaults(suiteName: suiteName)!
