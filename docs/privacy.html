@@ -42,7 +42,7 @@
 <body>
   <main>
     <h1>Privacy Policy</h1>
-    <p class="muted"><strong>Paperorg Notes</strong> · Last updated: 21 August 2026</p>
+    <p class="muted"><strong>Paperorg Notes</strong> · Last updated: 22 August 2026</p>
 
     <p>
       Paperorg Notes (&ldquo;the App&rdquo;) is a voice recording and transcription app for iOS,
@@ -78,8 +78,8 @@
           <td>On your iPhone (SwiftData)</td>
         </tr>
         <tr>
-          <td>API keys (optional)</td>
-          <td>Connect to transcription providers you choose</td>
+          <td>Credentials and device identifiers</td>
+          <td>Authenticate cloud processing, verify the app, and send email if you configure your own mail server</td>
           <td>iOS Keychain on your device</td>
         </tr>
         <tr>
@@ -115,10 +115,6 @@
       When you use included Free minutes or <strong>Paperorg Pro</strong>, you consent through the App&apos;s privacy
       screen to the cloud processing described in section 3. The App sends the required audio and/or transcript
       to Paperorg and the enabled AI processor to carry out your request.
-    </p>
-    <p>
-      If you instead configure your own provider key, the App sends data directly to that provider only after
-      you enable that provider&apos;s consent in Settings. Your personal key is stored in the iOS Keychain.
     </p>
     <table>
       <thead>
@@ -163,10 +159,10 @@
     <p>You can exercise the following rights directly in the App (Settings → Privacy &amp; GDPR):</p>
     <ul>
       <li><strong>Access</strong> — export all notes, transcripts, and audio (GDPR export).</li>
-      <li><strong>Erasure</strong> — delete all data, including audio, transcripts, and API keys.</li>
+      <li><strong>Erasure</strong> &mdash; delete all data, including audio, transcripts, stored credentials, and any provider API keys saved by earlier versions of the App.</li>
       <li><strong>Rectification</strong> — edit transcripts; corrected text is stored separately from the original.</li>
       <li><strong>Portability</strong> — export as JSON, plain text, Markdown, or PDF.</li>
-      <li><strong>Object / restrict</strong> — do not activate included cloud minutes or Pro; use on-device transcription where available, or revoke consent for a personal provider in Settings.</li>
+      <li><strong>Object / restrict</strong> &mdash; decline cloud processing; use on-device transcription where available.</li>
     </ul>
     <p>
       You may also contact us at
@@ -183,7 +179,7 @@
 
     <h2>8. Security</h2>
     <ul>
-      <li>Optional personal API keys are stored in the iOS Keychain; Paperorg-held provider credentials never enter the App.</li>
+      <li>Provider credentials are held by the Paperorg backend and never enter the App. Credentials the App does hold, such as your Pro access token, are stored in the iOS Keychain.</li>
       <li>Audio files use iOS Data Protection.</li>
       <li>All network communication with transcription providers uses HTTPS (TLS).</li>
       <li>Optional Face ID lock protects access to the App.</li>

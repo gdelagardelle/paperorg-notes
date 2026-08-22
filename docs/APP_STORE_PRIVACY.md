@@ -94,4 +94,4 @@ Paperorg Notes turns voice into structured notes. Record on your iPhone, transcr
 
 ---
 
-*Last updated: 2026-07-12*
+*Last updated: 2026-08-22*
