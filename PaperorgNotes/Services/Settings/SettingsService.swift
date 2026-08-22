@@ -369,7 +369,7 @@ final class SettingsService {
         if defaults.object(forKey: Keys.hasCompletedPlanSelection) != nil {
             self.hasCompletedPlanSelection = defaults.bool(forKey: Keys.hasCompletedPlanSelection)
         } else if defaults.bool(forKey: Keys.hasAcceptedPrivacyPolicy) {
-            // Existing installs skip plan selection and stay on Free/BYOK.
+            // Existing installs skip plan selection and stay on Free.
             self.hasCompletedPlanSelection = true
             self.selectedPlan = .free
         } else {
