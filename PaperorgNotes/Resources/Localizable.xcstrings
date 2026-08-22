@@ -3947,40 +3947,6 @@
         }
       }
     },
-    "included.sign_in_label": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mit Apple anmelden, um inklusive Minuten zu nutzen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sign in with Apple for included minutes"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se connecter avec Apple pour les minutes incluses"
-          }
-        },
-        "lb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Umellen mat Apple fir abegraff Minutten"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Iniciar sessão com a Apple para usar minutos incluídos"
-          }
-        }
-      }
-    },
     "included.start": {
       "localizations": {
         "de": { "stringUnit": { "state": "translated", "value": "Inklusive Minuten nutzen" } },

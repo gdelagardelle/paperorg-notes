@@ -44,8 +44,6 @@ targets:
       properties:
         com.apple.security.application-groups:
           - group.com.paperorg.notes
-        com.apple.developer.applesignin:
-          - Default
         com.apple.developer.devicecheck.appattest-environment: $(APP_ATTEST_ENVIRONMENT)
     info:
       path: PaperorgNotes/Resources/Info.plist
