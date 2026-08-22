@@ -13,6 +13,26 @@ struct AppScreenBackground: View {
     }
 }
 
+/// A compact, non-interactive build identifier for beta support and QA.
+/// Keeping this in the shared design system ensures it presents identically
+/// wherever the app shell or a modal needs to identify the installed build.
+struct AppBuildBadge: View {
+    var body: some View {
+        Label(AppInfo.versionDisplay, systemImage: "shippingbox.fill")
+            .font(.caption2.monospacedDigit().weight(.semibold))
+            .foregroundStyle(AppTheme.textSecondary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .background(AppTheme.surfaceElevated.opacity(0.94), in: Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(AppTheme.border, lineWidth: 1)
+            }
+            .accessibilityLabel("App version \(AppInfo.marketingVersion), build \(AppInfo.buildNumber)")
+            .accessibilityAddTraits(.isStaticText)
+    }
+}
+
 struct SurfaceCardModifier: ViewModifier {
     var padding: CGFloat = 16
     var cornerRadius: CGFloat = 20

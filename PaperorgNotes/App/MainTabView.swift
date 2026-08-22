@@ -185,6 +185,15 @@ struct MainTabView: View {
         }
         .tint(AppTheme.accent)
         .safeAreaInset(edge: .top, spacing: 0) {
+            HStack {
+                Spacer()
+                AppBuildBadge()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 4)
+            .allowsHitTesting(false)
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
             if recording.state != .idle {
                 RecordingInProgressBanner(
                     state: recording.state,

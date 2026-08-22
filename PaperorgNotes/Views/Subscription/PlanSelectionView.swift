@@ -50,6 +50,15 @@ struct PlanSelectionView: View {
             .padding(24)
         }
         .background(AppScreenBackground())
+        .safeAreaInset(edge: .top, spacing: 0) {
+            HStack {
+                Spacer()
+                AppBuildBadge()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 4)
+            .allowsHitTesting(false)
+        }
         .task {
             await environment.subscriptionService.loadProducts()
         }
@@ -222,6 +231,10 @@ struct PaywallView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(L10n.Common.cancel) { dismiss() }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    AppBuildBadge()
+                        .allowsHitTesting(false)
                 }
             }
             .task {
