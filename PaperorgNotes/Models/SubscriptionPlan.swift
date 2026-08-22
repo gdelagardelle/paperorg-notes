@@ -75,7 +75,14 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
             minutesRemaining = minutes?.remaining ?? 0
             periodKey = try platform.decode(String.self, forKey: .periodKey)
             proExpiresAt = try platform.decodeIfPresent(String.self, forKey: .proExpiresAt)
-            appAttestRequired = false
+            // Hardcoding false here meant a client that had already registered
+            // could never learn attestation had become required: the flag only
+            // ever arrived on the flat register response, and ensureRegistered
+            // does not re-register while a valid token exists. The key was
+            // always declared in PlatformKeys; it was simply never read.
+            appAttestRequired = try platform.decodeIfPresent(
+                Bool.self, forKey: .appAttestRequired
+            ) ?? false
             return
         }
 
