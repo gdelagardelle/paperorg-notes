@@ -84,12 +84,6 @@ struct SettingsView: View {
                 }
                 
                 Section {
-                    SettingsSectionHint(text: L10n.Settings.proHint)
-                } header: {
-                    Text(L10n.Settings.transcriptionSection)
-                }
-                
-                Section {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Custom Vocabulary")
                             .font(.subheadline.bold())
@@ -345,6 +339,28 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundStyle(AppTheme.textSecondary)
                     }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(L10n.Settings.luxasrCreditTitle)
+                            .font(.subheadline.bold())
+                        Text(L10n.Settings.luxasrCredit)
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textSecondary)
+                        Link(
+                            "luxasr.uni.lu",
+                            destination: URL(string: "https://luxasr.uni.lu")!
+                        )
+                        .font(.caption)
+                    }
+                }
+
+                // Testing only: lets the same recording be run past LuxASR so
+                // ElevenLabs can be judged on the same audio.
+                Section {
+                    Toggle(L10n.Settings.luxasrToggle, isOn: $settings.luxasrEnabled)
+                    SettingsSectionHint(text: L10n.Settings.luxasrToggleHint)
+                } header: {
+                    Text(L10n.Settings.testingSection)
                 }
             }
             .listStyle(.insetGrouped)
