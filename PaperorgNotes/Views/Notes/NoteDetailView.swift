@@ -381,14 +381,6 @@ struct NoteDetailView: View {
                 sharePlainText()
             }
             .buttonStyle(SecondaryButtonStyle())
-
-            if let debug = note.processingDebug, !debug.isEmpty {
-                ShareLink(item: debug) {
-                    Label(L10n.NoteDetail.shareDebug, systemImage: "ladybug")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(SecondaryButtonStyle())
-            }
         }
     }
     

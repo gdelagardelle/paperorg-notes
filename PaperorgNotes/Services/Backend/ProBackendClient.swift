@@ -413,19 +413,6 @@ final class ProBackendClient {
         request.setValue(assertion.keyID, forHTTPHeaderField: "X-Paperorg-App-Attest-Key")
         request.setValue(assertion.assertion.base64EncodedString(), forHTTPHeaderField: "X-Paperorg-App-Attest-Assertion")
 
-        // Diagnostic, temporary. The assertion signature does not verify and
-        // every input the server can see matches what it expects, so the
-        // discrepancy is in what this side actually signed. These are hashes
-        // of a one-time nonce and of the audio already being uploaded, plus
-        // lengths - nothing secret, and nothing the server trusts. Remove
-        // once the mismatch is found.
-        func hex(_ data: Data) -> String { data.map { String(format: "%02x", $0) }.joined() }
-        request.setValue(hex(rawChallenge), forHTTPHeaderField: "X-Paperorg-Debug-Challenge")
-        request.setValue(hex(assertion.payloadHash), forHTTPHeaderField: "X-Paperorg-Debug-Payload-Sha")
-        request.setValue(hex(assertion.clientDataHash), forHTTPHeaderField: "X-Paperorg-Debug-Client-Hash")
-        request.setValue(String(protectedPayload.count), forHTTPHeaderField: "X-Paperorg-Debug-Payload-Len")
-        request.setValue(String(audioPayload.count), forHTTPHeaderField: "X-Paperorg-Debug-Audio-Len")
-        request.setValue(request.url?.path ?? "", forHTTPHeaderField: "X-Paperorg-Debug-Path")
     }
 
     private func validate(response: URLResponse, data: Data) throws {

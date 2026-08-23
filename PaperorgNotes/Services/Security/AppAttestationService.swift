@@ -43,17 +43,15 @@ actor AppAttestationService {
         return (keyID, object)
     }
 
-    /// Also returns the exact bytes that went into the signature, so a
-    /// mismatch with the server can be located instead of guessed at.
-    func makeAssertion(challenge: Data, protectedPayload: Data) async throws -> (keyID: String, assertion: Data, clientDataHash: Data, payloadHash: Data) {
+    func makeAssertion(challenge: Data, protectedPayload: Data) async throws -> (keyID: String, assertion: Data) {
         guard service.isSupported else { throw AttestationError.unsupported }
         guard let keyID = keychain.retrieve(for: .appAttestKeyID) else {
             throw AttestationError.unavailable
         }
         // The server checks this exact SHA-256 against the received body.
-        let payloadHash = Data(SHA256.hash(data: protectedPayload))
+        // The server checks this exact SHA-256 against the received body.
         var clientData = challenge
-        clientData.append(payloadHash)
+        clientData.append(Data(SHA256.hash(data: protectedPayload)))
         let clientDataHash = Data(SHA256.hash(data: clientData))
         let assertion = try await withCheckedThrowingContinuation { continuation in
             service.generateAssertion(keyID, clientDataHash: clientDataHash) { assertion, error in
@@ -61,7 +59,7 @@ actor AppAttestationService {
                 else { continuation.resume(throwing: error ?? AttestationError.unavailable) }
             }
         }
-        return (keyID, assertion, clientDataHash, payloadHash)
+        return (keyID, assertion)
     }
 
     private func keyIDForAttestation(replacingUnregisteredKey: Bool) async throws -> String {

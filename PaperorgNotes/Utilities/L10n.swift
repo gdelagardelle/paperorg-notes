@@ -159,7 +159,6 @@ enum L10n {
         static let followUpEmail = String(localized: "note.detail.follow_up_email")
         static let export = String(localized: "note.detail.export")
         static let shareText = String(localized: "note.detail.share_text")
-        static let shareDebug = String(localized: "note.detail.share_debug")
         static let editSegment = String(localized: "note.detail.edit_segment")
         static let save = String(localized: "note.detail.save")
 
