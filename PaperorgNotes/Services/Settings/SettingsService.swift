@@ -10,6 +10,7 @@ final class SettingsService {
     private enum Keys {
         static let defaultLanguage = "defaultLanguage"
         static let autoDetectLanguage = "autoDetectLanguage"
+        static let luxasrEnabled = "luxasrEnabled"
         static let providerPreferences = "providerPreferences"
         static let defaultOutputType = "defaultOutputType"
         static let summaryLength = "summaryLength"
@@ -53,6 +54,13 @@ final class SettingsService {
     
     var autoDetectLanguage: Bool {
         didSet { defaults.set(autoDetectLanguage, forKey: Keys.autoDetectLanguage) }
+    }
+
+    /// Testing switch. Off routes Lëtzebuergesch past LuxASR to the next
+    /// provider in the chain, so ElevenLabs can be compared against it on the
+    /// same audio. Defaults on, which is the shipping behaviour.
+    var luxasrEnabled: Bool {
+        didSet { defaults.set(luxasrEnabled, forKey: Keys.luxasrEnabled) }
     }
     
     var defaultOutputType: OutputType {
@@ -326,6 +334,7 @@ final class SettingsService {
         self.defaultLanguage = storedLanguage.isAutoDetect ? .luxembourgish : storedLanguage
         self.autoDetectLanguage = false
         defaults.set(false, forKey: Keys.autoDetectLanguage)
+        self.luxasrEnabled = defaults.object(forKey: Keys.luxasrEnabled) as? Bool ?? true
         self.defaultOutputType = OutputType(rawValue: defaults.string(forKey: Keys.defaultOutputType) ?? "") ?? .meetingNotes
         self.summaryLength = SummaryLength(rawValue: defaults.string(forKey: Keys.summaryLength) ?? "") ?? .detailed
         self.keepAudioFiles = defaults.object(forKey: Keys.keepAudioFiles) as? Bool ?? true

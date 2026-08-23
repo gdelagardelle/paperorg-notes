@@ -6388,6 +6388,176 @@
         }
       }
     },
+    "settings.luxasr.credit_title": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lëtzebuergesch-Transkription"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lëtzebuergesch transcription"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription en luxembourgeois"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lëtzebuergesch Transkriptioun"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcrição em Lëtzebuergesch"
+          }
+        }
+      }
+    },
+    "settings.luxasr.credit": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ermöglicht durch LuxASR, entwickelt an der Universität Luxemburg."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Powered by LuxASR, developed at the University of Luxembourg."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propulsé par LuxASR, développé à l’Université du Luxembourg."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ermöglecht duerch LuxASR, entwéckelt op der Universitéit Lëtzebuerg."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Com tecnologia LuxASR, desenvolvida na Universidade do Luxemburgo."
+          }
+        }
+      }
+    },
+    "settings.testing.section": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testing"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testes"
+          }
+        }
+      }
+    },
+    "settings.testing.luxasr": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LuxASR für Lëtzebuergesch verwenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use LuxASR for Lëtzebuergesch"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser LuxASR pour le luxembourgeois"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LuxASR fir Lëtzebuergesch benotzen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar o LuxASR para Lëtzebuergesch"
+          }
+        }
+      }
+    },
+    "settings.testing.luxasr_hint": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus schickt Lëtzebuergesch stattdessen an ElevenLabs, damit sich beide an derselben Aufnahme vergleichen lassen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off sends Lëtzebuergesch to ElevenLabs instead, so the two can be compared on the same recording."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactivé, le luxembourgeois est envoyé à ElevenLabs, ce qui permet de comparer les deux sur le même enregistrement."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus schéckt Lëtzebuergesch amplaz un ElevenLabs, sou datt een déi zwee op derselwechter Opnam vergläiche kann."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desligado envia Lëtzebuergesch para o ElevenLabs, permitindo comparar os dois na mesma gravação."
+          }
+        }
+      }
+    },
     "settings.pdf.section": {
       "extractionState": "stale",
       "localizations": {

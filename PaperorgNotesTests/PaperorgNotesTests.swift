@@ -324,6 +324,55 @@ final class KeychainServiceTests: XCTestCase {
     }
 }
 
+final class LuxASRToggleTests: XCTestCase {
+    /// The switch exists so ElevenLabs can be judged on the same recording.
+    /// If it does not actually remove LuxASR from the order, the comparison
+    /// silently never happens and the toggle is decoration.
+    @MainActor
+    func testTurningLuxASROffRoutesLuxembourgishPastIt() {
+        let settings = SettingsService(keychain: KeychainService(), defaults: Self.scratchDefaults())
+        let registry = ProviderRegistry(
+            settings: settings,
+            keychain: KeychainService(),
+            proBackend: ProBackendClient(settings: settings, keychain: KeychainService())
+        )
+
+        settings.luxasrEnabled = true
+        let withLux = registry.orderedProviders(for: .luxembourgish).map(\.identifier)
+        XCTAssertEqual(withLux.first, ProviderID.luxasr.rawValue)
+
+        settings.luxasrEnabled = false
+        let withoutLux = registry.orderedProviders(for: .luxembourgish).map(\.identifier)
+        XCTAssertFalse(withoutLux.contains(ProviderID.luxasr.rawValue))
+        XCTAssertEqual(withoutLux.first, ProviderID.elevenlabs.rawValue)
+    }
+
+    @MainActor
+    func testOtherLanguagesAreUnaffected() {
+        let settings = SettingsService(keychain: KeychainService(), defaults: Self.scratchDefaults())
+        let registry = ProviderRegistry(
+            settings: settings,
+            keychain: KeychainService(),
+            proBackend: ProBackendClient(settings: settings, keychain: KeychainService())
+        )
+
+        settings.luxasrEnabled = false
+        let german = registry.orderedProviders(for: .german).map(\.identifier)
+        XCTAssertEqual(german.first, ProviderID.openai.rawValue)
+    }
+
+    @MainActor
+    func testDefaultsToOnSoShippingBehaviourIsUnchanged() {
+        let settings = SettingsService(keychain: KeychainService(), defaults: Self.scratchDefaults())
+        XCTAssertTrue(settings.luxasrEnabled)
+    }
+
+    private static func scratchDefaults() -> UserDefaults {
+        let suite = UserDefaults(suiteName: "luxasr-toggle-\(UUID().uuidString)")!
+        return suite
+    }
+}
+
 final class ProUsageInfoDecodingTests: XCTestCase {
     /// The Platform's /v1/usage carries a `metrics` envelope, which routes the
     /// decoder down a branch that used to hardcode appAttestRequired to false.

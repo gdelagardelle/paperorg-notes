@@ -65,7 +65,12 @@ final class ProviderRegistry {
         }
 
         let prefs = settings.providerPreferences()
-        let order = prefs[language] ?? Self.defaultPreferences[language] ?? [.openai]
+        var order = prefs[language] ?? Self.defaultPreferences[language] ?? [.openai]
+        // Testing switch: dropping LuxASR lets the next provider in the chain
+        // handle the same audio, which is the only way to compare them.
+        if !settings.luxasrEnabled {
+            order = order.filter { $0 != .luxasr }
+        }
         return order.compactMap { providers[$0.rawValue] }
             .filter { $0.supportedLanguages.contains(language) }
     }
