@@ -3111,41 +3111,6 @@
         }
       }
     },
-    "note.detail.share_debug": {
-      "extractionState": "stale",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Transkriptions-Debug-Bericht teilen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Share Transcription Debug Report"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Partager le rapport de débogage"
-          }
-        },
-        "lb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deelen Transkriptiouns Debug Bericht"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Partilhar relatório de depuração da transcrição"
-          }
-        }
-      }
-    },
     "note.detail.share_text": {
       "extractionState": "stale",
       "localizations": {
