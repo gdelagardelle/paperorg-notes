@@ -897,4 +897,93 @@ final class RecordingLengthCapTests: XCTestCase {
         XCTAssertFalse(message.isEmpty)
     }
 }
+
+/// A 413/429/402 from notes-api is a final answer. Continuing the provider
+/// list would reach Apple Speech for English and transcribe without a cap.
+final class TranscriptionFallbackPolicyTests: XCTestCase {
+    func testQuotaAndIntegrityErrorsStopTheProviderChain() {
+        XCTAssertTrue(ProBackendError.audioTooLong.stopsProviderFallback)
+        XCTAssertTrue(ProBackendError.usageLimitReached.stopsProviderFallback)
+        XCTAssertTrue(ProBackendError.subscriptionRequired.stopsProviderFallback)
+        XCTAssertTrue(ProBackendError.deviceIntegrityVerificationFailed.stopsProviderFallback)
+    }
+
+    func testTransientBackendErrorsMayTryTheNextProvider() {
+        XCTAssertFalse(ProBackendError.serverError("timeout").stopsProviderFallback)
+        XCTAssertFalse(ProBackendError.notAuthenticated.stopsProviderFallback)
+    }
+}
+
+final class RecordingLengthPolicyTests: XCTestCase {
+    func testFreeCapStopsAtThreeMinutes() {
+        XCTAssertTrue(RecordingLengthPolicy.shouldStop(duration: 180, maxMinutes: 3))
+        XCTAssertFalse(RecordingLengthPolicy.shouldStop(duration: 179.9, maxMinutes: 3))
+    }
+
+    func testAZeroCapMeansDoNotAutoStop() {
+        XCTAssertFalse(RecordingLengthPolicy.shouldStop(duration: 10_000, maxMinutes: 0))
+    }
+
+    func testAMissingServerCapStillStopsFreeAtThreeMinutes() {
+        XCTAssertEqual(RecordingLengthPolicy.capMinutes(from: nil, isPro: false), 3)
+    }
+
+    func testAMissingServerCapStillStopsProAtThreeHours() {
+        XCTAssertEqual(RecordingLengthPolicy.capMinutes(from: nil, isPro: true), 180)
+    }
+
+    func testTheServerCapWinsWhenPresent() {
+        let usage = ProUsageInfo(
+            isPro: false,
+            minutesLimit: 30,
+            minutesUsed: 0,
+            minutesRemaining: 30,
+            periodKey: "2026-08",
+            proExpiresAt: nil,
+            maxRecordingMinutes: 10
+        )
+        XCTAssertEqual(RecordingLengthPolicy.capMinutes(from: usage, isPro: false), 10)
+    }
+}
+
+final class BackendHTTPMappingTests: XCTestCase {
+    func testTranscribeMaps413ToAudioTooLong() {
+        let error = ProBackendHTTPMapping.error(
+            statusCode: 413,
+            message: "payload too large",
+            treats413AsAudioTooLong: true
+        )
+        guard case .audioTooLong = error else {
+            return XCTFail("413 on transcribe must be audioTooLong, got \(error)")
+        }
+    }
+
+    func testEmailMaps413ToAGenericServerError() {
+        let error = ProBackendHTTPMapping.error(
+            statusCode: 413,
+            message: "payload too large",
+            treats413AsAudioTooLong: false
+        )
+        guard case .serverError = error else {
+            return XCTFail("413 on email must not claim the audio is too long, got \(error)")
+        }
+    }
+}
+
+final class ImportPickerCancelTests: XCTestCase {
+    func testACancelledPickerHasNoUserFacingError() {
+        let cancelled = NSError(domain: NSCocoaErrorDomain, code: NSUserCancelledError)
+        XCTAssertNil(ImportPickerResult.userFacingError(from: cancelled))
+        XCTAssertNil(ImportPickerResult.userFacingError(from: CancellationError()))
+    }
+
+    func testARealPickerFailureStillSurfaces() {
+        let failed = NSError(
+            domain: NSCocoaErrorDomain,
+            code: NSFileReadNoSuchFileError,
+            userInfo: [NSLocalizedDescriptionKey: "missing"]
+        )
+        XCTAssertEqual(ImportPickerResult.userFacingError(from: failed), "missing")
+    }
+}
 #endif

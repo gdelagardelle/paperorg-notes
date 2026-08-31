@@ -186,8 +186,43 @@ enum ProBackendError: LocalizedError {
             return "Paperorg Pro is temporarily unavailable. Please try again later."
         }
     }
+
+    /// A 413/429/402 from notes-api is a final answer. Continuing the provider
+    /// list would reach Apple Speech for English and transcribe without a cap.
+    var stopsProviderFallback: Bool {
+        switch self {
+        case .audioTooLong, .usageLimitReached, .subscriptionRequired,
+             .deviceIntegrityVerificationFailed:
+            return true
+        case .notAuthenticated, .serverError:
+            return false
+        }
+    }
 }
 
 enum SubscriptionProduct {
     static let proMonthly = "com.paperorg.notes.pro.monthly"
+}
+
+enum ProBackendHTTPMapping {
+    static func error(
+        statusCode: Int,
+        message: String,
+        treats413AsAudioTooLong: Bool
+    ) -> ProBackendError {
+        switch statusCode {
+        case 401:
+            return .notAuthenticated
+        case 402:
+            return .subscriptionRequired
+        case 403:
+            return .deviceIntegrityVerificationFailed
+        case 413:
+            return treats413AsAudioTooLong ? .audioTooLong : .serverError(message)
+        case 429:
+            return .usageLimitReached
+        default:
+            return .serverError(message)
+        }
+    }
 }
