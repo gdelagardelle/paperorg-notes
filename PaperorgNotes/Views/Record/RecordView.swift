@@ -18,6 +18,7 @@ struct RecordView: View {
     @State private var autoEmailError: String?
     @State private var showPaywall = false
     @State private var showIncludedMinutesAccess = false
+    @State private var showAudioImporter = false
     @State private var quickRecordTask: Task<Void, Never>?
     
     private var isRecordingSession: Bool {
@@ -27,114 +28,137 @@ struct RecordView: View {
     private var recordLanguageOptions: [AppLanguage] {
         AppLanguage.spokenLanguages
     }
+
+    // Declared out of line because inferring these inside the body pushed the
+    // type checker past its limit once the importer was added to the chain.
+    private var processingErrorAlert: Binding<Bool> {
+        Binding(
+            get: { processingError != nil && !showProcessing },
+            set: { if !$0 { processingError = nil } }
+        )
+    }
+
+    private var autoEmailErrorAlert: Binding<Bool> {
+        Binding(
+            get: { autoEmailError != nil },
+            set: { if !$0 { autoEmailError = nil } }
+        )
+    }
     
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    AppBrandHeader()
+            recordList
+                .sheet(isPresented: $showProcessing) {
+                    ProcessingView(
+                        stage: processingStage,
+                        error: processingError,
+                        language: selectedLanguage
+                    )
                 }
-                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 0, trailing: 20))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-
-                Section {
-                    setupCard
+                .alert(L10n.Record.failedTitle, isPresented: processingErrorAlert) {
+                    Button(L10n.Common.ok, role: .cancel) {}
+                } message: {
+                    Text(processingError ?? "")
                 }
-                .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-
-                if let usage = environment.settingsService.cachedProUsage,
-                   environment.settingsService.usesIncludedBackend {
-                    Section {
-                        includedMinutesCard(usage)
+                .alert(L10n.Record.quickRecordQueuedTitle, isPresented: $showQuickRecordQueued) {
+                    Button(L10n.Common.ok, role: .cancel) {}
+                } message: {
+                    Text(L10n.Record.quickRecordQueuedMessage)
+                }
+                .alert("Email Not Sent", isPresented: autoEmailErrorAlert) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text(autoEmailError ?? "")
+                }
+                .sheet(isPresented: $showPaywall) {
+                    PaywallView()
+                }
+                .sheet(isPresented: $showIncludedMinutesAccess) {
+                    IncludedMinutesAccessView {
+                        showPaywall = true
                     }
-                    .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
                 }
-
-                Section {
-                    recordHeroCard
+                .fileImporter(
+                    isPresented: $showAudioImporter,
+                    allowedContentTypes: AudioImportService.supportedTypes
+                ) { result in
+                    handleImportSelection(result)
                 }
-                .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+        }
+    }
 
-                if let warning = environment.recordingService.qualityWarning {
-                    Section {
-                        qualityWarningBanner(warning)
-                    }
-                    .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                }
-
-                recentSection
+    private var recordList: some View {
+        List {
+            Section {
+                AppBrandHeader()
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .background(AppScreenBackground())
-            .navigationBarHidden(true)
-            .onAppear {
-                selectedLanguage = environment.settingsService.defaultLanguage
-                selectedOutputType = environment.settingsService.defaultOutputType
-                environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
-                relinkActiveNoteIfRecording()
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 0, trailing: 20))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+
+            Section {
+                setupCard
+            }
+            .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+
+            if let usage = environment.settingsService.cachedProUsage,
+               environment.settingsService.usesIncludedBackend {
+                Section {
+                    includedMinutesCard(usage)
+                }
+                .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            }
+
+            Section {
+                recordHeroCard
+            }
+            .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+
+            if let warning = environment.recordingService.qualityWarning {
+                Section {
+                    qualityWarningBanner(warning)
+                }
+                .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            }
+
+            recentSection
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(AppScreenBackground())
+        .navigationBarHidden(true)
+        .onAppear {
+            selectedLanguage = environment.settingsService.defaultLanguage
+            selectedOutputType = environment.settingsService.defaultOutputType
+            environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
+            relinkActiveNoteIfRecording()
+            scheduleQuickRecordIfNeeded()
+        }
+        .onDisappear {
+            quickRecordTask?.cancel()
+        }
+        .onChange(of: environment.recordingService.state) { _, newState in
+            pulseAnimation = newState == .recording
+        }
+        .onChange(of: environment.deepLinkHandler.pendingQuickRecord) { _, pending in
+            if pending {
                 scheduleQuickRecordIfNeeded()
             }
-            .onDisappear {
-                quickRecordTask?.cancel()
-            }
-            .onChange(of: environment.recordingService.state) { _, newState in
-                pulseAnimation = newState == .recording
-            }
-            .onChange(of: environment.deepLinkHandler.pendingQuickRecord) { _, pending in
-                if pending {
-                    scheduleQuickRecordIfNeeded()
-                }
-            }
-            .onChange(of: scenePhase) { _, newPhase in
-                if newPhase == .active {
-                    scheduleQuickRecordIfNeeded()
-                }
-            }
-            .sheet(isPresented: $showProcessing) {
-                ProcessingView(
-                    stage: processingStage,
-                    error: processingError,
-                    language: selectedLanguage
-                )
-            }
-            .alert(L10n.Record.failedTitle, isPresented: Binding(
-                get: { processingError != nil && !showProcessing },
-                set: { if !$0 { processingError = nil } }
-            )) {
-                Button(L10n.Common.ok, role: .cancel) {}
-            } message: {
-                Text(processingError ?? "")
-            }
-            .alert(L10n.Record.quickRecordQueuedTitle, isPresented: $showQuickRecordQueued) {
-                Button(L10n.Common.ok, role: .cancel) {}
-            } message: {
-                Text(L10n.Record.quickRecordQueuedMessage)
-            }
-            .alert("Email Not Sent", isPresented: Binding(
-                get: { autoEmailError != nil },
-                set: { if !$0 { autoEmailError = nil } }
-            )) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(autoEmailError ?? "")
-            }
-            .sheet(isPresented: $showPaywall) {
-                PaywallView()
-            }
-            .sheet(isPresented: $showIncludedMinutesAccess) {
-                IncludedMinutesAccessView {
-                    showPaywall = true
-                }
+        }
+        .onChange(of: environment.recordingService.duration) { _, seconds in
+            stopIfOverRecordingCap(seconds)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                scheduleQuickRecordIfNeeded()
             }
         }
     }
@@ -167,7 +191,7 @@ struct RecordView: View {
                     .foregroundStyle(AppTheme.textSecondary)
                     .textCase(.uppercase)
                 
-                ScrollView(.horizontal, showsIndicators: false) {
+                    ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(OutputType.allCases) { type in
                             SelectionChip(
@@ -181,12 +205,31 @@ struct RecordView: View {
                     }
                 }
             }
+
+            importRow
         }
         .surfaceCard()
         .opacity(isRecordingSession ? 0.72 : 1)
         .animation(.easeInOut(duration: 0.2), value: isRecordingSession)
     }
     
+    private var importRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Button {
+                beginImport()
+            } label: {
+                Label(L10n.Import.action, systemImage: "square.and.arrow.down")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(SecondaryButtonStyle())
+            .disabled(isRecordingSession)
+
+            Text(importHintText)
+                .font(.caption2)
+                .foregroundStyle(AppTheme.textSecondary)
+        }
+    }
+
     private var recordHeroCard: some View {
         VStack(spacing: 20) {
             RecordHeroStack(
@@ -301,6 +344,21 @@ struct RecordView: View {
         }
     }
     
+    private var importHintText: String {
+        if let minutes = environment.settingsService.cachedProUsage?.maxRecordingMinutes,
+           minutes > 0 {
+            return L10n.Import.hintLimited(minutes)
+        }
+        return L10n.Import.hint
+    }
+
+    private func stopIfOverRecordingCap(_ seconds: TimeInterval) {
+        guard isRecordingSession, !showProcessing else { return }
+        let cap = environment.settingsService.cachedProUsage?.maxRecordingMinutes ?? 0
+        guard cap > 0, seconds >= Double(cap) * 60 else { return }
+        stopRecording()
+    }
+
     private func toggleRecording() {
         switch environment.recordingService.state {
         case .idle:
@@ -354,6 +412,97 @@ struct RecordView: View {
         pulseAnimation = true
     }
     
+    private func beginImport() {
+        if environment.settingsService.selectedPlan == .pro,
+           !environment.subscriptionService.isProActive {
+            showPaywall = true
+            return
+        }
+
+        if !environment.settingsService.usesBackendProcessing {
+            showIncludedMinutesAccess = true
+            return
+        }
+
+        showAudioImporter = true
+    }
+
+    private func handleImportSelection(_ result: Result<URL, Error>) {
+        switch result {
+        case .success(let source):
+            importAudio(from: source)
+        case .failure(let error):
+            processingError = error.localizedDescription
+        }
+    }
+
+    /// Runs an imported file through the same pipeline a recording uses, so the
+    /// transcript, summary and email behave identically either way.
+    private func importAudio(from source: URL) {
+        guard !showProcessing else { return }
+
+        showProcessing = true
+        processingStage = .savingAudio
+        processingError = nil
+
+        Task {
+            await BackgroundTaskRunner.run("ImportAudio") {
+                let noteId = UUID()
+                var importedNote: Note?
+                do {
+                    let duration = try await AudioImportService.importAudio(
+                        from: source,
+                        noteId: noteId,
+                        storage: environment.storageService,
+                        maximumMinutes: environment.settingsService
+                            .cachedProUsage?.maxRecordingMinutes ?? 0
+                    )
+
+                    let note = Note(
+                        id: noteId,
+                        audioFileName: "\(noteId.uuidString).m4a",
+                        language: selectedLanguage,
+                        outputType: selectedOutputType,
+                        status: .processing
+                    )
+                    note.durationSeconds = duration
+                    modelContext.insert(note)
+                    importedNote = note
+                    activeNote = note
+                    try modelContext.save()
+
+                    try await environment.processRecordingUseCase.execute(
+                        note: note,
+                        audioURL: environment.storageService.audioURL(for: noteId)
+                    ) { stage in
+                        processingStage = stage
+                    }
+
+                    try modelContext.save()
+                    preparePostRecordingEmail(for: note)
+
+                    try? await Task.sleep(nanoseconds: 800_000_000)
+                    showProcessing = false
+                    presentIncludedMinutesUpgradeIfNeeded()
+                } catch {
+                    processingError = safeProcessingError(error)
+                    if let note = importedNote {
+                        if note.noteStatus != .waitingForNetwork {
+                            note.status = NoteStatus.failed.rawValue
+                            note.errorMessage = processingError
+                        }
+                        note.updatedAt = .now
+                        try? modelContext.save()
+                    } else {
+                        // No note was persisted, so the converted copy is orphaned.
+                        environment.storageService.deleteAudio(for: noteId)
+                    }
+                    showProcessing = false
+                }
+            }
+        }
+    }
+
     private func togglePause() {
         if environment.recordingService.state == .recording {
             environment.recordingService.pause()
@@ -438,6 +587,11 @@ struct RecordView: View {
             Text(L10n.Included.remaining(Int(usage.minutesRemaining.rounded(.down))))
                 .font(.caption)
                 .foregroundStyle(AppTheme.textSecondary)
+            if let cap = usage.maxRecordingMinutes, cap > 0 {
+                Text(L10n.Included.perRecording(cap))
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
             if usage.minutesUsed >= 20 {
                 Button(L10n.Included.upgrade) { showPaywall = true }
                     .buttonStyle(SecondaryButtonStyle())

@@ -433,6 +433,8 @@ final class ProBackendClient {
                 throw ProBackendError.subscriptionRequired
             case 403:
                 throw ProBackendError.deviceIntegrityVerificationFailed
+            case 413:
+                throw ProBackendError.audioTooLong
             case 429:
                 throw ProBackendError.usageLimitReached
             default:

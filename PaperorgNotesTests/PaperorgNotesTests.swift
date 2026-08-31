@@ -634,4 +634,267 @@ private final class TestSubscriptionVerifier: SubscriptionVerifying {
         }
     }
 }
+
+@MainActor
+final class AudioImportServiceTests: XCTestCase {
+    private var storage: StorageService!
+    private var noteId: UUID!
+
+    override func setUp() {
+        super.setUp()
+        storage = StorageService()
+        noteId = UUID()
+    }
+
+    override func tearDown() {
+        storage.deleteAudio(for: noteId)
+        super.tearDown()
+    }
+
+    /// Playback, the email attachment and the GDPR export all address audio as
+    /// `{noteId}.m4a`, so a WAV has to arrive converted rather than renamed.
+    func testWavIsConvertedToM4AAtTheNotesOwnPath() async throws {
+        let source = try makeWav(seconds: 3)
+        defer { try? FileManager.default.removeItem(at: source) }
+
+        let duration = try await AudioImportService.importAudio(
+            from: source,
+            noteId: noteId,
+            storage: storage,
+            maximumMinutes: 180
+        )
+
+        XCTAssertEqual(duration, 3, accuracy: 0.1)
+        let destination = storage.audioURL(for: noteId)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: destination.path))
+
+        let stored = AVURLAsset(url: destination)
+        let storedSeconds = CMTimeGetSeconds(try await stored.load(.duration))
+        XCTAssertEqual(storedSeconds, 3, accuracy: 0.2)
+        // A copied WAV would still be readable, so assert it was re-encoded.
+        let tracks = try await stored.load(.tracks)
+        let track = try XCTUnwrap(tracks.first)
+        let descriptions = try await track.load(.formatDescriptions)
+        let format = try XCTUnwrap(descriptions.first)
+        XCTAssertEqual(
+            CMFormatDescriptionGetMediaSubType(format),
+            kAudioFormatMPEG4AAC
+        )
+    }
+
+    func testWavConversionShrinksTheUpload() async throws {
+        // WAV runs about 10 MB per minute, which the server's 100 MB ceiling cuts
+        // off after roughly nine minutes; AAC fits hours into the same budget.
+        let source = try makeWav(seconds: 5)
+        defer { try? FileManager.default.removeItem(at: source) }
+        let originalSize = try Data(contentsOf: source).count
+
+        _ = try await AudioImportService.importAudio(
+            from: source,
+            noteId: noteId,
+            storage: storage,
+            maximumMinutes: 180
+        )
+
+        let convertedSize = try Data(contentsOf: storage.audioURL(for: noteId)).count
+        XCTAssertLessThan(convertedSize, originalSize / 2)
+    }
+
+    func testAudioOverTheCapIsRefusedBeforeConverting() async throws {
+        let source = try makeWav(seconds: 65)
+        defer { try? FileManager.default.removeItem(at: source) }
+
+        do {
+            _ = try await AudioImportService.importAudio(
+                from: source,
+                noteId: noteId,
+                storage: storage,
+                maximumMinutes: 1
+            )
+            XCTFail("a 65-second file was accepted under a one-minute cap")
+        } catch {
+            XCTAssertEqual(error as? AudioImportError, .tooLong(limitMinutes: 1))
+        }
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: storage.audioURL(for: noteId).path),
+            "a refused import left a converted file behind"
+        )
+    }
+
+    /// The cap arrives from the server, so until it does the server is the only
+    /// thing that can refuse an import -- the client must not guess a limit.
+    func testAnUnknownCapDoesNotRefuseLocally() async throws {
+        let source = try makeWav(seconds: 65)
+        defer { try? FileManager.default.removeItem(at: source) }
+
+        let duration = try await AudioImportService.importAudio(
+            from: source,
+            noteId: noteId,
+            storage: storage,
+            maximumMinutes: 0
+        )
+
+        XCTAssertEqual(duration, 65, accuracy: 0.2)
+    }
+
+    func testTooShortAudioIsRefused() async throws {
+        let source = try makeWav(seconds: 0.2)
+        defer { try? FileManager.default.removeItem(at: source) }
+
+        do {
+            _ = try await AudioImportService.importAudio(
+                from: source,
+                noteId: noteId,
+                storage: storage,
+                maximumMinutes: 180
+            )
+            XCTFail("a 0.2-second file was accepted")
+        } catch {
+            XCTAssertEqual(error as? AudioImportError, .tooShort)
+        }
+    }
+
+    /// The file picker filters by type, but a file may still be truncated or
+    /// mislabelled, and that has to fail before a note is created for it.
+    func testAFileThatIsNotAudioIsRefused() async throws {
+        let source = FileManager.default.temporaryDirectory
+            .appendingPathComponent("paperorg-not-audio-\(UUID().uuidString).mp3")
+        try Data([0x00, 0x01, 0x02, 0x03]).write(to: source, options: .atomic)
+        defer { try? FileManager.default.removeItem(at: source) }
+
+        do {
+            _ = try await AudioImportService.importAudio(
+                from: source,
+                noteId: noteId,
+                storage: storage,
+                maximumMinutes: 180
+            )
+            XCTFail("four bytes of junk were accepted as audio")
+        } catch {
+            XCTAssertEqual(error as? AudioImportError, .unreadable)
+        }
+    }
+
+    /// An M4A is already what the storage layer wants, so re-encoding it would
+    /// lose quality for nothing.
+    func testM4AIsCopiedRatherThanReencoded() async throws {
+        let wav = try makeWav(seconds: 2)
+        defer { try? FileManager.default.removeItem(at: wav) }
+        _ = try await AudioImportService.importAudio(
+            from: wav,
+            noteId: noteId,
+            storage: storage,
+            maximumMinutes: 180
+        )
+        let existingM4A = FileManager.default.temporaryDirectory
+            .appendingPathComponent("paperorg-import-\(UUID().uuidString).m4a")
+        try FileManager.default.copyItem(at: storage.audioURL(for: noteId), to: existingM4A)
+        defer { try? FileManager.default.removeItem(at: existingM4A) }
+        let expected = try Data(contentsOf: existingM4A)
+
+        let secondNote = UUID()
+        defer { storage.deleteAudio(for: secondNote) }
+        _ = try await AudioImportService.importAudio(
+            from: existingM4A,
+            noteId: secondNote,
+            storage: storage,
+            maximumMinutes: 180
+        )
+
+        XCTAssertEqual(try Data(contentsOf: storage.audioURL(for: secondNote)), expected)
+    }
+
+    func testImportOverwritesAnyEarlierAudioForTheSameNote() async throws {
+        let first = try makeWav(seconds: 4)
+        let second = try makeWav(seconds: 2)
+        defer {
+            try? FileManager.default.removeItem(at: first)
+            try? FileManager.default.removeItem(at: second)
+        }
+
+        _ = try await AudioImportService.importAudio(
+            from: first, noteId: noteId, storage: storage, maximumMinutes: 180
+        )
+        _ = try await AudioImportService.importAudio(
+            from: second, noteId: noteId, storage: storage, maximumMinutes: 180
+        )
+
+        let stored = AVURLAsset(url: storage.audioURL(for: noteId))
+        let seconds = CMTimeGetSeconds(try await stored.load(.duration))
+        XCTAssertEqual(seconds, 2, accuracy: 0.2)
+    }
+
+    private func makeWav(seconds: Double) throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("paperorg-import-source-\(UUID().uuidString).wav")
+        let format = try XCTUnwrap(
+            AVAudioFormat(standardFormatWithSampleRate: 16_000, channels: 1)
+        )
+        let frameCount = AVAudioFrameCount(seconds * 16_000)
+        let buffer = try XCTUnwrap(
+            AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)
+        )
+        buffer.frameLength = frameCount
+        let samples = try XCTUnwrap(buffer.floatChannelData?[0])
+        for frame in 0..<Int(frameCount) {
+            samples[frame] = 0.25 * sin(2 * .pi * 440 * Float(frame) / 16_000)
+        }
+        let file = try AVAudioFile(forWriting: url, settings: format.settings)
+        try file.write(from: buffer)
+        return url
+    }
+}
+
+final class RecordingLengthCapTests: XCTestCase {
+    /// The cap is what lets the app refuse a three-hour import before spending
+    /// minutes converting and uploading it, so it has to survive decoding.
+    func testUsageCarriesThePerRecordingCap() throws {
+        let json = """
+        {"is_pro": true, "minutes_limit": 600, "minutes_used": 0.0,
+         "minutes_remaining": 600.0, "period_key": "2026-08",
+         "max_recording_minutes": 180}
+        """.data(using: .utf8)!
+
+        let usage = try JSONDecoder().decode(ProUsageInfo.self, from: json)
+
+        XCTAssertEqual(usage.maxRecordingMinutes, 180)
+    }
+
+    func testPlatformEnvelopeAlsoCarriesTheCap() throws {
+        let json = """
+        {"period_key": "2026-08", "is_pro": true, "max_recording_minutes": 180,
+         "metrics": {"transcription.minutes": {"used": 0.0, "limit": 600.0, "remaining": 600.0}}}
+        """.data(using: .utf8)!
+
+        let usage = try JSONDecoder().decode(ProUsageInfo.self, from: json)
+
+        XCTAssertEqual(usage.maxRecordingMinutes, 180)
+    }
+
+    /// A server that predates the cap sends nothing, and a client that invented
+    /// a default would refuse imports the server would have accepted.
+    func testAnOlderServerLeavesTheCapUnknown() throws {
+        let json = """
+        {"is_pro": true, "minutes_limit": 600, "minutes_used": 0.0,
+         "minutes_remaining": 600.0, "period_key": "2026-08"}
+        """.data(using: .utf8)!
+
+        let usage = try JSONDecoder().decode(ProUsageInfo.self, from: json)
+
+        XCTAssertNil(usage.maxRecordingMinutes)
+    }
+
+    /// 413 used to fall into serverError, which replaces every message with
+    /// "temporarily unavailable" -- telling the user to retry a file that will
+    /// be refused every time.
+    func testOversizedAudioGetsAnActionableMessage() {
+        let message = ProBackendError.audioTooLong.localizedDescription
+
+        XCTAssertNotEqual(
+            message,
+            "Paperorg Pro is temporarily unavailable. Please try again later."
+        )
+        XCTAssertFalse(message.isEmpty)
+    }
+}
 #endif

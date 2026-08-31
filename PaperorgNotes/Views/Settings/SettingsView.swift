@@ -287,6 +287,13 @@ struct SettingsView: View {
                     }
                 }
                 
+                Section(L10n.HowTo.title) {
+                    SettingsSectionHint(text: L10n.HowTo.record)
+                    SettingsSectionHint(text: L10n.HowTo.importFile)
+                    SettingsSectionHint(text: L10n.HowTo.free)
+                    SettingsSectionHint(text: L10n.HowTo.pro)
+                }
+
                 Section("Privacy & GDPR") {
                     Toggle("Keep Audio Files", isOn: $settings.keepAudioFiles)
                     if settings.keepAudioFiles {
