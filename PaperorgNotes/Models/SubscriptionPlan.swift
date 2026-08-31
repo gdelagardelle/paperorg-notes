@@ -31,6 +31,9 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
     let periodKey: String
     let proExpiresAt: String?
     let appAttestRequired: Bool
+    // Absent on servers older than the per-upload length cap, so an import is
+    // only refused locally once the server has told us the limit.
+    var maxRecordingMinutes: Int?
 
     enum CodingKeys: String, CodingKey {
         case isPro = "is_pro"
@@ -40,6 +43,7 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         case periodKey = "period_key"
         case proExpiresAt = "pro_expires_at"
         case appAttestRequired = "app_attest_required"
+        case maxRecordingMinutes = "max_recording_minutes"
     }
 
     init(
@@ -49,8 +53,10 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         minutesRemaining: Double,
         periodKey: String,
         proExpiresAt: String?,
-        appAttestRequired: Bool = false
+        appAttestRequired: Bool = false,
+        maxRecordingMinutes: Int? = nil
     ) {
+        self.maxRecordingMinutes = maxRecordingMinutes
         self.isPro = isPro
         self.minutesLimit = minutesLimit
         self.minutesUsed = minutesUsed
@@ -83,6 +89,9 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
             appAttestRequired = try platform.decodeIfPresent(
                 Bool.self, forKey: .appAttestRequired
             ) ?? false
+            maxRecordingMinutes = try platform.decodeIfPresent(
+                Int.self, forKey: .maxRecordingMinutes
+            )
             return
         }
 
@@ -102,6 +111,7 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         periodKey = try container.decodeIfPresent(String.self, forKey: .periodKey) ?? Self.defaultPeriodKey()
         proExpiresAt = try container.decodeIfPresent(String.self, forKey: .proExpiresAt)
         appAttestRequired = try container.decodeIfPresent(Bool.self, forKey: .appAttestRequired) ?? false
+        maxRecordingMinutes = try container.decodeIfPresent(Int.self, forKey: .maxRecordingMinutes)
     }
 
     private static func defaultPeriodKey() -> String {
@@ -117,6 +127,7 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         case periodKey = "period_key"
         case proExpiresAt = "pro_expires_at"
         case appAttestRequired = "app_attest_required"
+        case maxRecordingMinutes = "max_recording_minutes"
     }
 
     private struct PlatformMetric: Decodable {
@@ -156,6 +167,7 @@ enum ProBackendError: LocalizedError {
     case subscriptionRequired
     case usageLimitReached
     case deviceIntegrityVerificationFailed
+    case audioTooLong
     case serverError(String)
 
     var errorDescription: String? {
@@ -168,6 +180,8 @@ enum ProBackendError: LocalizedError {
             return "You've used all included Pro minutes this month."
         case .deviceIntegrityVerificationFailed:
             return "This device could not be verified securely. Please try again."
+        case .audioTooLong:
+            return L10n.Import.errorServerTooLong
         case .serverError:
             return "Paperorg Pro is temporarily unavailable. Please try again later."
         }

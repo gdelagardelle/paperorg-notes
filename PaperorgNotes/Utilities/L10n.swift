@@ -89,6 +89,19 @@ enum L10n {
         static let emptySubtitle = String(localized: "record.empty.subtitle")
     }
 
+    enum Import {
+        static let action = String(localized: "import.action")
+        static let hint = String(localized: "import.hint")
+        static let errorUnreadable = String(localized: "import.error.unreadable")
+        static let errorTooShort = String(localized: "import.error.too_short")
+        static let errorConversionFailed = String(localized: "import.error.conversion_failed")
+        static let errorServerTooLong = String(localized: "import.error.server_too_long")
+
+        static func errorTooLong(_ minutes: Int) -> String {
+            String(localized: "import.error.too_long \(minutes)")
+        }
+    }
+
     enum Notes {
         static let title = String(localized: "tab.notes")
         static let filters = String(localized: "notes.filters")
