@@ -76,13 +76,10 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_ENTITLEMENTS: PaperorgNotes/Resources/PaperorgNotes.entitlements
-      configs:
-        Debug:
-          CODE_SIGN_IDENTITY: "Apple Development"
-        Release:
-          CODE_SIGN_IDENTITY: "Apple Distribution"
-          CODE_SIGN_STYLE: Manual
-          PROVISIONING_PROFILE_SPECIFIER: "Paperorg Notes App Store 2026-08-21"
+      # Signing is automatic for the whole project (see settings.base). The
+      # Release override used to pin a manually managed App Store profile from
+      # the personal team; those profiles cannot exist under Luxxow, and an
+      # explicit CODE_SIGN_IDENTITY conflicts with automatic signing.
     dependencies:
       - target: PaperorgNotesWidgetExtension
         embed: true
@@ -113,13 +110,6 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_ENTITLEMENTS: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
         SKIP_INSTALL: YES
-      configs:
-        Debug:
-          CODE_SIGN_IDENTITY: "Apple Development"
-        Release:
-          CODE_SIGN_IDENTITY: "Apple Distribution"
-          CODE_SIGN_STYLE: Manual
-          PROVISIONING_PROFILE_SPECIFIER: "Paperorg Notes Widget App Store 2026-08-21"
 
   PaperorgNotesTests:
     type: bundle.unit-test
