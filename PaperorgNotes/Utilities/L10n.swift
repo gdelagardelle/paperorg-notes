@@ -72,6 +72,10 @@ enum L10n {
         static func remaining(_ minutes: Int) -> String {
             String(localized: "included.remaining \(minutes)")
         }
+
+        static func perRecording(_ minutes: Int) -> String {
+            String(localized: "included.per_recording \(minutes)")
+        }
     }
 
     enum Common {
@@ -100,6 +104,18 @@ enum L10n {
         static func errorTooLong(_ minutes: Int) -> String {
             String(localized: "import.error.too_long \(minutes)")
         }
+
+        static func hintLimited(_ minutes: Int) -> String {
+            String(localized: "import.hint.limit \(minutes)")
+        }
+    }
+
+    enum HowTo {
+        static let title = String(localized: "howto.title")
+        static let record = String(localized: "howto.record")
+        static let importFile = String(localized: "howto.import")
+        static let free = String(localized: "howto.free")
+        static let pro = String(localized: "howto.pro")
     }
 
     enum Notes {

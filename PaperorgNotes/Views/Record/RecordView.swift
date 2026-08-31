@@ -153,6 +153,9 @@ struct RecordView: View {
                 scheduleQuickRecordIfNeeded()
             }
         }
+        .onChange(of: environment.recordingService.duration) { _, seconds in
+            stopIfOverRecordingCap(seconds)
+        }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 scheduleQuickRecordIfNeeded()
@@ -221,7 +224,7 @@ struct RecordView: View {
             .buttonStyle(SecondaryButtonStyle())
             .disabled(isRecordingSession)
 
-            Text(L10n.Import.hint)
+            Text(importHintText)
                 .font(.caption2)
                 .foregroundStyle(AppTheme.textSecondary)
         }
@@ -341,6 +344,21 @@ struct RecordView: View {
         }
     }
     
+    private var importHintText: String {
+        if let minutes = environment.settingsService.cachedProUsage?.maxRecordingMinutes,
+           minutes > 0 {
+            return L10n.Import.hintLimited(minutes)
+        }
+        return L10n.Import.hint
+    }
+
+    private func stopIfOverRecordingCap(_ seconds: TimeInterval) {
+        guard isRecordingSession, !showProcessing else { return }
+        let cap = environment.settingsService.cachedProUsage?.maxRecordingMinutes ?? 0
+        guard cap > 0, seconds >= Double(cap) * 60 else { return }
+        stopRecording()
+    }
+
     private func toggleRecording() {
         switch environment.recordingService.state {
         case .idle:
@@ -569,6 +587,11 @@ struct RecordView: View {
             Text(L10n.Included.remaining(Int(usage.minutesRemaining.rounded(.down))))
                 .font(.caption)
                 .foregroundStyle(AppTheme.textSecondary)
+            if let cap = usage.maxRecordingMinutes, cap > 0 {
+                Text(L10n.Included.perRecording(cap))
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.textSecondary)
+            }
             if usage.minutesUsed >= 20 {
                 Button(L10n.Included.upgrade) { showPaywall = true }
                     .buttonStyle(SecondaryButtonStyle())
