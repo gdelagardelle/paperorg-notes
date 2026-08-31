@@ -2,12 +2,17 @@ package com.paperorg.notes.ui
 
 import android.app.Activity
 import android.app.Application
+import android.content.Intent
 import android.net.Uri
+import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperorg.notes.PaperorgNotesApp
+import com.paperorg.notes.R
 import com.paperorg.notes.data.EmailComposer
+import com.paperorg.notes.data.PdfNoteWriter
 import com.paperorg.notes.data.ProPlan
+import com.paperorg.notes.data.RecordingForegroundService
 import com.paperorg.notes.data.UserFacingError
 import com.paperorg.notes.domain.EmailAddresses
 import com.paperorg.notes.domain.EmailServerStatus
@@ -84,6 +89,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
         app.billing.onEntitlementChanged = { refreshUsage() }
         app.billing.onMessage = { message -> _billingMessage.value = message }
+        app.recordingStopHandler = { stopAndProcess() }
         viewModelScope.launch {
             // Restores Pro after a reinstall or on a new phone, where Play
             // still knows about the subscription and this install does not.
@@ -100,9 +106,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val restored = app.billing.syncPurchases()
             _billingMessage.value = if (restored) {
-                "Paperorg Pro restored."
+                getApplication<Application>().getString(R.string.billing_restored)
             } else {
-                "No Paperorg Pro subscription on this Google account."
+                getApplication<Application>().getString(R.string.billing_none)
             }
         }
     }
@@ -145,7 +151,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             val now = System.currentTimeMillis()
             val note = Note(
                 id = noteId,
-                title = "Untitled Recording",
+                title = getApplication<Application>().getString(R.string.note_untitled),
                 createdAtMillis = now,
                 updatedAtMillis = now,
                 durationSeconds = 0.0,
@@ -159,11 +165,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.Main) {
                     app.recording.start(noteId)
                 }
+                RecordingForegroundService.start(getApplication(), _record.value.usage?.maxRecordingMinutes)
                 _record.update { it.copy(recordingState = RecordingState.Recording, error = null) }
                 startTicker()
             } catch (error: Exception) {
                 app.notes.delete(noteId)
-                _record.update { it.copy(error = error.message ?: "Could not start the microphone.") }
+                _record.update { it.copy(error = error.message ?: getApplication<Application>().getString(R.string.error_mic)) }
             }
         }
     }
@@ -186,12 +193,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val noteId = app.recording.currentNoteId ?: return@launch
             val duration = app.recording.durationSeconds()
-            try {
-                app.recording.stop()
-            } catch (error: Exception) {
-                _record.update { it.copy(error = error.message, recordingState = RecordingState.Idle) }
-                return@launch
-            }
+            if (app.recording.stop() == null) return@launch
+            RecordingForegroundService.stop(getApplication())
             ticker?.cancel()
             _record.update {
                 it.copy(
@@ -207,7 +210,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 app.processRecording.execute(note) { stage ->
                     _record.update { state -> state.copy(processingStage = stage) }
                 }
-                sendEmailAfterTranscription(noteId)
+                app.emailNoteIfConfigured(noteId)
             } catch (error: Exception) {
                 val message = humanError(error)
                 _record.update { it.copy(error = message) }
@@ -244,7 +247,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             val now = System.currentTimeMillis()
             val note = Note(
                 id = noteId,
-                title = "Untitled Recording",
+                title = getApplication<Application>().getString(R.string.note_untitled),
                 createdAtMillis = now,
                 updatedAtMillis = now,
                 durationSeconds = imported.seconds,
@@ -259,7 +262,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 app.processRecording.execute(note) { stage ->
                     _record.update { state -> state.copy(processingStage = stage) }
                 }
-                sendEmailAfterTranscription(noteId)
+                app.emailNoteIfConfigured(noteId)
             } catch (error: Exception) {
                 _record.update { it.copy(error = humanError(error)) }
             } finally {
@@ -281,7 +284,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 app.processRecording.execute(updated) { stage ->
                     _record.update { state -> state.copy(processingStage = stage) }
                 }
-                sendEmailAfterTranscription(updated.id)
+                app.emailNoteIfConfigured(updated.id)
             } catch (error: Exception) {
                 _record.update { it.copy(error = humanError(error)) }
             } finally {
@@ -321,7 +324,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             _playingNoteId.value = note.id
         } catch (error: Exception) {
             _playingNoteId.value = null
-            _record.update { it.copy(error = error.message ?: "Could not play the recording.") }
+            _record.update { it.copy(error = error.message ?: getApplication<Application>().getString(R.string.error_play)) }
         }
     }
 
@@ -390,7 +393,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 runCatching { app.api.sendEmail(draft) }
             }
             result.fold(
-                onSuccess = { onResult("✓ Test email sent to $trimmed") },
+                onSuccess = { onResult("✓ " + getApplication<Application>().getString(R.string.email_test_sent, trimmed)) },
                 onFailure = { error ->
                     onResult(UserFacingError.message(error as? Exception ?: Exception(error.message)))
                 },
@@ -401,20 +404,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun sendNoteEmail(note: Note, onResult: (String) -> Unit) {
         viewModelScope.launch {
             if (app.settings.emailRecipients.isEmpty()) {
-                onResult("Add at least one recipient in Settings.")
+                onResult(getApplication<Application>().getString(R.string.error_no_recipients))
                 return@launch
             }
-            val audio = app.recording.audioFile(note.id).takeIf { it.exists() }
-            val draft = EmailComposer.forNote(note, app.settings, audio, getApplication<Application>().cacheDir)
-            if (draft.body.isBlank()) {
-                onResult("This note has nothing to send yet.")
+            val draft = app.emailDraft(note)
+            if (draft == null || draft.body.isBlank()) {
+                onResult(getApplication<Application>().getString(R.string.error_empty_note))
                 return@launch
             }
             val result = withContext(Dispatchers.IO) {
                 runCatching { app.api.sendEmail(draft) }
             }
             result.fold(
-                onSuccess = { onResult("Email sent.") },
+                onSuccess = { onResult(getApplication<Application>().getString(R.string.email_sent)) },
                 onFailure = { error ->
                     onResult(UserFacingError.message(error as? Exception ?: Exception(error.message)))
                 },
@@ -422,19 +424,28 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private suspend fun sendEmailAfterTranscription(noteId: String) {
-        if (!app.settings.sendEmailAfterTranscription || app.settings.emailRecipients.isEmpty()) return
-        val note = app.notes.get(noteId) ?: return
-        if (note.displayTranscript.isBlank()) return
-        val audio = app.recording.audioFile(note.id).takeIf { it.exists() }
-        val draft = EmailComposer.forNote(note, app.settings, audio, getApplication<Application>().cacheDir)
-        if (draft.body.isBlank()) return
-        runCatching {
-            withContext(Dispatchers.IO) { app.api.sendEmail(draft) }
+    fun sharePdf(context: android.content.Context, note: Note, onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val file = withContext(Dispatchers.IO) {
+                runCatching { PdfNoteWriter.write(note, getApplication<Application>().cacheDir) }
+            }.getOrElse { error ->
+                onResult(error.message ?: getApplication<Application>().getString(R.string.error_pdf))
+                return@launch
+            }
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", file)
+            val share = Intent(Intent.ACTION_SEND).apply {
+                type = "application/pdf"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(share, context.getString(R.string.chooser_pdf)))
         }
     }
 
     override fun onCleared() {
+        if (app.recordingStopHandler != null) {
+            app.recordingStopHandler = null
+        }
         stopPlayback()
         super.onCleared()
     }
@@ -452,10 +463,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                         recordingState = app.recording.state,
                     )
                 }
+                if (app.recording.state == RecordingState.Idle) break
                 val cap = _record.value.usage?.maxRecordingMinutes
-                if (app.recording.state != RecordingState.Idle &&
-                    cap != null && cap > 0 && seconds >= cap * 60.0
-                ) {
+                if (cap != null && cap > 0 && seconds >= cap * 60.0) {
                     stopAndProcess()
                     break
                 }

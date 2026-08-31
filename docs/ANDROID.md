@@ -64,5 +64,7 @@ Play Console side, which has to exist before a purchase can be tested.
 
 ## What v1 includes
 
-Record (pause/resume), transcribe + summarize through notes-api, library,
-search, GDPR export zip, delete all, portrait lock, privacy consent.
+Record (pause/resume, keeps recording with the screen locked), transcribe +
+summarize through notes-api, library, search, PDF export, GDPR export zip,
+delete all, portrait lock, privacy consent. UI strings in English, French,
+and German.

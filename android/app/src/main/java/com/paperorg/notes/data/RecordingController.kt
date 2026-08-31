@@ -108,8 +108,9 @@ class RecordingController(private val context: Context) {
         state = RecordingState.Recording
     }
 
-    fun stop(): File {
-        val noteId = currentNoteId ?: error("No recording.")
+    @Synchronized
+    fun stop(): File? {
+        val noteId = currentNoteId ?: return null
         try {
             recorder?.stop()
         } catch (_: RuntimeException) {

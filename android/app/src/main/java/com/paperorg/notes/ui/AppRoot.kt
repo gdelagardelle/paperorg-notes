@@ -3,6 +3,7 @@ package com.paperorg.notes.ui
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.os.Build
 import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -85,6 +86,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -113,6 +115,7 @@ import com.paperorg.notes.ui.theme.TextSecondary
 @Composable
 fun AppRoot(model: AppViewModel) {
     val privacy by model.privacyAccepted.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     if (!privacy) {
         PrivacyScreen(onAccept = model::acceptPrivacy)
         return
@@ -141,6 +144,7 @@ fun AppRoot(model: AppViewModel) {
             onPlay = { model.togglePlayback(live) },
             onResummarize = { model.resummarize(live) },
             onSendEmail = { onResult -> model.sendNoteEmail(live, onResult) },
+            onExportPdf = { onResult -> model.sharePdf(context, live, onResult) },
             onDismissError = model::dismissError,
         )
         return
@@ -152,7 +156,12 @@ fun AppRoot(model: AppViewModel) {
                 containerColor = Surface,
                 tonalElevation = 0.dp,
             ) {
-                val items = listOf("Record", "Notes", "Search", "Settings")
+                val items = listOf(
+                    stringResource(R.string.tab_record),
+                    stringResource(R.string.tab_notes),
+                    stringResource(R.string.tab_search),
+                    stringResource(R.string.tab_settings),
+                )
                 val icons = listOf(Icons.Filled.Mic, Icons.Filled.Description, Icons.Filled.Search, Icons.Filled.Settings)
                 items.forEachIndexed { index, label ->
                     NavigationBarItem(
@@ -185,25 +194,25 @@ private fun PrivacyScreen(onAccept: () -> Unit) {
         Modifier.fillMaxSize().background(Background).padding(24.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Your recordings stay yours", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Primary)
-        Text("Paperorg Notes records on this device, then sends audio to Paperorg for transcription and structuring. You can export or delete everything at any time.", color = TextSecondary)
-        PrivacyRow("On-device capture", "Audio is recorded locally first.")
-        PrivacyRow("You stay in control", "Export or delete all notes from Settings.")
-        PrivacyRow("GDPR", "You can download a copy of your data or wipe this device.")
-        PrivacyRow("Providers", "Luxembourgish goes to LuxASR first; other languages use OpenAI, then ElevenLabs.")
+        Text(stringResource(R.string.privacy_title), fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Primary)
+        Text(stringResource(R.string.privacy_intro), color = TextSecondary)
+        PrivacyRow(stringResource(R.string.privacy_row_local_title), stringResource(R.string.privacy_row_local_detail))
+        PrivacyRow(stringResource(R.string.privacy_row_control_title), stringResource(R.string.privacy_row_control_detail))
+        PrivacyRow(stringResource(R.string.privacy_row_gdpr_title), stringResource(R.string.privacy_row_gdpr_detail))
+        PrivacyRow(stringResource(R.string.privacy_row_providers_title), stringResource(R.string.privacy_row_providers_detail))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Switch(checked = agreed, onCheckedChange = { agreed = it })
-            Text("I understand and agree", modifier = Modifier.padding(start = 8.dp))
+            Text(stringResource(R.string.privacy_agree), modifier = Modifier.padding(start = 8.dp))
         }
         TextButton(onClick = { uri.openUri("https://gdelagardelle.github.io/paperorg-notes/privacy.html") }) {
-            Text("View privacy policy")
+            Text(stringResource(R.string.privacy_view_policy))
         }
         Button(
             onClick = onAccept,
             enabled = agreed,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Primary),
-        ) { Text("Continue") }
+        ) { Text(stringResource(R.string.privacy_continue)) }
     }
 }
 
@@ -227,8 +236,8 @@ private fun RecordScreen(
     val context = LocalContext.current
     val view = LocalView.current
     val recording = state.recordingState != RecordingState.Idle
-    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) model.startRecording()
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+        if (grants[Manifest.permission.RECORD_AUDIO] == true) model.startRecording()
     }
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let(model::importAudio)
@@ -243,14 +252,16 @@ private fun RecordScreen(
             model.stopAndProcess()
         } else {
             val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-            if (granted) model.startRecording() else permission.launch(Manifest.permission.RECORD_AUDIO)
+            if (granted) {
+                model.startRecording()
+            } else {
+                val needed = mutableListOf(Manifest.permission.RECORD_AUDIO)
+                if (Build.VERSION.SDK_INT >= 33) needed += Manifest.permission.POST_NOTIFICATIONS
+                permission.launch(needed.toTypedArray())
+            }
         }
     }
-    val status = when (state.recordingState) {
-        RecordingState.Idle -> "Tap to record"
-        RecordingState.Recording -> "Recording"
-        RecordingState.Paused -> "Paused"
-    }
+    val status = state.recordingState.statusLabel()
     Column(
         Modifier
             .fillMaxSize()
@@ -267,13 +278,13 @@ private fun RecordScreen(
             )
             Spacer(Modifier.width(14.dp))
             Column {
-                Text("Paperorg Notes", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Primary)
-                Text("Capture, transcribe, send", color = TextSecondary, fontSize = 14.sp)
+                Text(stringResource(R.string.app_name), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Primary)
+                Text(stringResource(R.string.brand_tagline), color = TextSecondary, fontSize = 14.sp)
             }
         }
         SurfaceCard {
             Column(Modifier.alpha(if (recording) 0.72f else 1f)) {
-                ChipSection("Language", enabled = !recording) {
+                ChipSection(stringResource(R.string.record_language), enabled = !recording) {
                     AppLanguage.recordPicker.forEach { language ->
                         SelectionChip(
                             title = "${language.flag} ${language.displayName}",
@@ -284,16 +295,16 @@ private fun RecordScreen(
                     }
                 }
                 Text(
-                    "Pick the language you spoke. Lëtzebuergesch uses LuxASR; other languages use OpenAI.",
+                    stringResource(R.string.record_language_hint),
                     color = TextSecondary,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(top = 8.dp),
                 )
                 Spacer(Modifier.height(18.dp))
-                ChipSection("Note style", enabled = !recording) {
+                ChipSection(stringResource(R.string.record_note_style), enabled = !recording) {
                     OutputType.entries.forEach { type ->
                         SelectionChip(
-                            title = type.displayName,
+                            title = type.label(),
                             selected = state.outputType == type,
                             enabled = !recording,
                             onClick = { model.setOutput(type) },
@@ -304,15 +315,15 @@ private fun RecordScreen(
         }
         state.usage?.let { usage ->
             SurfaceCard {
-                Text(if (usage.isPro) "Paperorg Pro" else "Included minutes", fontWeight = FontWeight.SemiBold, color = Primary)
+                Text(stringResource(if (usage.isPro) R.string.record_plan_pro else R.string.record_plan_free), fontWeight = FontWeight.SemiBold, color = Primary)
                 Text(
-                    "${"%.1f".format(usage.minutesRemaining)} of ${usage.minutesLimit} minutes left this month",
+                    stringResource(R.string.usage_minutes_left, usage.minutesRemaining, usage.minutesLimit),
                     color = TextSecondary,
                     fontSize = 13.sp,
                 )
                 usage.maxRecordingMinutes?.let { cap ->
                     Text(
-                        "Each recording can be at most $cap minutes.",
+                        stringResource(R.string.usage_cap, cap),
                         color = TextSecondary,
                         fontSize = 12.sp,
                     )
@@ -332,13 +343,13 @@ private fun RecordScreen(
                 if (recording) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         RecordControlCapsule(
-                            title = if (state.recordingState == RecordingState.Paused) "Resume" else "Pause",
+                            title = if (state.recordingState == RecordingState.Paused) stringResource(R.string.record_resume) else stringResource(R.string.record_pause),
                             icon = if (state.recordingState == RecordingState.Paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
                             destructive = false,
                             onClick = model::pauseOrResume,
                         )
                         RecordControlCapsule(
-                            title = "Stop",
+                            title = stringResource(R.string.record_stop),
                             icon = Icons.Filled.Stop,
                             destructive = true,
                             onClick = model::stopAndProcess,
@@ -347,13 +358,13 @@ private fun RecordScreen(
                 }
                 if (state.processing) {
                     CircularProgressIndicator(color = Accent, modifier = Modifier.size(28.dp))
-                    Text(state.processingStage?.displayName ?: "Processing", color = TextSecondary)
+                    Text(state.processingStage?.label() ?: stringResource(R.string.record_processing), color = TextSecondary)
                 }
                 if (!recording) {
                     TextButton(
                         onClick = { importer.launch(AudioFormat.pickerMimeTypes) },
                         enabled = !state.processing,
-                    ) { Text("Import audio file") }
+                    ) { Text(stringResource(R.string.record_import)) }
                     Text(importHint(state.usage?.maxRecordingMinutes), color = TextSecondary, fontSize = 12.sp)
                 }
             }
@@ -361,18 +372,18 @@ private fun RecordScreen(
         state.error?.let { error ->
             SurfaceCard {
                 Text(error, color = com.paperorg.notes.ui.theme.Error, fontSize = 14.sp)
-                TextButton(onClick = model::dismissError) { Text("Dismiss") }
+                TextButton(onClick = model::dismissError) { Text(stringResource(R.string.common_dismiss)) }
             }
         }
-        Text("Recent notes", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary, modifier = Modifier.padding(top = 8.dp))
-        Text("Your last captures", color = TextSecondary, fontSize = 14.sp)
+        Text(stringResource(R.string.record_recent), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary, modifier = Modifier.padding(top = 8.dp))
+        Text(stringResource(R.string.record_recent_subtitle), color = TextSecondary, fontSize = 14.sp)
         if (notes.isEmpty()) {
             SurfaceCard(padding = 28.dp) {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Filled.Mic, contentDescription = null, tint = Accent.copy(alpha = 0.7f), modifier = Modifier.size(36.dp))
                     Spacer(Modifier.height(8.dp))
-                    Text("No notes yet", fontWeight = FontWeight.SemiBold, color = Primary)
-                    Text("Tap the orange button to record.", color = TextSecondary, fontSize = 14.sp)
+                    Text(stringResource(R.string.record_empty_title), fontWeight = FontWeight.SemiBold, color = Primary)
+                    Text(stringResource(R.string.record_empty_subtitle), color = TextSecondary, fontSize = 14.sp)
                 }
             }
         } else {
@@ -383,11 +394,12 @@ private fun RecordScreen(
     }
 }
 
+@Composable
 private fun importHint(maxMinutes: Int?): String {
     return if (maxMinutes != null && maxMinutes > 0) {
-        "MP3, WAV or M4A · at most $maxMinutes min each"
+        stringResource(R.string.record_import_hint_limit, maxMinutes)
     } else {
-        "MP3, WAV or M4A already on this phone"
+        stringResource(R.string.record_import_hint)
     }
 }
 
@@ -465,7 +477,7 @@ private fun RecordHeroButton(state: RecordingState, onClick: () -> Unit) {
         ) {
             Icon(
                 if (state == RecordingState.Idle) Icons.Filled.Mic else Icons.Filled.Stop,
-                contentDescription = if (state == RecordingState.Idle) "Start recording" else "Stop",
+                contentDescription = if (state == RecordingState.Idle) stringResource(R.string.record_start) else stringResource(R.string.record_stop),
                 tint = Color.White,
                 modifier = Modifier.size(34.dp),
             )
@@ -502,14 +514,14 @@ private fun RecordControlCapsule(
 private fun SearchScreen(notes: List<Note>, query: String, onQuery: (String) -> Unit, onOpen: (Note) -> Unit) {
     val results = notes.filter { it.matches(query) }
     Column(Modifier.fillMaxSize().padding(20.dp)) {
-        Text("Search", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary)
+        Text(stringResource(R.string.search_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary)
         Spacer(Modifier.height(12.dp))
-        OutlinedTextField(value = query, onValueChange = onQuery, modifier = Modifier.fillMaxWidth(), placeholder = { Text("Search transcripts and summaries") })
+        OutlinedTextField(value = query, onValueChange = onQuery, modifier = Modifier.fillMaxWidth(), placeholder = { Text(stringResource(R.string.search_placeholder)) })
         Spacer(Modifier.height(12.dp))
         if (query.isBlank()) {
-            Text("Type to search titles, transcripts, and summaries.", color = TextSecondary)
+            Text(stringResource(R.string.search_empty), color = TextSecondary)
         } else if (results.isEmpty()) {
-            Text("No matching notes.", color = TextSecondary)
+            Text(stringResource(R.string.search_no_match), color = TextSecondary)
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(results, key = { it.id }) { note ->
@@ -535,6 +547,7 @@ private fun NoteDetailScreen(
     onPlay: () -> Unit,
     onResummarize: () -> Unit,
     onSendEmail: (onResult: (String) -> Unit) -> Unit,
+    onExportPdf: (onResult: (String) -> Unit) -> Unit,
     onDismissError: () -> Unit,
 ) {
     var retryLanguage by remember(note.id) { mutableStateOf(AppLanguage.fromCode(note.language)) }
@@ -554,10 +567,10 @@ private fun NoteDetailScreen(
         topBar = {
             TopAppBar(
                 title = { Text(note.title) },
-                navigationIcon = { TextButton(onClick = onBack) { Text("Back") } },
+                navigationIcon = { TextButton(onClick = onBack) { Text(stringResource(R.string.common_back)) } },
                 actions = {
                     IconButton(onClick = onFavorite) {
-                        Icon(if (note.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder, contentDescription = "Favorite", tint = Accent)
+                        Icon(if (note.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder, contentDescription = stringResource(R.string.notes_favorite), tint = Accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Background, titleContentColor = Primary),
@@ -565,30 +578,30 @@ private fun NoteDetailScreen(
         },
     ) { padding ->
         Column(Modifier.padding(padding).padding(20.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                listOfNotNull(
-                    DurationFormat.format(note.durationSeconds),
-                    "${language.flag} ${language.displayName}",
-                    provider?.let { "via $it" },
-                    note.status,
-                ).joinToString(" · "),
+        Text(
+            listOfNotNull(
+                DurationFormat.format(note.durationSeconds),
+                "${language.flag} ${language.displayName}",
+                provider?.let { "via $it" },
+                stringResource(noteStatusString(note.status)),
+            ).joinToString(" · "),
                 color = TextSecondary,
             )
             if (processing) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     CircularProgressIndicator(color = Accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-                    Text(processingStage?.displayName ?: "Processing", color = TextSecondary)
+                    Text(processingStage?.label() ?: stringResource(R.string.record_processing), color = TextSecondary)
                 }
             }
             error?.let {
                 Text(it, color = com.paperorg.notes.ui.theme.Error, fontSize = 14.sp)
-                TextButton(onClick = onDismissError) { Text("Dismiss") }
+                TextButton(onClick = onDismissError) { Text(stringResource(R.string.common_dismiss)) }
             }
             if (note.status == "failed") {
-                Text(note.errorMessage ?: "Processing failed.", color = com.paperorg.notes.ui.theme.Error)
+                Text(note.errorMessage ?: stringResource(R.string.note_processing_failed), color = com.paperorg.notes.ui.theme.Error)
             }
             if (hasAudio) {
-                ChipSection("Language for this audio", enabled = !processing) {
+                ChipSection(stringResource(R.string.note_retry_language), enabled = !processing) {
                     AppLanguage.recordPicker.forEach { option ->
                         SelectionChip(
                             title = "${option.flag} ${option.displayName}",
@@ -599,7 +612,7 @@ private fun NoteDetailScreen(
                     }
                 }
                 Text(
-                    "Wrong language is the usual reason a transcript looks like junk. Pick what you spoke, then transcribe again.",
+                    stringResource(R.string.note_retry_hint),
                     color = TextSecondary,
                     fontSize = 12.sp,
                 )
@@ -608,9 +621,9 @@ private fun NoteDetailScreen(
                         onClick = { onRetry(retryLanguage) },
                         enabled = !processing,
                         colors = ButtonDefaults.buttonColors(containerColor = Primary),
-                    ) { Text("Transcribe again") }
+                    ) { Text(stringResource(R.string.note_transcribe_again)) }
                     TextButton(onClick = onPlay, enabled = !processing) {
-                        Text(if (playing) "Stop audio" else "Play audio")
+                        Text(if (playing) stringResource(R.string.note_stop_audio) else stringResource(R.string.note_play_audio))
                     }
                 }
             }
@@ -618,30 +631,37 @@ private fun NoteDetailScreen(
                 TextButton(
                     onClick = onResummarize,
                     enabled = !processing && transcript.isNotBlank(),
-                ) { Text("Re-summarize") }
+                ) { Text(stringResource(R.string.note_resummarize)) }
                 TextButton(
                     onClick = {
                         emailResult = null
                         onSendEmail { result -> emailResult = result }
                     },
                     enabled = !processing,
-                ) { Text("Send email") }
+                ) { Text(stringResource(R.string.note_send_email)) }
+                TextButton(
+                    onClick = {
+                        emailResult = null
+                        onExportPdf { result -> emailResult = result }
+                    },
+                    enabled = !processing && transcript.isNotBlank(),
+                ) { Text(stringResource(R.string.note_export_pdf)) }
             }
             emailResult?.let {
                 Text(it, color = TextSecondary, fontSize = 13.sp)
             }
             TabRow(selectedTabIndex = detailTab, containerColor = Surface, contentColor = Primary) {
-                Tab(selected = detailTab == 0, onClick = { detailTab = 0 }, text = { Text("Transcript") })
-                Tab(selected = detailTab == 1, onClick = { detailTab = 1 }, text = { Text("Summary") })
-                Tab(selected = detailTab == 2, onClick = { detailTab = 2 }, text = { Text("Actions") })
+                Tab(selected = detailTab == 0, onClick = { detailTab = 0 }, text = { Text(stringResource(R.string.note_tab_transcript)) })
+                Tab(selected = detailTab == 1, onClick = { detailTab = 1 }, text = { Text(stringResource(R.string.note_tab_summary)) })
+                Tab(selected = detailTab == 2, onClick = { detailTab = 2 }, text = { Text(stringResource(R.string.note_tab_actions)) })
             }
             when (detailTab) {
                 0 -> {
                     if (transcript.isBlank()) {
-                        Text("No transcript yet.", color = TextSecondary)
+                        Text(stringResource(R.string.note_no_transcript), color = TextSecondary)
                         if (hasAudio) {
                             Text(
-                                "If you already recorded this, tap Transcribe again. Older notes may have stored JSON instead of the spoken words.",
+                                stringResource(R.string.note_no_transcript_hint),
                                 color = TextSecondary,
                                 fontSize = 12.sp,
                             )
@@ -653,25 +673,25 @@ private fun NoteDetailScreen(
                 1 -> {
                     val summary = note.displaySummaryShort
                     if (summary.isBlank()) {
-                        Text("No summary yet.", color = TextSecondary)
+                        Text(stringResource(R.string.note_no_summary), color = TextSecondary)
                     } else {
-                        Text("Summary", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.note_summary_heading), fontWeight = FontWeight.SemiBold)
                         Text(summary)
                     }
                     note.summaryDetailed?.takeIf { it.isNotBlank() && it != note.summaryShort }?.let {
-                        Text("Detail", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.note_detail_heading), fontWeight = FontWeight.SemiBold)
                         Text(it)
                     }
                     structured?.let { output ->
-                        NoteListSection("Key ideas", output.keyIdeas)
-                        NoteListSection("Decisions", output.decisions)
-                        NoteListSection("Open questions", output.openQuestions)
+                        NoteListSection(stringResource(R.string.note_key_ideas), output.keyIdeas)
+                        NoteListSection(stringResource(R.string.note_decisions), output.decisions)
+                        NoteListSection(stringResource(R.string.note_open_questions), output.openQuestions)
                     }
                 }
                 else -> {
                     structured?.let { output ->
-                        NoteListSection("Actions", output.actionItems)
-                    } ?: Text("No action items yet.", color = TextSecondary)
+                        NoteListSection(stringResource(R.string.note_actions), output.actionItems)
+                    } ?: Text(stringResource(R.string.note_no_actions), color = TextSecondary)
                 }
             }
         }

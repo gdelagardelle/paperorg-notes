@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -56,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.paperorg.notes.BuildConfig
+import com.paperorg.notes.R
 import com.paperorg.notes.domain.AppLanguage
 import com.paperorg.notes.domain.EmailContent
 import com.paperorg.notes.domain.EmailServerStatus
@@ -103,25 +105,25 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 8.dp),
     ) {
-        Text("Settings", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Primary, modifier = Modifier.padding(top = 8.dp, bottom = 12.dp))
+        Text(stringResource(R.string.settings_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Primary, modifier = Modifier.padding(top = 8.dp, bottom = 12.dp))
 
-        SettingsSection("Plan") {
+        SettingsSection(stringResource(R.string.settings_section_plan)) {
             if (isPro) {
-                Text("Paperorg Pro is active", fontWeight = FontWeight.SemiBold, color = Accent, modifier = Modifier.padding(16.dp))
+                Text(stringResource(R.string.settings_pro_active), fontWeight = FontWeight.SemiBold, color = Accent, modifier = Modifier.padding(16.dp))
             } else {
-                Text("Included minutes", fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp))
-                SettingsHint("Free includes 30 minutes of cloud transcription a month. Each recording can be at most 3 minutes. No API keys or sign-in.")
+                Text(stringResource(R.string.settings_free_title), fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp))
+                SettingsHint(stringResource(R.string.settings_free_hint))
             }
             usage?.let {
                 Text(
-                    "${"%.1f".format(it.minutesRemaining)} of ${it.minutesLimit} minutes left this month",
+                    stringResource(R.string.usage_minutes_left, it.minutesRemaining, it.minutesLimit),
                     color = TextSecondary,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
                 )
                 it.maxRecordingMinutes?.let { cap ->
                     Text(
-                        "Each recording can be at most $cap minutes.",
+                        stringResource(R.string.usage_cap, cap),
                         color = TextSecondary,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
@@ -133,7 +135,7 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                 TextButton(
                     onClick = { uri.openUri(BillingRepository.manageSubscriptionsUrl(context.packageName)) },
                     modifier = Modifier.padding(horizontal = 8.dp),
-                ) { Text("Manage subscription in Google Play") }
+                ) { Text(stringResource(R.string.settings_manage_play)) }
             } else {
                 plans.forEach { plan ->
                     HorizontalDivider(color = Border)
@@ -142,26 +144,23 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text("Pro, billed per ${plan.period}", color = Primary, fontSize = 13.sp)
-                            Text("${plan.price} / ${plan.period}", color = TextSecondary, fontSize = 12.sp)
+                            Text(stringResource(R.string.settings_pro_period, plan.period), color = Primary, fontSize = 13.sp)
+                            Text(stringResource(R.string.settings_pro_price, plan.price, plan.period), color = TextSecondary, fontSize = 12.sp)
                         }
                         TextButton(
                             onClick = { activity?.let { model.buyPro(it, plan) } },
                             enabled = activity != null,
-                        ) { Text("Subscribe") }
+                        ) { Text(stringResource(R.string.settings_subscribe)) }
                     }
                 }
                 if (plans.isEmpty()) {
-                    SettingsHint(
-                        "Paperorg Pro is not offered by Google Play on this device yet. " +
-                            "It appears once the app is installed from Play with the subscription live.",
-                    )
+                    SettingsHint(stringResource(R.string.settings_plans_missing))
                 }
                 HorizontalDivider(color = Border)
                 TextButton(
                     onClick = { model.restorePurchases() },
                     modifier = Modifier.padding(horizontal = 8.dp),
-                ) { Text("Restore purchase") }
+                ) { Text(stringResource(R.string.settings_restore)) }
             }
             billingMessage?.let { message ->
                 Text(
@@ -179,17 +178,17 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
             ) {
                 Box(Modifier.size(10.dp).clip(CircleShape).background(if (connected) Color(0xFF2E9E5B) else Border))
                 Text(
-                    if (connected) "Connected · device ${settings.deviceId.take(8)}"
-                    else "Not connected — connects automatically on first transcription",
+                    if (connected) stringResource(R.string.settings_connected, settings.deviceId.take(8))
+                    else stringResource(R.string.settings_not_connected),
                     color = TextSecondary,
                     fontSize = 12.sp,
                 )
             }
         }
 
-        SettingsSection("Language") {
+        SettingsSection(stringResource(R.string.settings_section_language)) {
             SettingsMenu(
-                label = "Default language",
+                label = stringResource(R.string.settings_default_language),
                 value = "${language.flag} ${language.displayName}",
                 options = AppLanguage.spoken.map { it.code to "${it.flag} ${it.displayName}" },
                 onSelect = { code ->
@@ -200,11 +199,11 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
             )
         }
 
-        SettingsSection("Vocabulary") {
-            Text("Custom vocabulary", fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp))
-            SettingsHint("Names, brands, and terms to improve transcription accuracy.")
+        SettingsSection(stringResource(R.string.settings_section_vocabulary)) {
+            Text(stringResource(R.string.settings_vocab_title), fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp))
+            SettingsHint(stringResource(R.string.settings_vocab_hint))
             if (!isPro) {
-                SettingsHint("Free plan: up to ${settings.freeVocabularyLimit} terms. Pro includes unlimited vocabulary.")
+                SettingsHint(stringResource(R.string.settings_vocab_free_hint, settings.freeVocabularyLimit))
             }
             terms.forEach { term ->
                 HorizontalDivider(color = Border)
@@ -217,7 +216,7 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                         settings.removeVocabularyTerm(term)
                         terms = settings.customVocabulary
                     }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Remove", tint = TextSecondary)
+                        Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.common_remove), tint = TextSecondary)
                     }
                 }
             }
@@ -231,7 +230,7 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                     value = newTerm,
                     onValueChange = { newTerm = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Add term", fontSize = 13.sp) },
+                    placeholder = { Text(stringResource(R.string.settings_vocab_add), fontSize = 13.sp) },
                     singleLine = true,
                     textStyle = TextStyle(fontSize = 13.sp, color = Primary),
                 )
@@ -243,15 +242,15 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                         }
                     },
                     enabled = newTerm.trim().isNotEmpty() && (isPro || terms.size < settings.freeVocabularyLimit),
-                ) { Text("Add") }
+                ) { Text(stringResource(R.string.common_add)) }
             }
         }
 
-        SettingsSection("Output") {
+        SettingsSection(stringResource(R.string.settings_section_output)) {
             SettingsMenu(
-                label = "Default output type",
-                value = output.displayName,
-                options = OutputType.entries.map { it.code to it.displayName },
+                label = stringResource(R.string.settings_output_type),
+                value = output.label(),
+                options = OutputType.entries.map { it.code to it.label() },
                 onSelect = { code ->
                     val next = OutputType.entries.find { it.code == code } ?: OutputType.Meeting
                     output = next
@@ -260,9 +259,9 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
             )
             HorizontalDivider(color = Border)
             SettingsMenu(
-                label = "Summary length",
-                value = summary.displayName,
-                options = SummaryLength.entries.map { it.code to it.displayName },
+                label = stringResource(R.string.settings_summary_length),
+                value = summary.label(),
+                options = SummaryLength.entries.map { it.code to it.label() },
                 onSelect = { code ->
                     val next = SummaryLength.fromCode(code)
                     summary = next
@@ -273,25 +272,30 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
 
         EmailSettingsSection(model)
 
-        SettingsSection("Privacy & GDPR") {
-            SettingsToggle("Keep audio files", keepAudio) {
+        SettingsSection(stringResource(R.string.settings_section_privacy)) {
+            SettingsToggle(stringResource(R.string.settings_keep_audio), keepAudio) {
                 keepAudio = it
                 settings.keepAudio = it
             }
             if (keepAudio) {
                 HorizontalDivider(color = Border)
-                SettingsToggle("Delete audio after transcription", deleteAudio) {
+                SettingsToggle(stringResource(R.string.settings_delete_after_tx), deleteAudio) {
                     deleteAudio = it
                     settings.deleteAudioAfterTranscription = it
                 }
                 if (deleteAudio) {
-                    SettingsHint("Audio is removed as soon as transcription completes.")
+                    SettingsHint(stringResource(R.string.settings_delete_after_tx_hint))
                 } else {
                     HorizontalDivider(color = Border)
                     SettingsMenu(
-                        label = "Delete audio after",
+                        label = stringResource(R.string.settings_delete_after),
                         value = retentionLabel(retentionDays),
-                        options = listOf(0 to "Never", 7 to "7 days", 30 to "30 days", 90 to "90 days").map { it.first.toString() to it.second },
+                        options = listOf(
+                            0 to stringResource(R.string.retention_never),
+                            7 to stringResource(R.string.retention_7),
+                            30 to stringResource(R.string.retention_30),
+                            90 to stringResource(R.string.retention_90),
+                        ).map { it.first.toString() to it.second },
                         onSelect = { code ->
                             val days = code.toInt()
                             retentionDays = days
@@ -300,7 +304,7 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                     )
                 }
             } else {
-                SettingsHint("Audio is removed after transcription. Retention options are unavailable.")
+                SettingsHint(stringResource(R.string.settings_audio_off_hint))
             }
             HorizontalDivider(color = Border)
             TextButton(
@@ -312,43 +316,43 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                         putExtra(Intent.EXTRA_STREAM, shareUri)
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
-                    context.startActivity(Intent.createChooser(share, "Export notes"))
+                    context.startActivity(Intent.createChooser(share, context.getString(R.string.chooser_export)))
                 },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-            ) { Text("Export all data") }
+            ) { Text(stringResource(R.string.settings_export_all)) }
             TextButton(
                 onClick = { confirmDelete = true },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 colors = ButtonDefaults.textButtonColors(contentColor = Error),
-            ) { Text("Delete all data") }
+            ) { Text(stringResource(R.string.settings_delete_all)) }
         }
 
-        SettingsSection("How to") {
-            SettingsHint("Tap the orange button, speak, then tap Stop. Paperorg transcribes and can email the note by itself.")
-            SettingsHint("Or import an MP3, WAV or M4A already on this phone. It becomes a note the same way a recording does.")
-            SettingsHint("Free is 30 minutes a month, in recordings of at most 3 minutes — a voice memo, not a meeting.")
-            SettingsHint("Pro is 10 hours a month and up to 3 hours in one recording, for meetings.")
+        SettingsSection(stringResource(R.string.settings_section_howto)) {
+            SettingsHint(stringResource(R.string.howto_record))
+            SettingsHint(stringResource(R.string.howto_import))
+            SettingsHint(stringResource(R.string.howto_free))
+            SettingsHint(stringResource(R.string.howto_pro))
         }
 
-        SettingsSection("About") {
-            SettingsValueRow("Version", BuildConfig.VERSION_NAME)
+        SettingsSection(stringResource(R.string.settings_section_about)) {
+            SettingsValueRow(stringResource(R.string.about_version), BuildConfig.VERSION_NAME)
             HorizontalDivider(color = Border)
-            Text("Transcription providers", fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp))
-            SettingsHint("Luxembourgish: LuxASR (primary) → ElevenLabs → OpenAI")
-            SettingsHint("Other languages: OpenAI (primary) → ElevenLabs")
-            Text("Lëtzebuergesch transcription", fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp))
-            SettingsHint("Powered by LuxASR, developed at the University of Luxembourg.")
+            Text(stringResource(R.string.about_providers), fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp))
+            SettingsHint(stringResource(R.string.about_lux_path))
+            SettingsHint(stringResource(R.string.about_other_path))
+            Text(stringResource(R.string.about_luxasr_title), fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp))
+            SettingsHint(stringResource(R.string.about_luxasr_credit))
             TextButton(onClick = { uri.openUri("https://luxasr.uni.lu") }, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)) {
                 Text("luxasr.uni.lu")
             }
         }
 
-        SettingsSection("Testing") {
-            SettingsToggle("Use LuxASR for Lëtzebuergesch", luxAsr) {
+        SettingsSection(stringResource(R.string.settings_section_testing)) {
+            SettingsToggle(stringResource(R.string.settings_luxasr_toggle), luxAsr) {
                 luxAsr = it
                 settings.luxAsrEnabled = it
             }
-            SettingsHint("Off sends Lëtzebuergesch to ElevenLabs instead, so the two can be compared on the same recording.")
+            SettingsHint(stringResource(R.string.settings_luxasr_hint))
             Spacer(Modifier.height(8.dp))
         }
 
@@ -358,12 +362,12 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text("Delete all data?") },
-            text = { Text("This permanently deletes all notes, audio, transcripts, and local settings on this device.") },
+            title = { Text(stringResource(R.string.settings_delete_all_title)) },
+            text = { Text(stringResource(R.string.settings_delete_all_body)) },
             confirmButton = {
-                TextButton(onClick = { model.deleteAll(); confirmDelete = false }) { Text("Delete everything") }
+                TextButton(onClick = { model.deleteAll(); confirmDelete = false }) { Text(stringResource(R.string.settings_delete_everything)) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.common_cancel)) } },
         )
     }
 }
@@ -391,13 +395,13 @@ private fun EmailSettingsSection(model: AppViewModel) {
         checkingStatus = false
     }
 
-    SettingsSection("Email") {
-        SettingsToggle("Send email after transcription", sendAfter) {
+    SettingsSection(stringResource(R.string.settings_section_email)) {
+        SettingsToggle(stringResource(R.string.email_send_after), sendAfter) {
             sendAfter = it
             settings.sendEmailAfterTranscription = it
         }
         if (sendAfter) {
-            SettingsHint("Paperorg can send your note automatically when transcription finishes. Add who should receive it below.")
+            SettingsHint(stringResource(R.string.email_send_after_hint))
             Row(
                 Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -415,10 +419,10 @@ private fun EmailSettingsSection(model: AppViewModel) {
                                 serverStatus?.fromName,
                                 serverStatus?.fromAddress?.let { "<$it>" },
                             ).joinToString(" ").ifBlank { "Paperorg" }
-                            "Sends as $from"
+                            stringResource(R.string.email_sends_as, from)
                         }
-                        checkingStatus -> "Checking server email…"
-                        else -> "Paperorg sends from the server. Add who should receive it below."
+                        checkingStatus -> stringResource(R.string.email_checking)
+                        else -> stringResource(R.string.email_server_fallback)
                     },
                     color = TextSecondary,
                     fontSize = 12.sp,
@@ -438,7 +442,7 @@ private fun EmailSettingsSection(model: AppViewModel) {
                     validation = null
                 },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Add email address", fontSize = 13.sp) },
+                placeholder = { Text(stringResource(R.string.email_add_address), fontSize = 13.sp) },
                 singleLine = true,
                 textStyle = TextStyle(fontSize = 13.sp, color = Primary),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -455,7 +459,7 @@ private fun EmailSettingsSection(model: AppViewModel) {
                     }
                 },
                 enabled = newEmail.trim().isNotEmpty(),
-            ) { Text("Add") }
+            ) { Text(stringResource(R.string.common_add)) }
         }
         validation?.let {
             Text(it, color = Error, fontSize = 12.sp, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp))
@@ -471,15 +475,15 @@ private fun EmailSettingsSection(model: AppViewModel) {
                     settings.removeEmailRecipient(email)
                     recipients = settings.emailRecipients
                 }) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Remove", tint = TextSecondary)
+                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.common_remove), tint = TextSecondary)
                 }
             }
         }
         HorizontalDivider(color = Border)
         SettingsMenu(
-            label = "Content",
-            value = content.displayName,
-            options = EmailContent.entries.map { it.code to it.displayName },
+            label = stringResource(R.string.email_content),
+            value = content.label(),
+            options = EmailContent.entries.map { it.code to it.label() },
             onSelect = { code ->
                 val next = EmailContent.fromCode(code)
                 content = next
@@ -487,30 +491,27 @@ private fun EmailSettingsSection(model: AppViewModel) {
             },
         )
         HorizontalDivider(color = Border)
-        SettingsToggle("Attach audio", attachAudio) {
+        SettingsToggle(stringResource(R.string.email_attach_audio), attachAudio) {
             attachAudio = it
             settings.emailAttachAudio = it
         }
         HorizontalDivider(color = Border)
-        SettingsToggle("Attach PDF", attachPdf) {
+        SettingsToggle(stringResource(R.string.email_attach_pdf), attachPdf) {
             attachPdf = it
             settings.emailAttachPDF = it
         }
-        if (attachPdf) {
-            SettingsHint("PDF export is not on Android yet. The other attachments still go out.")
-        }
         HorizontalDivider(color = Border)
-        SettingsToggle("Attach Markdown", attachMarkdown) {
+        SettingsToggle(stringResource(R.string.email_attach_markdown), attachMarkdown) {
             attachMarkdown = it
             settings.emailAttachMarkdown = it
         }
         HorizontalDivider(color = Border)
-        SettingsToggle("Review before send", reviewBefore) {
+        SettingsToggle(stringResource(R.string.email_review), reviewBefore) {
             reviewBefore = it
             settings.reviewBeforeEmail = it
         }
         if (reviewBefore) {
-            SettingsHint("Only applies when you tap Send email on a note. Automatic post-recording email always sends without review.")
+            SettingsHint(stringResource(R.string.email_review_hint))
         }
         HorizontalDivider(color = Border)
         Row(
@@ -522,7 +523,7 @@ private fun EmailSettingsSection(model: AppViewModel) {
                 value = testAddress,
                 onValueChange = { testAddress = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("Test address", fontSize = 13.sp) },
+                placeholder = { Text(stringResource(R.string.email_test_address), fontSize = 13.sp) },
                 singleLine = true,
                 textStyle = TextStyle(fontSize = 13.sp, color = Primary),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -540,7 +541,7 @@ private fun EmailSettingsSection(model: AppViewModel) {
                     )
                 },
                 enabled = !sendingTest && testAddress.trim().isNotEmpty(),
-            ) { Text(if (sendingTest) "Sending…" else "Send test") }
+            ) { Text(if (sendingTest) stringResource(R.string.email_sending) else stringResource(R.string.email_send_test)) }
         }
         testResult?.let {
             Text(
@@ -637,11 +638,4 @@ private fun SettingsMenu(
             }
         }
     }
-}
-
-private fun retentionLabel(days: Int): String = when (days) {
-    7 -> "7 days"
-    30 -> "30 days"
-    90 -> "90 days"
-    else -> "Never"
 }

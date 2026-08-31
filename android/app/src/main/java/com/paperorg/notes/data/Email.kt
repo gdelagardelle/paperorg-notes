@@ -5,7 +5,16 @@ import android.content.Intent
 import androidx.core.content.FileProvider
 import com.paperorg.notes.domain.EmailContent
 import com.paperorg.notes.domain.Note
+import com.paperorg.notes.domain.NoteExport
 import java.io.File
+
+object EmailAttachments {
+    fun of(audio: File?, markdown: File?, pdf: File?): List<File> = listOfNotNull(
+        audio?.takeIf { it.exists() },
+        markdown?.takeIf { it.exists() },
+        pdf?.takeIf { it.exists() },
+    )
+}
 
 data class EmailDraft(
     val recipients: List<String>,
@@ -23,7 +32,13 @@ object EmailComposer {
         htmlBody = html("Paperorg Notes test email", "This is a test email from Paperorg Notes. If you can read this, hands-free email delivery is working."),
     )
 
-    fun forNote(note: Note, settings: SecureSettings, audio: File?, cacheDir: File): EmailDraft {
+    fun forNote(
+        note: Note,
+        settings: SecureSettings,
+        audio: File?,
+        cacheDir: File,
+        pdf: File? = null,
+    ): EmailDraft {
         val transcript = note.displayTranscript
         val summary = note.displaySummaryShort
         val body = when (EmailContent.fromCode(settings.emailContent)) {
@@ -31,23 +46,21 @@ object EmailComposer {
             EmailContent.FullTranscript -> transcript
             EmailContent.Both -> "SUMMARY\n$summary\n\n---\n\nTRANSCRIPT\n$transcript"
         }
-        val attachments = mutableListOf<File>()
-        if (settings.emailAttachAudio && audio != null && audio.exists()) {
-            attachments += audio
-        }
-        if (settings.emailAttachMarkdown) {
-            val md = File(cacheDir, "${note.id}.md")
-            md.writeText(
-                "# ${note.title}\n\n## Summary\n\n$summary\n\n## Transcript\n\n$transcript\n",
-            )
-            attachments += md
+        val markdown = if (settings.emailAttachMarkdown) {
+            File(cacheDir, "${note.id}.md").also { it.writeText(NoteExport.markdown(note)) }
+        } else {
+            null
         }
         return EmailDraft(
             recipients = settings.emailRecipients,
             subject = note.title.ifBlank { "Paperorg note" },
             body = body,
             htmlBody = html(note.title, body),
-            attachments = attachments,
+            attachments = EmailAttachments.of(
+                audio = if (settings.emailAttachAudio) audio else null,
+                markdown = markdown,
+                pdf = if (settings.emailAttachPDF) pdf else null,
+            ),
         )
     }
 

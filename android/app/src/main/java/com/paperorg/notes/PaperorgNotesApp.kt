@@ -4,14 +4,20 @@ import android.app.Application
 import androidx.room.Room
 import com.paperorg.notes.data.AudioImport
 import com.paperorg.notes.data.BillingRepository
+import com.paperorg.notes.data.EmailComposer
+import com.paperorg.notes.data.EmailDraft
 import com.paperorg.notes.data.GdprExport
 import com.paperorg.notes.data.NotesApi
+import com.paperorg.notes.data.PdfNoteWriter
 import com.paperorg.notes.data.PlayIntegrityClient
 import com.paperorg.notes.data.ProcessRecording
 import com.paperorg.notes.data.RecordingController
 import com.paperorg.notes.data.SecureSettings
 import com.paperorg.notes.data.db.NotesDatabase
 import com.paperorg.notes.data.db.NotesRepository
+import com.paperorg.notes.domain.Note
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class PaperorgNotesApp : Application() {
     lateinit var settings: SecureSettings
@@ -31,6 +37,9 @@ class PaperorgNotesApp : Application() {
     lateinit var audioImport: AudioImport
         private set
 
+    /** Set by the record screen while it is alive so Stop on the notification can show progress. */
+    var recordingStopHandler: (() -> Unit)? = null
+
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -46,6 +55,26 @@ class PaperorgNotesApp : Application() {
         gdpr = GdprExport(this, recording)
         billing = BillingRepository(this) { notesApi }
         audioImport = AudioImport(this, recording)
+    }
+
+    suspend fun emailNoteIfConfigured(noteId: String) {
+        if (!settings.sendEmailAfterTranscription || settings.emailRecipients.isEmpty()) return
+        val note = notes.get(noteId) ?: return
+        if (note.displayTranscript.isBlank()) return
+        val draft = emailDraft(note) ?: return
+        withContext(Dispatchers.IO) { api.sendEmail(draft) }
+    }
+
+    fun emailDraft(note: Note): EmailDraft? {
+        if (note.displayTranscript.isBlank() && note.displaySummaryShort.isBlank()) return null
+        val audio = recording.audioFile(note.id).takeIf { it.exists() }
+        val pdf = if (settings.emailAttachPDF) {
+            runCatching { PdfNoteWriter.write(note, cacheDir) }.getOrNull()
+        } else {
+            null
+        }
+        val draft = EmailComposer.forNote(note, settings, audio, cacheDir, pdf)
+        return draft.takeIf { it.body.isNotBlank() || it.attachments.isNotEmpty() }
     }
 
     companion object {

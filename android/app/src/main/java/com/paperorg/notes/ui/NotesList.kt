@@ -53,10 +53,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.paperorg.notes.R
 import com.paperorg.notes.domain.AppLanguage
 import com.paperorg.notes.domain.DurationFormat
 import com.paperorg.notes.domain.Note
@@ -81,14 +83,14 @@ fun NotesScreen(notes: List<Note>, onOpen: (Note) -> Unit, onDelete: (Note) -> U
     }
     Column(Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         Row(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("Notes", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.tab_notes), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary, modifier = Modifier.weight(1f))
             Box {
                 IconButton(onClick = { filterMenu = true }) {
-                    Icon(Icons.Filled.FilterList, contentDescription = "Filters", tint = Primary)
+                    Icon(Icons.Filled.FilterList, contentDescription = stringResource(R.string.common_filters), tint = Primary)
                 }
                 DropdownMenu(expanded = filterMenu, onDismissRequest = { filterMenu = false }) {
                     DropdownMenuItem(
-                        text = { Text(if (favoritesOnly) "All notes" else "Favorites only") },
+                        text = { Text(if (favoritesOnly) stringResource(R.string.notes_all) else stringResource(R.string.notes_favorites_only)) },
                         onClick = {
                             favoritesOnly = !favoritesOnly
                             filterMenu = false
@@ -96,7 +98,7 @@ fun NotesScreen(notes: List<Note>, onOpen: (Note) -> Unit, onDelete: (Note) -> U
                     )
                     HorizontalDivider()
                     DropdownMenuItem(
-                        text = { Text("All languages") },
+                        text = { Text(stringResource(R.string.notes_all_languages)) },
                         onClick = {
                             filterLanguage = null
                             filterMenu = false
@@ -116,10 +118,10 @@ fun NotesScreen(notes: List<Note>, onOpen: (Note) -> Unit, onDelete: (Note) -> U
         }
         val filtersActive = favoritesOnly || filterLanguage != null
         if (filtersActive) {
-            Text("FILTERS", color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
+            Text(stringResource(R.string.common_filters).uppercase(), color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
             Row(Modifier.horizontalScroll(rememberScrollState()).padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (favoritesOnly) {
-                    SelectionChip(title = "Favorites", selected = true, enabled = true) { favoritesOnly = false }
+                    SelectionChip(title = stringResource(R.string.notes_favorites), selected = true, enabled = true) { favoritesOnly = false }
                 }
                 filterLanguage?.let { language ->
                     SelectionChip(
@@ -152,8 +154,8 @@ private fun EmptyLibrary() {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(Icons.Filled.Description, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(40.dp))
-        Text("No notes yet", fontWeight = FontWeight.SemiBold, color = Primary)
-        Text("Record something from the Record tab to build your library.", color = TextSecondary, fontSize = 14.sp)
+        Text(stringResource(R.string.record_empty_title), fontWeight = FontWeight.SemiBold, color = Primary)
+        Text(stringResource(R.string.notes_empty_subtitle), color = TextSecondary, fontSize = 14.sp)
     }
 }
 
@@ -169,8 +171,8 @@ private fun NoMatchCard() {
         Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(Icons.Filled.FilterList, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(36.dp))
             Spacer(Modifier.height(8.dp))
-            Text("No matching notes", fontWeight = FontWeight.SemiBold, color = Primary)
-            Text("Try clearing a filter or recording something new.", color = TextSecondary, fontSize = 14.sp)
+            Text(stringResource(R.string.notes_no_match_title), fontWeight = FontWeight.SemiBold, color = Primary)
+            Text(stringResource(R.string.notes_no_match_subtitle), color = TextSecondary, fontSize = 14.sp)
         }
     }
 }
@@ -196,7 +198,7 @@ private fun SwipeDeleteNote(onDelete: () -> Unit, content: @Composable () -> Uni
                 Modifier.fillMaxSize().clip(RoundedCornerShape(20.dp)).background(com.paperorg.notes.ui.theme.Error),
                 contentAlignment = Alignment.CenterEnd,
             ) {
-                Icon(Icons.Filled.Delete, contentDescription = "Delete", tint = Color.White, modifier = Modifier.padding(end = 20.dp))
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.common_delete), tint = Color.White, modifier = Modifier.padding(end = 20.dp))
             }
         },
         content = { content() },
@@ -213,7 +215,7 @@ fun NoteCard(note: Note, onOpen: () -> Unit, compact: Boolean = false) {
         else -> Border
     }
     val language = AppLanguage.fromCode(note.language)
-    val output = OutputType.entries.find { it.code == note.outputType }?.displayName
+    val output = OutputType.entries.find { it.code == note.outputType }
     Card(
         colors = CardDefaults.cardColors(containerColor = Surface),
         modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
@@ -246,7 +248,7 @@ fun NoteCard(note: Note, onOpen: () -> Unit, compact: Boolean = false) {
                     fontSize = 12.sp,
                 )
                 if (compact && output != null) {
-                    Text(output, color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text(output.label(), color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 } else {
                     note.previewSnippet.takeIf { it.isNotBlank() }?.let {
                         Text(it, color = TextSecondary, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -266,13 +268,7 @@ private fun NoteStatusBadge(status: String, compact: Boolean) {
         "waitingfornetwork", "waiting_for_network" -> Color(0xFFE0A106)
         else -> TextSecondary
     }
-    val label = when (status) {
-        "ready" -> "Ready"
-        "processing" -> "Processing"
-        "failed" -> "Failed"
-        "waitingfornetwork", "waiting_for_network" -> "Waiting"
-        else -> "Draft"
-    }
+    val label = stringResource(noteStatusString(status))
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
