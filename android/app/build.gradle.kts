@@ -18,6 +18,18 @@ val notesApiUrl = localProperties.getProperty(
 )
 val playCloudProjectNumber = localProperties.getProperty("playCloudProjectNumber", "357171624667")
 
+val uploadKeystore = file(
+    localProperties.getProperty(
+        "uploadKeystore",
+        "${System.getProperty("user.home")}/.android-keystores/paperorg-notes-upload.p12",
+    ),
+)
+val uploadKeystoreAlias = localProperties.getProperty("uploadKeystoreAlias", "paperorg-upload")
+val uploadKeystorePassword: String? = System.getenv("PAPERORG_UPLOAD_STORE_PASSWORD")
+// The password is only present when Gradle is launched through secret_run.py, so
+// every other build has to keep working without it rather than failing to configure.
+val canSignRelease = uploadKeystore.exists() && !uploadKeystorePassword.isNullOrBlank()
+
 android {
     namespace = "com.paperorg.notes"
     compileSdk = 36
@@ -33,8 +45,22 @@ android {
         buildConfigField("long", "PLAY_CLOUD_PROJECT_NUMBER", "${playCloudProjectNumber}L")
     }
 
+    signingConfigs {
+        if (canSignRelease) {
+            create("upload") {
+                storeFile = uploadKeystore
+                storePassword = uploadKeystorePassword
+                keyAlias = uploadKeystoreAlias
+                keyPassword = uploadKeystorePassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (canSignRelease) {
+                signingConfig = signingConfigs.getByName("upload")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -86,6 +112,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("com.google.android.play:integrity:1.4.0")
+    implementation("com.android.billingclient:billing:9.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
     testImplementation("junit:junit:4.13.2")

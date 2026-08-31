@@ -2,6 +2,7 @@ package com.paperorg.notes
 
 import android.app.Application
 import androidx.room.Room
+import com.paperorg.notes.data.BillingRepository
 import com.paperorg.notes.data.GdprExport
 import com.paperorg.notes.data.NotesApi
 import com.paperorg.notes.data.PlayIntegrityClient
@@ -24,6 +25,8 @@ class PaperorgNotesApp : Application() {
         private set
     lateinit var gdpr: GdprExport
         private set
+    lateinit var billing: BillingRepository
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -38,6 +41,7 @@ class PaperorgNotesApp : Application() {
         api = notesApi
         processRecording = ProcessRecording(api, notes, settings, recording)
         gdpr = GdprExport(this, recording)
+        billing = BillingRepository(this) { notesApi }
     }
 
     companion object {

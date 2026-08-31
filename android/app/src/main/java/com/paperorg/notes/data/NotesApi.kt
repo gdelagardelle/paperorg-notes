@@ -162,6 +162,19 @@ class NotesApi(
         execute(requestBuilder.build())
     }
 
+    fun verifyPlayPurchase(purchaseToken: String, productId: String): UsageInfo {
+        registerIfNeeded()
+        val body = JSONObject()
+            .put("purchase_token", purchaseToken)
+            .put("product_id", productId)
+            .toString()
+        val request = authorized("$baseUrl/v1/subscription/verify-play")
+            .post(body.toRequestBody(JSON))
+            .header("Content-Type", "application/json")
+            .build()
+        return UsageParser.parse(execute(request).toString())
+    }
+
     fun requestIntegrityNonce(requestHash: String): Pair<String, String> {
         registerIfNeeded()
         val body = JSONObject().put("request_hash", requestHash).toString()

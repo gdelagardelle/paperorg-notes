@@ -59,7 +59,8 @@ number is set. The API only requires `MEETS_DEVICE_INTEGRITY`, so a real
 Samsung with Play services can pass before the listing exists. It does not
 require `PLAY_RECOGNIZED` until the app is on the store.
 
-Play Billing for Pro is v2.
+Pro is sold through Google Play Billing; see `PLAY_BILLING_SETUP.md` for the
+Play Console side, which has to exist before a purchase can be tested.
 
 ## What v1 includes
 

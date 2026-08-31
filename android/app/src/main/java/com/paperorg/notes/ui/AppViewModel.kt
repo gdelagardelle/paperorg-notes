@@ -1,10 +1,12 @@
 package com.paperorg.notes.ui
 
+import android.app.Activity
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperorg.notes.PaperorgNotesApp
 import com.paperorg.notes.data.EmailComposer
+import com.paperorg.notes.data.ProPlan
 import com.paperorg.notes.data.UserFacingError
 import com.paperorg.notes.domain.EmailAddresses
 import com.paperorg.notes.domain.EmailServerStatus
@@ -58,6 +60,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _playingNoteId = MutableStateFlow<String?>(null)
     val playingNoteId: StateFlow<String?> = _playingNoteId.asStateFlow()
 
+    private val _plans = MutableStateFlow<List<ProPlan>>(emptyList())
+    val plans: StateFlow<List<ProPlan>> = _plans.asStateFlow()
+
+    private val _billingMessage = MutableStateFlow<String?>(null)
+    val billingMessage: StateFlow<String?> = _billingMessage.asStateFlow()
+
     val settings get() = app.settings
     val gdpr get() = app.gdpr
     val recording get() = app.recording
@@ -68,6 +76,41 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val language = AppLanguage.fromCode(app.settings.defaultLanguage)
         val output = OutputType.entries.find { it.code == app.settings.defaultOutputType } ?: OutputType.Meeting
         _record.update { it.copy(language = language, outputType = output) }
+        viewModelScope.launch {
+            runCatching { app.api.usage() }.onSuccess { usage ->
+                _record.update { it.copy(usage = usage) }
+            }
+        }
+        app.billing.onEntitlementChanged = { refreshUsage() }
+        app.billing.onMessage = { message -> _billingMessage.value = message }
+        viewModelScope.launch {
+            // Restores Pro after a reinstall or on a new phone, where Play
+            // still knows about the subscription and this install does not.
+            app.billing.syncPurchases()
+            _plans.value = app.billing.plans()
+        }
+    }
+
+    fun buyPro(activity: Activity, plan: ProPlan) {
+        app.billing.purchase(activity, plan)
+    }
+
+    fun restorePurchases() {
+        viewModelScope.launch {
+            val restored = app.billing.syncPurchases()
+            _billingMessage.value = if (restored) {
+                "Paperorg Pro restored."
+            } else {
+                "No Paperorg Pro subscription on this Google account."
+            }
+        }
+    }
+
+    fun dismissBillingMessage() {
+        _billingMessage.value = null
+    }
+
+    private fun refreshUsage() {
         viewModelScope.launch {
             runCatching { app.api.usage() }.onSuccess { usage ->
                 _record.update { it.copy(usage = usage) }

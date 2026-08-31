@@ -1,5 +1,6 @@
 package com.paperorg.notes.ui
 
+import android.app.Activity
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +59,7 @@ import com.paperorg.notes.BuildConfig
 import com.paperorg.notes.domain.AppLanguage
 import com.paperorg.notes.domain.EmailContent
 import com.paperorg.notes.domain.EmailServerStatus
+import com.paperorg.notes.data.BillingRepository
 import com.paperorg.notes.domain.Note
 import com.paperorg.notes.domain.OutputType
 import com.paperorg.notes.domain.SummaryLength
@@ -72,8 +75,11 @@ import com.paperorg.notes.ui.theme.TextSecondary
 @Composable
 fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
     val context = LocalContext.current
+    val activity = context as? Activity
     val uri = LocalUriHandler.current
     val settings = model.settings
+    val plans by model.plans.collectAsState()
+    val billingMessage by model.billingMessage.collectAsState()
     var confirmDelete by remember { mutableStateOf(false) }
     var keepAudio by remember { mutableStateOf(settings.keepAudio) }
     var deleteAudio by remember { mutableStateOf(settings.deleteAudioAfterTranscription) }
@@ -112,6 +118,49 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                     color = TextSecondary,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                )
+            }
+            if (isPro) {
+                HorizontalDivider(color = Border)
+                TextButton(
+                    onClick = { uri.openUri(BillingRepository.manageSubscriptionsUrl(context.packageName)) },
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) { Text("Manage subscription in Google Play") }
+            } else {
+                plans.forEach { plan ->
+                    HorizontalDivider(color = Border)
+                    Row(
+                        Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Pro, billed per ${plan.period}", color = Primary, fontSize = 13.sp)
+                            Text("${plan.price} / ${plan.period}", color = TextSecondary, fontSize = 12.sp)
+                        }
+                        TextButton(
+                            onClick = { activity?.let { model.buyPro(it, plan) } },
+                            enabled = activity != null,
+                        ) { Text("Subscribe") }
+                    }
+                }
+                if (plans.isEmpty()) {
+                    SettingsHint(
+                        "Paperorg Pro is not offered by Google Play on this device yet. " +
+                            "It appears once the app is installed from Play with the subscription live.",
+                    )
+                }
+                HorizontalDivider(color = Border)
+                TextButton(
+                    onClick = { model.restorePurchases() },
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                ) { Text("Restore purchase") }
+            }
+            billingMessage?.let { message ->
+                Text(
+                    message,
+                    color = if (message.contains("active") || message.contains("restored")) Accent else TextSecondary,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
                 )
             }
             val connected = settings.accessToken != null
