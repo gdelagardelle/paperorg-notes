@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Privacy Policy — Paperorg Notes</title>
+  <title>Privacy notice — Paperorg Notes</title>
   <style>
     :root {
       --teal: #1a6b6b;
@@ -28,177 +28,129 @@
       border-radius: 16px;
       box-shadow: 0 4px 24px rgba(0,0,0,.06);
     }
-    h1 { color: var(--teal); font-size: 1.75rem; margin-top: 0; }
-    h2 { color: var(--teal); font-size: 1.15rem; margin-top: 2rem; }
+    h1 { color: var(--teal); font-size: 2.25rem; margin-top: 0; line-height: 1.2; }
+    h2 { color: var(--teal); font-size: 1.2rem; margin-top: 2rem; }
     p, li { color: var(--text); }
     .muted { color: var(--muted); font-size: 0.9rem; }
     a { color: var(--teal); }
     ul { padding-left: 1.25rem; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 1rem 0; }
-    th, td { border: 1px solid #e8e4df; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
-    th { background: var(--paper); }
+    code { font-size: 0.95em; }
+    .box {
+      background: var(--paper);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      margin: 1.25rem 0;
+    }
   </style>
 </head>
 <body>
   <main>
-    <h1>Privacy Policy</h1>
-    <p class="muted"><strong>Paperorg Notes</strong> · Last updated: 22 August 2026</p>
+    <p class="muted">Data protection</p>
+    <h1>Privacy notice</h1>
+    <p class="muted">Last updated: 31 August 2026</p>
 
+    <div class="box">
+      <p>
+        <strong>In short:</strong> recordings and notes live on your iPhone. They leave it
+        only when you ask for a transcript or a summary, and then only to be turned into
+        text and sent straight back. There are no ads, no trackers and no analytics.
+      </p>
+    </div>
+
+    <h2>1. Who is responsible</h2>
     <p>
-      Paperorg Notes (&ldquo;the App&rdquo;) is a voice recording and transcription app for iOS,
-      operated by Germain Delagardelle (&ldquo;we&rdquo;, &ldquo;us&rdquo;). This policy explains what data
-      the App processes, where it is stored, and what choices you have. We designed the App
-      with privacy and GDPR compliance in mind.
+      Luxxow S.à r.l.-S, 12 rue Treeschheck, L-3321 Berchem, Luxembourg (R.C.S. Luxembourg
+      B311306), is the controller for this app within the meaning of the General Data
+      Protection Regulation (EU) 2016/679 (GDPR). Contact:
+      <a href="mailto:hello@luxxow.com">hello@luxxow.com</a>.
     </p>
 
-    <h2>1. Summary</h2>
-    <ul>
-      <li>Audio and transcripts are stored <strong>on your device</strong> by default.</li>
-      <li><strong>Free plan:</strong> includes 30 minutes of cloud transcription and AI summaries per month, without API keys or sign-in. Audio is processed through the Paperorg backend and its selected AI processors.</li>
-      <li><strong>Paperorg Pro:</strong> transcription is processed via our secure backend; audio is sent to our server and then to AI processors — you do not need to supply API keys.</li>
-      <li>For cloud processing, we store a random device identifier and monthly usage minutes to enforce the applicable plan limit. Pro subscriptions are managed through Apple.</li>
-      <li>We do <strong>not</strong> sell your data or use it for advertising.</li>
-      <li>We do <strong>not</strong> use your content to train AI models unless a provider&apos;s terms state otherwise and you have consented.</li>
-    </ul>
-
-    <h2>2. Data We Process</h2>
-    <table>
-      <thead>
-        <tr><th>Data</th><th>Purpose</th><th>Storage</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Audio recordings</td>
-          <td>Capture voice notes and meetings</td>
-          <td>On your iPhone (local filesystem)</td>
-        </tr>
-        <tr>
-          <td>Transcripts &amp; summaries</td>
-          <td>Display and search your notes</td>
-          <td>On your iPhone (SwiftData)</td>
-        </tr>
-        <tr>
-          <td>Credentials and device identifiers</td>
-          <td>Authenticate cloud processing, verify the app, and send email if you configure your own mail server</td>
-          <td>iOS Keychain on your device</td>
-        </tr>
-        <tr>
-          <td>App settings</td>
-          <td>Language, email preferences, privacy choices</td>
-          <td>On your iPhone (UserDefaults)</td>
-        </tr>
-        <tr>
-          <td>Cloud-processing identifier and usage</td>
-          <td>Enforce Free and Pro monthly transcription limits; verify Pro subscriptions</td>
-          <td>Paperorg backend (random device ID, usage minutes, subscription expiry where applicable)</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h2>3. Cloud Processing and Paperorg Pro</h2>
+    <h2>2. What stays on your iPhone</h2>
     <p>
-      The included Free allowance (30 minutes per month) and <strong>Paperorg Pro</strong> use cloud processing.
-      Audio for transcription and text for summarisation are sent to our backend over HTTPS. Our server holds
-      the provider credentials and forwards the necessary request to enabled AI processors, such as OpenAI,
-      ElevenLabs, or LuxASR, on your behalf. We record the transcription minutes used per month to enforce
-      the plan limit. Pro currently includes 600 minutes per month.
+      Your recordings, transcripts, summaries and any notes you write are stored on the
+      device. Deleting a note deletes its audio with it, and deleting the app removes the
+      lot.
     </p>
-    <ul>
-      <li>The Free allowance is associated with a random <strong>device identifier</strong> generated on your iPhone; it is not an account and does not transfer between devices.</li>
-      <li>For Pro, we receive subscription events from Apple (purchase, renewal, cancellation).</li>
-      <li>The application does not create database records for audio, transcripts, or summaries; the originals remain on your device. AI processors may handle submitted content under their own terms.</li>
-      <li>Pro audio retention (90 days on device) is configurable in the App.</li>
-    </ul>
-
-    <h2>4. Third-Party Transcription Services</h2>
     <p>
-      When you use included Free minutes or <strong>Paperorg Pro</strong>, you consent through the App&apos;s privacy
-      screen to the cloud processing described in section 3. The App sends the required audio and/or transcript
-      to Paperorg and the enabled AI processor to carry out your request.
-    </p>
-    <table>
-      <thead>
-        <tr><th>Provider</th><th>Data sent</th><th>Location</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><a href="https://openai.com/policies/privacy-policy" rel="noopener">OpenAI</a></td>
-          <td>Audio; transcript text for summarisation</td>
-          <td>United States</td>
-        </tr>
-        <tr>
-          <td><a href="https://elevenlabs.io/privacy-policy" rel="noopener">ElevenLabs</a></td>
-          <td>Audio for transcription</td>
-          <td>United States</td>
-        </tr>
-        <tr>
-          <td><a href="https://luxasr.uni.lu/" rel="noopener">LuxASR</a> (University of Luxembourg)</td>
-          <td>Audio for transcription</td>
-          <td>Luxembourg / EU</td>
-        </tr>
-        <tr>
-          <td>Apple Speech (optional, English)</td>
-          <td>On-device processing; audio does not leave your device</td>
-          <td>On-device</td>
-        </tr>
-      </tbody>
-    </table>
-    <p>
-      Each provider&apos;s own privacy policy and data retention terms apply when you use their service.
-      Review those policies before enabling a provider.
+      The microphone is used only while you are recording, and only after iOS has asked your
+      permission.
     </p>
 
-    <h2>5. Legal Basis (GDPR)</h2>
-    <p>For users in the European Economic Area and Luxembourg:</p>
+    <h2>3. What happens when you transcribe</h2>
+    <p>
+      Transcription and summarising do not run on the device. When you ask for either, the
+      recording is sent to our own service at <code>notes-api.paperorg.com</code>, which
+      passes it to the provider that does the work and returns the text to your iPhone.
+    </p>
+    <p>The providers we use for that are:</p>
     <ul>
-      <li><strong>Consent</strong> — cloud processing of the audio and text required for a transcription or summary request, after you accept this policy; separate consent applies when you enable a personal provider key.</li>
-      <li><strong>Contract / legitimate use</strong> — local recording, storage, and features you request on your device.</li>
-    </ul>
-
-    <h2>6. Your Rights</h2>
-    <p>You can exercise the following rights directly in the App (Settings → Privacy &amp; GDPR):</p>
-    <ul>
-      <li><strong>Access</strong> — export all notes, transcripts, and audio (GDPR export).</li>
-      <li><strong>Erasure</strong> &mdash; delete all data, including audio, transcripts, stored credentials, and any provider API keys saved by earlier versions of the App.</li>
-      <li><strong>Rectification</strong> — edit transcripts; corrected text is stored separately from the original.</li>
-      <li><strong>Portability</strong> — export as JSON, plain text, Markdown, or PDF.</li>
-      <li><strong>Object / restrict</strong> &mdash; decline cloud processing; use on-device transcription where available.</li>
+      <li><strong>LuxASR</strong>, operated by the University of Luxembourg, for Luxembourgish speech.</li>
+      <li><strong>OpenAI</strong>, for speech in other languages and for summaries and action items.</li>
+      <li><strong>ElevenLabs</strong>, for speech processing.</li>
     </ul>
     <p>
-      You may also contact us at
-      <a href="mailto:germain@delagardelle.lu">germain@delagardelle.lu</a>
-      to exercise your rights or ask questions about this policy.
+      They act as processors on our instructions. OpenAI and ElevenLabs are established
+      outside the European Economic Area, so a transcript made through them involves a
+      transfer out of the EEA. LuxASR is in Luxembourg.
+    </p>
+    <ul>
+      <li>Legal basis: performance of a contract (GDPR art. 6(1)(b)) — it is the feature you asked for.</li>
+      <li>
+        Nothing is sent while you only record and play back locally. The transfer happens at
+        the moment you ask for a transcript or a summary.
+      </li>
+    </ul>
+
+    <h2>4. Your account and Pro</h2>
+    <p>
+      The free tier includes a monthly allowance of cloud minutes. Paperorg Pro raises it.
+      Accounts and entitlements are handled by Paperorg Platform, and a purchase is made
+      through Apple, not by us: we are told that a subscription is valid, not how you paid
+      for it. We never see your card.
     </p>
 
-    <h2>7. Data Retention</h2>
-    <ul>
-      <li>Data remains on your device until you delete it or uninstall the App.</li>
-      <li>You may enable &ldquo;Delete audio after transcription&rdquo; or automatic deletion after a set number of days.</li>
-      <li>Third-party AI processors may retain submitted data according to their own policies and applicable service terms.</li>
-    </ul>
-
-    <h2>8. Security</h2>
-    <ul>
-      <li>Provider credentials are held by the Paperorg backend and never enter the App. Credentials the App does hold, such as your Pro access token, are stored in the iOS Keychain.</li>
-      <li>Audio files use iOS Data Protection.</li>
-      <li>All network communication with transcription providers uses HTTPS (TLS).</li>
-      <li>Optional Face ID lock protects access to the App.</li>
-    </ul>
-
-    <h2>9. Children</h2>
-    <p>The App is not directed at children under 16. We do not knowingly collect data from children.</p>
-
-    <h2>10. Changes</h2>
+    <h2>5. Checking the app is genuine</h2>
     <p>
-      We may update this policy from time to time. The &ldquo;Last updated&rdquo; date at the top will change.
-      Continued use of the App after changes constitutes acceptance of the updated policy.
+      Before the service will transcribe anything, it checks that the request came from a
+      real, unmodified copy of the app, using Apple&apos;s App Attest. That check identifies
+      the app, not you, and it exists so that the transcription allowance cannot be drained
+      by something pretending to be Paperorg Notes.
     </p>
 
-    <h2>11. Contact</h2>
+    <h2>6. What we do not do</h2>
     <p>
-      <strong>Data controller:</strong> Germain Delagardelle<br>
-      <strong>Email:</strong> <a href="mailto:germain@delagardelle.lu">germain@delagardelle.lu</a><br>
-      <strong>App:</strong> Paperorg Notes (com.paperorg.notes)
+      There is no advertising, no analytics, no crash-reporting SDK and no third-party
+      tracking in this app. We do not sell, rent or trade personal data, and we do not use
+      your recordings to train anything.
+    </p>
+
+    <h2>7. Your rights</h2>
+    <p>
+      Under the GDPR you may ask us for access to your personal data, its rectification or
+      erasure, restriction of processing, portability, and you may object to processing based
+      on legitimate interest. Write to
+      <a href="mailto:hello@luxxow.com">hello@luxxow.com</a>
+      and we will answer within one month.
+    </p>
+    <p>
+      If you believe we have handled your data badly you may lodge a complaint with the
+      Luxembourg supervisory authority: Commission nationale pour la protection des données
+      (CNPD), 15 boulevard du Jazz, L-4370 Belvaux —
+      <a href="https://cnpd.public.lu" target="_blank" rel="noopener noreferrer">cnpd.public.lu</a>.
+    </p>
+
+    <h2>8. Children</h2>
+    <p>
+      Paperorg Notes is not directed at children and is not intended for use by anyone under
+      16.
+    </p>
+
+    <h2>9. Changes</h2>
+    <p>If this notice changes, the date at the top of this page changes with it.</p>
+
+    <p class="muted">
+      Luxxow S.à r.l.-S · 12 rue Treeschheck · L-3321 Berchem · Luxembourg<br>
+      <a href="mailto:hello@luxxow.com">hello@luxxow.com</a>
     </p>
   </main>
 </body>
