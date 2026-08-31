@@ -173,7 +173,7 @@ final class ProBackendClient {
         try await attachAppAttestationIfNeeded(&request, audioPayload: audioData)
 
         let (data, response) = try await session.data(for: request)
-        try validate(response: response, data: data)
+        try validate(response: response, data: data, treats413AsAudioTooLong: true)
         _ = try? await refreshUsage()
         return data
     }
@@ -217,7 +217,7 @@ final class ProBackendClient {
         try await attachAppAttestationIfNeeded(&request, audioPayload: audioData)
 
         let (data, response) = try await session.data(for: request)
-        try validate(response: response, data: data)
+        try validate(response: response, data: data, treats413AsAudioTooLong: true)
         _ = try? await refreshUsage()
         return data
     }
@@ -259,7 +259,7 @@ final class ProBackendClient {
         try await attachAppAttestationIfNeeded(&request, audioPayload: audioData)
 
         let (data, response) = try await session.data(for: request)
-        try validate(response: response, data: data)
+        try validate(response: response, data: data, treats413AsAudioTooLong: true)
         _ = try? await refreshUsage()
         return data
     }
@@ -415,7 +415,11 @@ final class ProBackendClient {
 
     }
 
-    private func validate(response: URLResponse, data: Data) throws {
+    private func validate(
+        response: URLResponse,
+        data: Data,
+        treats413AsAudioTooLong: Bool = false
+    ) throws {
         guard let http = response as? HTTPURLResponse else {
             throw ProBackendError.serverError("Invalid server response.")
         }
@@ -424,22 +428,15 @@ final class ProBackendClient {
             let message = (try? JSONDecoder().decode(ErrorResponse.self, from: data))?.detail
                 ?? String(data: data, encoding: .utf8)
                 ?? "HTTP \(http.statusCode)"
-            switch http.statusCode {
-            case 401:
+            if http.statusCode == 401 {
                 keychain.delete(for: .proAccessToken)
                 settings.subscriptionTokenBackendURL = nil
-                throw ProBackendError.notAuthenticated
-            case 402:
-                throw ProBackendError.subscriptionRequired
-            case 403:
-                throw ProBackendError.deviceIntegrityVerificationFailed
-            case 413:
-                throw ProBackendError.audioTooLong
-            case 429:
-                throw ProBackendError.usageLimitReached
-            default:
-                throw ProBackendError.serverError(message)
             }
+            throw ProBackendHTTPMapping.error(
+                statusCode: http.statusCode,
+                message: message,
+                treats413AsAudioTooLong: treats413AsAudioTooLong
+            )
         }
     }
 }

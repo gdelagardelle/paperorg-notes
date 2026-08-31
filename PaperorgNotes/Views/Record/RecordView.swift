@@ -54,6 +54,7 @@ struct RecordView: View {
                         error: processingError,
                         language: selectedLanguage
                     )
+                    .interactiveDismissDisabled(true)
                 }
                 .alert(L10n.Record.failedTitle, isPresented: processingErrorAlert) {
                     Button(L10n.Common.ok, role: .cancel) {}
@@ -153,8 +154,10 @@ struct RecordView: View {
                 scheduleQuickRecordIfNeeded()
             }
         }
-        .onChange(of: environment.recordingService.duration) { _, seconds in
-            stopIfOverRecordingCap(seconds)
+        .onChange(of: environment.recordingService.didReachRecordingCap) { _, reached in
+            if reached {
+                stopRecording()
+            }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
@@ -345,18 +348,12 @@ struct RecordView: View {
     }
     
     private var importHintText: String {
-        if let minutes = environment.settingsService.cachedProUsage?.maxRecordingMinutes,
-           minutes > 0 {
-            return L10n.Import.hintLimited(minutes)
-        }
-        return L10n.Import.hint
-    }
-
-    private func stopIfOverRecordingCap(_ seconds: TimeInterval) {
-        guard isRecordingSession, !showProcessing else { return }
-        let cap = environment.settingsService.cachedProUsage?.maxRecordingMinutes ?? 0
-        guard cap > 0, seconds >= Double(cap) * 60 else { return }
-        stopRecording()
+        L10n.Import.hintLimited(
+            RecordingLengthPolicy.capMinutes(
+                from: environment.settingsService.cachedProUsage,
+                isPro: environment.subscriptionService.isProActive
+            )
+        )
     }
 
     private func toggleRecording() {
@@ -392,7 +389,13 @@ struct RecordView: View {
     private func performStartRecording() async throws {
         let noteId = UUID()
 
-        try await environment.recordingService.start(noteId: noteId)
+        try await environment.recordingService.start(
+            noteId: noteId,
+            maxRecordingMinutes: RecordingLengthPolicy.capMinutes(
+                from: environment.settingsService.cachedProUsage,
+                isPro: environment.subscriptionService.isProActive
+            )
+        )
         let note = Note(
             id: noteId,
             audioFileName: "\(noteId.uuidString).m4a",
@@ -432,7 +435,7 @@ struct RecordView: View {
         case .success(let source):
             importAudio(from: source)
         case .failure(let error):
-            processingError = error.localizedDescription
+            processingError = ImportPickerResult.userFacingError(from: error)
         }
     }
 
@@ -454,8 +457,10 @@ struct RecordView: View {
                         from: source,
                         noteId: noteId,
                         storage: environment.storageService,
-                        maximumMinutes: environment.settingsService
-                            .cachedProUsage?.maxRecordingMinutes ?? 0
+                        maximumMinutes: RecordingLengthPolicy.capMinutes(
+                            from: environment.settingsService.cachedProUsage,
+                            isPro: environment.subscriptionService.isProActive
+                        )
                     )
 
                     let note = Note(
@@ -587,11 +592,11 @@ struct RecordView: View {
             Text(L10n.Included.remaining(Int(usage.minutesRemaining.rounded(.down))))
                 .font(.caption)
                 .foregroundStyle(AppTheme.textSecondary)
-            if let cap = usage.maxRecordingMinutes, cap > 0 {
-                Text(L10n.Included.perRecording(cap))
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.textSecondary)
-            }
+            Text(L10n.Included.perRecording(
+                RecordingLengthPolicy.capMinutes(from: usage, isPro: usage.isPro)
+            ))
+                .font(.caption)
+                .foregroundStyle(AppTheme.textSecondary)
             if usage.minutesUsed >= 20 {
                 Button(L10n.Included.upgrade) { showPaywall = true }
                     .buttonStyle(SecondaryButtonStyle())

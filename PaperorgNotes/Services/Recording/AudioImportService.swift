@@ -22,6 +22,17 @@ enum AudioImportError: LocalizedError, Equatable {
     }
 }
 
+enum ImportPickerResult {
+    static func userFacingError(from error: Error) -> String? {
+        if error is CancellationError { return nil }
+        let nsError = error as NSError
+        if nsError.domain == NSCocoaErrorDomain, nsError.code == NSUserCancelledError {
+            return nil
+        }
+        return error.localizedDescription
+    }
+}
+
 /// Brings an existing audio file into a note's own storage slot.
 ///
 /// Everything downstream — playback, the email attachment, the GDPR export —
