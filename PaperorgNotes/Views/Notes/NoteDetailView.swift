@@ -149,6 +149,7 @@ struct NoteDetailView: View {
                 error: processingError,
                 language: selectedLanguage
             )
+            .interactiveDismissDisabled(true)
         }
         .sheet(isPresented: $showExportShare) {
             ActivityShareSheet(items: exportURLs)

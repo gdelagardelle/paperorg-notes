@@ -195,3 +195,19 @@ Stored in `consentedProviders: [String]`.
 | OpenAI summary | ~$0.01-0.03 |
 
 App should show estimated cost in Settings (informational).
+
+---
+
+## 9. Recording length
+
+Duration is read on the server from the uploaded bytes, never from a client
+field. A single upload is capped independently of the monthly ledger:
+
+| Plan | Monthly | One recording |
+|---|---|---|
+| Free | 30 minutes | 3 minutes |
+| Pro | 600 minutes | 180 minutes |
+
+Accepted containers: M4A/MP4, MP3, WAV. See `docs/HOW_TO.md` for the user-facing
+version of the same numbers.
+

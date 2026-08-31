@@ -9,6 +9,26 @@ enum RecordingState: Sendable, Equatable {
     case paused
 }
 
+enum RecordingLengthPolicy {
+    static let freeMinutes = 3
+    static let proMinutes = 180
+
+    static func shouldStop(duration: TimeInterval, maxMinutes: Int) -> Bool {
+        guard maxMinutes > 0 else { return false }
+        return duration >= Double(maxMinutes) * 60
+    }
+
+    /// Release talks to Platform for usage, which may omit the cap field.
+    /// Without a client default, a Free session would record until the server
+    /// 413s after upload.
+    static func capMinutes(from usage: ProUsageInfo?, isPro: Bool) -> Int {
+        if let minutes = usage?.maxRecordingMinutes, minutes > 0 {
+            return minutes
+        }
+        return isPro ? proMinutes : freeMinutes
+    }
+}
+
 @Observable
 @MainActor
 final class RecordingService: NSObject {
@@ -28,6 +48,8 @@ final class RecordingService: NSObject {
     private var recorderHasFinished = false
     private var stopFinishContinuation: CheckedContinuation<Void, Never>?
     private var pendingAudioSessionDeactivation: Task<Void, Never>?
+    private var maxRecordingMinutes = 0
+    private(set) var didReachRecordingCap = false
 
     private static let recorderSettings: [String: Any] = [
         AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
@@ -50,8 +72,10 @@ final class RecordingService: NSObject {
         }
     }
 
-    func start(noteId: UUID) async throws {
+    func start(noteId: UUID, maxRecordingMinutes: Int = 0) async throws {
         guard state == .idle else { throw RecordingError.alreadyRecording }
+        self.maxRecordingMinutes = maxRecordingMinutes
+        didReachRecordingCap = false
 
         let granted = await requestPermission()
         guard granted else { throw RecordingError.permissionDenied }
@@ -260,6 +284,8 @@ final class RecordingService: NSObject {
         tempURL = nil
         lowLevelStart = nil
         recorderHasFinished = false
+        didReachRecordingCap = false
+        maxRecordingMinutes = 0
     }
 
     private func configureAudioSession() throws {
@@ -318,6 +344,17 @@ final class RecordingService: NSObject {
         if Int(duration * 10) % 50 == 0 {
             persistCheckpoint()
         }
+
+        stopIfOverRecordingCap()
+    }
+
+    private func stopIfOverRecordingCap() {
+        guard !didReachRecordingCap else { return }
+        guard RecordingLengthPolicy.shouldStop(
+            duration: duration,
+            maxMinutes: maxRecordingMinutes
+        ) else { return }
+        didReachRecordingCap = true
     }
 
     private func normalizedLevel(_ db: Float) -> Float {
