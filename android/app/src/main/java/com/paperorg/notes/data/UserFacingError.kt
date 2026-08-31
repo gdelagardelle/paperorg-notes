@@ -13,6 +13,14 @@ object UserFacingError {
         if (detail.contains("integrity", ignoreCase = true)) {
             return "Play Integrity failed. Your recording was saved in Notes."
         }
+        // 413 used to fall through as a raw HTTP string. The server's own
+        // sentence is already the right one; this is the fallback when the
+        // body could not be parsed.
+        if (api?.status == 413) {
+            return detail.ifBlank {
+                "This audio is too long for a single transcription. Split it into shorter parts."
+            }
+        }
         return detail.ifBlank { "Something went wrong." }
     }
 }

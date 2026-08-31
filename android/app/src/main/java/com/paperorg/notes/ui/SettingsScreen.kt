@@ -110,7 +110,7 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                 Text("Paperorg Pro is active", fontWeight = FontWeight.SemiBold, color = Accent, modifier = Modifier.padding(16.dp))
             } else {
                 Text("Included minutes", fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp))
-                SettingsHint("Free includes 30 minutes of cloud transcription and AI summaries each month. No API keys or sign-in required.")
+                SettingsHint("Free includes 30 minutes of cloud transcription a month. Each recording can be at most 3 minutes. No API keys or sign-in.")
             }
             usage?.let {
                 Text(
@@ -119,6 +119,14 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                     fontSize = 13.sp,
                     modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
                 )
+                it.maxRecordingMinutes?.let { cap ->
+                    Text(
+                        "Each recording can be at most $cap minutes.",
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                    )
+                }
             }
             if (isPro) {
                 HorizontalDivider(color = Border)
@@ -313,6 +321,13 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 colors = ButtonDefaults.textButtonColors(contentColor = Error),
             ) { Text("Delete all data") }
+        }
+
+        SettingsSection("How to") {
+            SettingsHint("Tap the orange button, speak, then tap Stop. Paperorg transcribes and can email the note by itself.")
+            SettingsHint("Or import an MP3, WAV or M4A already on this phone. It becomes a note the same way a recording does.")
+            SettingsHint("Free is 30 minutes a month, in recordings of at most 3 minutes — a voice memo, not a meeting.")
+            SettingsHint("Pro is 10 hours a month and up to 3 hours in one recording, for meetings.")
         }
 
         SettingsSection("About") {

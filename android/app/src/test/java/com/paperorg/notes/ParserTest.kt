@@ -5,6 +5,7 @@ import com.paperorg.notes.domain.TranscriptParser
 import com.paperorg.notes.domain.UsageParser
 import com.paperorg.notes.domain.Note
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -17,6 +18,23 @@ class ParserTest {
         assertEquals(30, usage.minutesLimit)
         assertTrue(usage.playIntegrityRequired)
         assertEquals(1.5, usage.minutesUsed, 0.01)
+        assertNull(usage.maxRecordingMinutes)
+    }
+
+    @Test
+    fun usageParserReadsThePerRecordingCap() {
+        val usage = UsageParser.parse(
+            """{"is_pro":true,"minutes_limit":600,"minutes_used":0,"minutes_remaining":600,"period_key":"2026-08","max_recording_minutes":180}""",
+        )
+        assertEquals(180, usage.maxRecordingMinutes)
+    }
+
+    @Test
+    fun usageParserReadsTheCapFromThePlatformEnvelope() {
+        val usage = UsageParser.parse(
+            """{"period_key":"2026-08","is_pro":true,"max_recording_minutes":15,"metrics":{"transcription.minutes":{"used":0.0,"limit":30.0,"remaining":30.0}}}""",
+        )
+        assertEquals(15, usage.maxRecordingMinutes)
     }
 
     @Test

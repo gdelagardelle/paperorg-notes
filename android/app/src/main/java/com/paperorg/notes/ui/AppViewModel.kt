@@ -2,6 +2,7 @@ package com.paperorg.notes.ui
 
 import android.app.Activity
 import android.app.Application
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperorg.notes.PaperorgNotesApp
@@ -219,6 +220,57 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Runs an imported file through the same pipeline a recording uses, so the
+     * transcript, summary and email behave identically either way.
+     */
+    fun importAudio(uri: Uri) {
+        if (_record.value.processing || app.recording.state != RecordingState.Idle) return
+        viewModelScope.launch {
+            stopPlayback()
+            val noteId = UUID.randomUUID().toString()
+            _record.update {
+                it.copy(processing = true, processingStage = ProcessingStage.Saving, error = null)
+            }
+            val imported = try {
+                app.audioImport.import(uri, noteId, _record.value.usage?.maxRecordingMinutes)
+            } catch (error: Exception) {
+                _record.update {
+                    it.copy(processing = false, processingStage = null, error = humanError(error))
+                }
+                return@launch
+            }
+
+            val now = System.currentTimeMillis()
+            val note = Note(
+                id = noteId,
+                title = "Untitled Recording",
+                createdAtMillis = now,
+                updatedAtMillis = now,
+                durationSeconds = imported.seconds,
+                audioFileName = imported.file.name,
+                language = _record.value.language.code,
+                outputType = _record.value.outputType.code,
+                status = NoteStatus.Processing.name.lowercase(),
+            )
+            app.notes.save(note)
+            _record.update { it.copy(durationLabel = DurationFormat.format(imported.seconds)) }
+            try {
+                app.processRecording.execute(note) { stage ->
+                    _record.update { state -> state.copy(processingStage = stage) }
+                }
+                sendEmailAfterTranscription(noteId)
+            } catch (error: Exception) {
+                _record.update { it.copy(error = humanError(error)) }
+            } finally {
+                _record.update { it.copy(processing = false, processingStage = null) }
+                runCatching { app.api.usage() }.onSuccess { usage ->
+                    _record.update { it.copy(usage = usage) }
+                }
+            }
+        }
+    }
+
     fun retry(note: Note, language: AppLanguage = AppLanguage.fromCode(note.language)) {
         viewModelScope.launch {
             stopPlayback()
@@ -393,11 +445,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         ticker?.cancel()
         ticker = viewModelScope.launch {
             while (true) {
+                val seconds = app.recording.durationSeconds()
                 _record.update {
                     it.copy(
-                        durationLabel = DurationFormat.format(app.recording.durationSeconds()),
+                        durationLabel = DurationFormat.format(seconds),
                         recordingState = app.recording.state,
                     )
+                }
+                val cap = _record.value.usage?.maxRecordingMinutes
+                if (app.recording.state != RecordingState.Idle &&
+                    cap != null && cap > 0 && seconds >= cap * 60.0
+                ) {
+                    stopAndProcess()
+                    break
                 }
                 delay(250)
             }

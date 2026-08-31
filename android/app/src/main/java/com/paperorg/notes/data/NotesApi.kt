@@ -2,6 +2,7 @@ package com.paperorg.notes.data
 
 import com.paperorg.notes.BuildConfig
 import com.paperorg.notes.domain.AppLanguage
+import com.paperorg.notes.domain.AudioFormat
 import com.paperorg.notes.domain.EmailServerStatus
 import com.paperorg.notes.domain.IntegrityHash
 import com.paperorg.notes.domain.OutputType
@@ -70,7 +71,13 @@ class NotesApi(
         }
         val audioBytes = audio.readBytes()
         val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart("file", audio.name, audio.asRequestBody("audio/m4a".toMediaType()))
+            .addFormDataPart(
+                "file",
+                audio.name,
+                // Providers choose their decoder from the extension, so an
+                // imported MP3 announced as M4A is rejected upstream.
+                audio.asRequestBody(AudioFormat.forFileName(audio.name).mimeType.toMediaType()),
+            )
             .addFormDataPart("duration_seconds", "%.2f".format(durationSeconds))
         when (provider) {
             "luxasr" -> builder.addFormDataPart("language", "lb")
@@ -139,13 +146,16 @@ class NotesApi(
             .addFormDataPart("html_body", draft.htmlBody)
             .addFormDataPart("recipients", recipientsJson)
         draft.attachments.forEach { file ->
+            val audioFormat = AudioFormat.entries.firstOrNull {
+                file.name.endsWith(".${it.extension}", true)
+            }
             val field = when {
-                file.name.endsWith(".m4a", true) || file.name.endsWith(".mp3", true) -> "audio"
+                audioFormat != null -> "audio"
                 file.name.endsWith(".pdf", true) -> "pdf"
                 else -> "markdown"
             }
             val mime = when (field) {
-                "audio" -> "audio/m4a"
+                "audio" -> audioFormat!!.mimeType
                 "pdf" -> "application/pdf"
                 else -> "text/markdown"
             }

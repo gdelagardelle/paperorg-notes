@@ -38,6 +38,13 @@ object JsonSupport {
 object UsageParser {
     fun parse(raw: String): UsageInfo {
         val obj = JSONObject(raw)
+        // Read in both branches: the Platform's envelope carries this too, and
+        // reading it in only one is how the attestation flag got lost before.
+        val maxRecordingMinutes = if (obj.has("max_recording_minutes")) {
+            obj.optInt("max_recording_minutes").takeIf { it > 0 }
+        } else {
+            null
+        }
         val metrics = obj.optJSONObject("metrics")
         if (metrics != null) {
             val minutes = metrics.optJSONObject("transcription.minutes")
@@ -50,6 +57,7 @@ object UsageParser {
                 proExpiresAt = obj.optString("pro_expires_at").takeIf { it.isNotEmpty() && it != "null" },
                 appAttestRequired = obj.optBoolean("app_attest_required"),
                 playIntegrityRequired = obj.optBoolean("play_integrity_required"),
+                maxRecordingMinutes = maxRecordingMinutes,
             )
         }
         return UsageInfo(
@@ -61,6 +69,7 @@ object UsageParser {
             proExpiresAt = obj.optString("pro_expires_at").takeIf { it.isNotEmpty() && it != "null" },
             appAttestRequired = obj.optBoolean("app_attest_required"),
             playIntegrityRequired = obj.optBoolean("play_integrity_required"),
+            maxRecordingMinutes = maxRecordingMinutes,
         )
     }
 }

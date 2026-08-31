@@ -93,6 +93,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paperorg.notes.R
 import com.paperorg.notes.data.RecordingState
 import com.paperorg.notes.domain.AppLanguage
+import com.paperorg.notes.domain.AudioFormat
 import com.paperorg.notes.domain.DurationFormat
 import com.paperorg.notes.domain.Note
 import com.paperorg.notes.domain.OutputType
@@ -229,6 +230,9 @@ private fun RecordScreen(
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) model.startRecording()
     }
+    val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(model::importAudio)
+    }
     DisposableEffect(recording) {
         val window = (view.context as? Activity)?.window
         if (recording) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -306,6 +310,13 @@ private fun RecordScreen(
                     color = TextSecondary,
                     fontSize = 13.sp,
                 )
+                usage.maxRecordingMinutes?.let { cap ->
+                    Text(
+                        "Each recording can be at most $cap minutes.",
+                        color = TextSecondary,
+                        fontSize = 12.sp,
+                    )
+                }
             }
         }
         SurfaceCard(padding = 28.dp) {
@@ -338,6 +349,13 @@ private fun RecordScreen(
                     CircularProgressIndicator(color = Accent, modifier = Modifier.size(28.dp))
                     Text(state.processingStage?.displayName ?: "Processing", color = TextSecondary)
                 }
+                if (!recording) {
+                    TextButton(
+                        onClick = { importer.launch(AudioFormat.pickerMimeTypes) },
+                        enabled = !state.processing,
+                    ) { Text("Import audio file") }
+                    Text(importHint(state.usage?.maxRecordingMinutes), color = TextSecondary, fontSize = 12.sp)
+                }
             }
         }
         state.error?.let { error ->
@@ -362,6 +380,14 @@ private fun RecordScreen(
                 NoteCard(note, compact = true, onOpen = { onOpen(note) })
             }
         }
+    }
+}
+
+private fun importHint(maxMinutes: Int?): String {
+    return if (maxMinutes != null && maxMinutes > 0) {
+        "MP3, WAV or M4A · at most $maxMinutes min each"
+    } else {
+        "MP3, WAV or M4A already on this phone"
     }
 }
 

@@ -2,6 +2,7 @@ package com.paperorg.notes
 
 import android.app.Application
 import androidx.room.Room
+import com.paperorg.notes.data.AudioImport
 import com.paperorg.notes.data.BillingRepository
 import com.paperorg.notes.data.GdprExport
 import com.paperorg.notes.data.NotesApi
@@ -27,6 +28,8 @@ class PaperorgNotesApp : Application() {
         private set
     lateinit var billing: BillingRepository
         private set
+    lateinit var audioImport: AudioImport
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -42,6 +45,7 @@ class PaperorgNotesApp : Application() {
         processRecording = ProcessRecording(api, notes, settings, recording)
         gdpr = GdprExport(this, recording)
         billing = BillingRepository(this) { notesApi }
+        audioImport = AudioImport(this, recording)
     }
 
     companion object {

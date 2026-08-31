@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Build
+import com.paperorg.notes.domain.AudioFormat
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +31,18 @@ class RecordingController(private val context: Context) {
     val recordingsDir: File
         get() = File(context.filesDir, "recordings").also { it.mkdirs() }
 
-    fun audioFile(noteId: String): File = File(recordingsDir, "$noteId.m4a")
+    /**
+     * The audio for [noteId], whichever container it is in.
+     *
+     * Recordings are always M4A, but an import keeps the container it arrived in,
+     * so the extension cannot be assumed. The M4A path is returned when nothing
+     * exists yet, because that is what a new recording will write.
+     */
+    fun audioFile(noteId: String): File =
+        AudioFormat.entries
+            .map { File(recordingsDir, "$noteId.${it.extension}") }
+            .firstOrNull { it.exists() }
+            ?: File(recordingsDir, "$noteId.${AudioFormat.M4A.extension}")
 
     fun durationSeconds(): Double {
         if (state == RecordingState.Idle) return 0.0
@@ -161,7 +173,9 @@ class RecordingController(private val context: Context) {
     }
 
     suspend fun deleteAudio(noteId: String) = withContext(Dispatchers.IO) {
-        audioFile(noteId).delete()
+        // Every container, not just the one audioFile would resolve to, so a
+        // deletion cannot leave a second copy behind for the next lookup to find.
+        AudioFormat.entries.forEach { File(recordingsDir, "$noteId.${it.extension}").delete() }
     }
 
     fun deleteAllAudio() {

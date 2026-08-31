@@ -165,6 +165,9 @@ data class UsageInfo(
     val proExpiresAt: String?,
     val appAttestRequired: Boolean,
     val playIntegrityRequired: Boolean,
+    // Ceiling on one upload, separate from the monthly allowance. Null on
+    // servers that predate it, which means the cap is unknown rather than zero.
+    val maxRecordingMinutes: Int? = null,
 )
 
 data class Note(
