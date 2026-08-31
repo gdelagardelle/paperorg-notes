@@ -39,7 +39,7 @@ chmod +x Scripts/start-backend.sh
 
 In the app: choose **Paperorg Pro** → subscribe (or **Activate Dev Pro** in Debug builds).
 
-Product ID: `com.paperorg.notes.pro.monthly`
+Product ID: `com.paperorg.voicenotes.pro.monthly`
 
 ## Supported Languages
 

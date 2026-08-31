@@ -642,19 +642,19 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					017874723AFC7C132C772952 = {
-						DevelopmentTeam = 3N4Q2GQ558;
+						DevelopmentTeam = CZY6SHVSXB;
 						ProvisioningStyle = Automatic;
 					};
 					90AAB3BB8CFC8F4F9AA5AF7B = {
-						DevelopmentTeam = 3N4Q2GQ558;
+						DevelopmentTeam = CZY6SHVSXB;
 						ProvisioningStyle = Automatic;
 						TestTargetID = CE9B446B39A3F4D51D8E920C;
 					};
 					AB87B253C8F1B026D3F065F5 = {
-						DevelopmentTeam = 3N4Q2GQ558;
+						DevelopmentTeam = CZY6SHVSXB;
 					};
 					CE9B446B39A3F4D51D8E920C = {
-						DevelopmentTeam = 3N4Q2GQ558;
+						DevelopmentTeam = CZY6SHVSXB;
 					};
 				};
 			};
@@ -842,7 +842,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -885,7 +885,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 3N4Q2GQ558;
+				DEVELOPMENT_TEAM = CZY6SHVSXB;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -950,7 +950,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 3N4Q2GQ558;
+				DEVELOPMENT_TEAM = CZY6SHVSXB;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -1000,7 +1000,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes.widget;
 				PROVISIONING_PROFILE_SPECIFIER = "Paperorg Notes Widget App Store 2026-08-21";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1025,7 +1025,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes;
 				PROVISIONING_PROFILE_SPECIFIER = "Paperorg Notes App Store 2026-08-21";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1042,7 +1042,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PaperorgNotes.app/PaperorgNotes";
@@ -1059,7 +1059,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = PaperorgNotes;
@@ -1076,7 +1076,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.uitests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes.uitests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = PaperorgNotes;
@@ -1093,7 +1093,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes.tests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PaperorgNotes.app/PaperorgNotes";
@@ -1114,7 +1114,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.notes.widget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes.widget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
