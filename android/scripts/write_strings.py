@@ -260,6 +260,11 @@ CATALOG = {
     "email_sending": ("Sending…", "Envoi…", "Senden…"),
     "billing_restored": ("Paperorg Pro restored.", "Paperorg Pro restauré.", "Paperorg Pro wiederhergestellt."),
     "billing_none": ("No Paperorg Pro subscription on this Google account.", "Aucun abonnement Paperorg Pro sur ce compte Google.", "Kein Paperorg-Pro-Abo auf diesem Google-Konto."),
+    "billing_verify_failed": (
+        "We could not verify your purchase. Please try Restore again.",
+        "Nous n’avons pas pu vérifier votre achat. Réessayez de le restaurer.",
+        "Ihr Kauf konnte nicht bestätigt werden. Versuchen Sie erneut, ihn wiederherzustellen.",
+    ),
     "error_mic": ("Could not start the microphone.", "Impossible de démarrer le microphone.", "Mikrofon konnte nicht gestartet werden."),
     "error_play": ("Could not play the recording.", "Impossible de lire l’enregistrement.", "Aufnahme konnte nicht abgespielt werden."),
     "error_pdf": ("Could not create the PDF.", "Impossible de créer le PDF.", "PDF konnte nicht erstellt werden."),

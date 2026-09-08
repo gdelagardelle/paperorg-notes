@@ -177,6 +177,7 @@
     <string name="email_sending">Senden…</string>
     <string name="billing_restored">Paperorg Pro wiederhergestellt.</string>
     <string name="billing_none">Kein Paperorg-Pro-Abo auf diesem Google-Konto.</string>
+    <string name="billing_verify_failed">Ihr Kauf konnte nicht bestätigt werden. Versuchen Sie erneut, ihn wiederherzustellen.</string>
     <string name="error_mic">Mikrofon konnte nicht gestartet werden.</string>
     <string name="error_play">Aufnahme konnte nicht abgespielt werden.</string>
     <string name="error_pdf">PDF konnte nicht erstellt werden.</string>

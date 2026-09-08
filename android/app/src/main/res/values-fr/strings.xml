@@ -177,6 +177,7 @@
     <string name="email_sending">Envoi…</string>
     <string name="billing_restored">Paperorg Pro restauré.</string>
     <string name="billing_none">Aucun abonnement Paperorg Pro sur ce compte Google.</string>
+    <string name="billing_verify_failed">Nous n’avons pas pu vérifier votre achat. Réessayez de le restaurer.</string>
     <string name="error_mic">Impossible de démarrer le microphone.</string>
     <string name="error_play">Impossible de lire l’enregistrement.</string>
     <string name="error_pdf">Impossible de créer le PDF.</string>

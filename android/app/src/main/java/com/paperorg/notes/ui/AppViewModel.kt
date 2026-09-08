@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperorg.notes.PaperorgNotesApp
 import com.paperorg.notes.R
+import com.paperorg.notes.data.BillingRepository
 import com.paperorg.notes.data.EmailComposer
 import com.paperorg.notes.data.PdfNoteWriter
 import com.paperorg.notes.data.ProPlan
@@ -82,17 +83,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val language = AppLanguage.fromCode(app.settings.defaultLanguage)
         val output = OutputType.entries.find { it.code == app.settings.defaultOutputType } ?: OutputType.Meeting
         _record.update { it.copy(language = language, outputType = output) }
-        viewModelScope.launch {
-            runCatching { app.api.usage() }.onSuccess { usage ->
-                _record.update { it.copy(usage = usage) }
-            }
+        app.billing.onEntitlementChanged = { usage ->
+            _record.update { it.copy(usage = usage) }
         }
-        app.billing.onEntitlementChanged = { refreshUsage() }
         app.billing.onMessage = { message -> _billingMessage.value = message }
         app.recordingStopHandler = { stopAndProcess() }
         viewModelScope.launch {
             // Restores Pro after a reinstall or on a new phone, where Play
             // still knows about the subscription and this install does not.
+            refreshUsage()
             app.billing.syncPurchases()
             _plans.value = app.billing.plans()
         }
@@ -104,11 +103,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun restorePurchases() {
         viewModelScope.launch {
-            val restored = app.billing.syncPurchases()
-            _billingMessage.value = if (restored) {
-                getApplication<Application>().getString(R.string.billing_restored)
-            } else {
-                getApplication<Application>().getString(R.string.billing_none)
+            val resources = getApplication<Application>()
+            _billingMessage.value = when (app.billing.syncPurchases()) {
+                BillingRepository.PurchaseSyncOutcome.Restored ->
+                    resources.getString(R.string.billing_restored)
+                BillingRepository.PurchaseSyncOutcome.VerifyFailed ->
+                    resources.getString(R.string.billing_verify_failed)
+                BillingRepository.PurchaseSyncOutcome.NoneFound ->
+                    resources.getString(R.string.billing_none)
             }
         }
     }
@@ -117,11 +119,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         _billingMessage.value = null
     }
 
-    private fun refreshUsage() {
-        viewModelScope.launch {
-            runCatching { app.api.usage() }.onSuccess { usage ->
-                _record.update { it.copy(usage = usage) }
-            }
+    private suspend fun refreshUsage() {
+        runCatching { withContext(Dispatchers.IO) { app.api.usage() } }.onSuccess { usage ->
+            _record.update { it.copy(usage = usage) }
         }
     }
 
@@ -216,9 +216,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _record.update { it.copy(error = message) }
             } finally {
                 _record.update { it.copy(processing = false, processingStage = null) }
-                runCatching { app.api.usage() }.onSuccess { usage ->
-                    _record.update { it.copy(usage = usage) }
-                }
+                refreshUsage()
             }
         }
     }
@@ -267,9 +265,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _record.update { it.copy(error = humanError(error)) }
             } finally {
                 _record.update { it.copy(processing = false, processingStage = null) }
-                runCatching { app.api.usage() }.onSuccess { usage ->
-                    _record.update { it.copy(usage = usage) }
-                }
+                refreshUsage()
             }
         }
     }
@@ -289,9 +285,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _record.update { it.copy(error = humanError(error)) }
             } finally {
                 _record.update { it.copy(processing = false, processingStage = null) }
-                runCatching { app.api.usage() }.onSuccess { usage ->
-                    _record.update { it.copy(usage = usage) }
-                }
+                refreshUsage()
             }
         }
     }
