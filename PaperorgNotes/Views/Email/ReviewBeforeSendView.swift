@@ -89,7 +89,6 @@ struct ReviewBeforeSendView: View {
                 }
             }
         }
-        .preferredColorScheme(.light)
     }
     
     private struct ResolvedAttachment: Identifiable {

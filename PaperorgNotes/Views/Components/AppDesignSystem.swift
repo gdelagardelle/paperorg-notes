@@ -578,7 +578,7 @@ struct RecordHeroButton: View {
 
                 Image(systemName: iconName)
                     .font(.system(size: 34, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(AppTheme.onFilled)
             }
         }
         .buttonStyle(.plain)
@@ -652,7 +652,7 @@ struct AccentButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.headline)
-            .foregroundStyle(.white)
+            .foregroundStyle(AppTheme.onFilled)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
             .background(AppTheme.accent.opacity(configuration.isPressed ? 0.85 : 1))

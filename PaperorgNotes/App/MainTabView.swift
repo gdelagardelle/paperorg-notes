@@ -23,7 +23,6 @@ struct RootView: View {
                 MainTabView()
             }
         }
-        .preferredColorScheme(.light)
         .task {
             // A background refresh should never surface as a paywall failure.
             // Explicit restore and purchase actions still report their errors.
