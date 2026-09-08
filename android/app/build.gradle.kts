@@ -18,16 +18,16 @@ val notesApiUrl = localProperties.getProperty(
 )
 val playCloudProjectNumber = localProperties.getProperty("playCloudProjectNumber", "357171624667")
 
-// Play App Signing expects the upload cert registered for this app
-// (SHA1 D9:54:D4:…), which is ~/Documents/keys/paperorg-upload alias key0 —
-// not the later unused paperorg-notes-upload.p12.
+// Play App Signing for com.paperorg.notes expects upload cert SHA1 57:4C:C1:…
+// (~/.android-keystores/paperorg-notes-upload.p12). Do not use
+// ~/Documents/keys/paperorg-upload (SHA1 D9:54:…) — that is a different Play app.
 val uploadKeystore = file(
     localProperties.getProperty(
         "uploadKeystore",
-        "${System.getProperty("user.home")}/Documents/keys/paperorg-upload",
+        "${System.getProperty("user.home")}/.android-keystores/paperorg-notes-upload.p12",
     ),
 )
-val uploadKeystoreAlias = localProperties.getProperty("uploadKeystoreAlias", "key0")
+val uploadKeystoreAlias = localProperties.getProperty("uploadKeystoreAlias", "paperorg-upload")
 val uploadKeystorePassword: String? = System.getenv("PAPERORG_UPLOAD_STORE_PASSWORD")
 // The password is only present when Gradle is launched through secret_run.py, so
 // every other build has to keep working without it rather than failing to configure.
