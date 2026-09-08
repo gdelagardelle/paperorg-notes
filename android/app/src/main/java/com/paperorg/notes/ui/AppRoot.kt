@@ -46,7 +46,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -80,7 +79,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -106,11 +104,16 @@ import com.paperorg.notes.ui.theme.Accent
 import com.paperorg.notes.ui.theme.AccentSoft
 import com.paperorg.notes.ui.theme.Background
 import com.paperorg.notes.ui.theme.Border
+import com.paperorg.notes.ui.theme.FilledButton
 import com.paperorg.notes.ui.theme.HeroGradientBottom
+import com.paperorg.notes.ui.theme.OnFilledButton
 import com.paperorg.notes.ui.theme.Primary
 import com.paperorg.notes.ui.theme.PrimarySoft
 import com.paperorg.notes.ui.theme.Surface
 import com.paperorg.notes.ui.theme.TextSecondary
+import com.paperorg.notes.ui.theme.filledButtonColors
+import com.paperorg.notes.ui.theme.notesSwitchColors
+import com.paperorg.notes.ui.theme.textButtonColors
 
 @Composable
 fun AppRoot(model: AppViewModel) {
@@ -169,7 +172,13 @@ fun AppRoot(model: AppViewModel) {
                         onClick = { tab = index },
                         icon = { Icon(icons[index], contentDescription = label) },
                         label = { Text(label) },
-                        colors = NavigationBarItemDefaults.colors(indicatorColor = Accent.copy(alpha = 0.16f), selectedIconColor = Accent),
+                        colors = NavigationBarItemDefaults.colors(
+                            indicatorColor = Accent.copy(alpha = 0.16f),
+                            selectedIconColor = Accent,
+                            selectedTextColor = Accent,
+                            unselectedIconColor = TextSecondary,
+                            unselectedTextColor = TextSecondary,
+                        ),
                     )
                 }
             }
@@ -201,17 +210,24 @@ private fun PrivacyScreen(onAccept: () -> Unit) {
         PrivacyRow(stringResource(R.string.privacy_row_gdpr_title), stringResource(R.string.privacy_row_gdpr_detail))
         PrivacyRow(stringResource(R.string.privacy_row_providers_title), stringResource(R.string.privacy_row_providers_detail))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Switch(checked = agreed, onCheckedChange = { agreed = it })
+            Switch(
+                checked = agreed,
+                onCheckedChange = { agreed = it },
+                colors = notesSwitchColors(),
+            )
             Text(stringResource(R.string.privacy_agree), modifier = Modifier.padding(start = 8.dp))
         }
-        TextButton(onClick = { uri.openUri("https://gdelagardelle.github.io/paperorg-notes/privacy.html") }) {
+        TextButton(
+            onClick = { uri.openUri("https://gdelagardelle.github.io/paperorg-notes/privacy.html") },
+            colors = textButtonColors(),
+        ) {
             Text(stringResource(R.string.privacy_view_policy))
         }
         Button(
             onClick = onAccept,
             enabled = agreed,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Primary),
+            colors = filledButtonColors(),
         ) { Text(stringResource(R.string.privacy_continue)) }
     }
 }
@@ -364,6 +380,7 @@ private fun RecordScreen(
                     TextButton(
                         onClick = { importer.launch(AudioFormat.pickerMimeTypes) },
                         enabled = !state.processing,
+                        colors = textButtonColors(),
                     ) { Text(stringResource(R.string.record_import)) }
                     Text(importHint(state.usage?.maxRecordingMinutes), color = TextSecondary, fontSize = 12.sp)
                 }
@@ -372,7 +389,9 @@ private fun RecordScreen(
         state.error?.let { error ->
             SurfaceCard {
                 Text(error, color = com.paperorg.notes.ui.theme.Error, fontSize = 14.sp)
-                TextButton(onClick = model::dismissError) { Text(stringResource(R.string.common_dismiss)) }
+                TextButton(onClick = model::dismissError, colors = textButtonColors()) {
+                    Text(stringResource(R.string.common_dismiss))
+                }
             }
         }
         Text(stringResource(R.string.record_recent), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Primary, modifier = Modifier.padding(top = 8.dp))
@@ -432,9 +451,9 @@ private fun ChipSection(label: String, enabled: Boolean, chips: @Composable () -
 
 @Composable
 internal fun SelectionChip(title: String, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
-    val bg = if (selected) Primary else Surface
-    val fg = if (selected) Color.White else Primary
-    val stroke = if (selected) Primary else Border
+    val bg = if (selected) FilledButton else Surface
+    val fg = if (selected) OnFilledButton else Primary
+    val stroke = if (selected) FilledButton else Border
     Text(
         title,
         color = fg,
@@ -478,7 +497,7 @@ private fun RecordHeroButton(state: RecordingState, onClick: () -> Unit) {
             Icon(
                 if (state == RecordingState.Idle) Icons.Filled.Mic else Icons.Filled.Stop,
                 contentDescription = if (state == RecordingState.Idle) stringResource(R.string.record_start) else stringResource(R.string.record_stop),
-                tint = Color.White,
+                tint = OnFilledButton,
                 modifier = Modifier.size(34.dp),
             )
         }
@@ -567,7 +586,11 @@ private fun NoteDetailScreen(
         topBar = {
             TopAppBar(
                 title = { Text(note.title) },
-                navigationIcon = { TextButton(onClick = onBack) { Text(stringResource(R.string.common_back)) } },
+                navigationIcon = {
+                    TextButton(onClick = onBack, colors = textButtonColors()) {
+                        Text(stringResource(R.string.common_back))
+                    }
+                },
                 actions = {
                     IconButton(onClick = onFavorite) {
                         Icon(if (note.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder, contentDescription = stringResource(R.string.notes_favorite), tint = Accent)
@@ -595,7 +618,9 @@ private fun NoteDetailScreen(
             }
             error?.let {
                 Text(it, color = com.paperorg.notes.ui.theme.Error, fontSize = 14.sp)
-                TextButton(onClick = onDismissError) { Text(stringResource(R.string.common_dismiss)) }
+                TextButton(onClick = onDismissError, colors = textButtonColors()) {
+                    Text(stringResource(R.string.common_dismiss))
+                }
             }
             if (note.status == "failed") {
                 Text(note.errorMessage ?: stringResource(R.string.note_processing_failed), color = com.paperorg.notes.ui.theme.Error)
@@ -620,9 +645,9 @@ private fun NoteDetailScreen(
                     Button(
                         onClick = { onRetry(retryLanguage) },
                         enabled = !processing,
-                        colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                        colors = filledButtonColors(),
                     ) { Text(stringResource(R.string.note_transcribe_again)) }
-                    TextButton(onClick = onPlay, enabled = !processing) {
+                    TextButton(onClick = onPlay, enabled = !processing, colors = textButtonColors()) {
                         Text(if (playing) stringResource(R.string.note_stop_audio) else stringResource(R.string.note_play_audio))
                     }
                 }
@@ -631,6 +656,7 @@ private fun NoteDetailScreen(
                 TextButton(
                     onClick = onResummarize,
                     enabled = !processing && transcript.isNotBlank(),
+                    colors = textButtonColors(),
                 ) { Text(stringResource(R.string.note_resummarize)) }
                 TextButton(
                     onClick = {
@@ -638,6 +664,7 @@ private fun NoteDetailScreen(
                         onSendEmail { result -> emailResult = result }
                     },
                     enabled = !processing,
+                    colors = textButtonColors(),
                 ) { Text(stringResource(R.string.note_send_email)) }
                 TextButton(
                     onClick = {
@@ -645,6 +672,7 @@ private fun NoteDetailScreen(
                         onExportPdf { result -> emailResult = result }
                     },
                     enabled = !processing && transcript.isNotBlank(),
+                    colors = textButtonColors(),
                 ) { Text(stringResource(R.string.note_export_pdf)) }
             }
             emailResult?.let {

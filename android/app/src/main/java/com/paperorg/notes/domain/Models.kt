@@ -120,9 +120,12 @@ enum class ProviderId(val id: String, val displayName: String) {
     ElevenLabs("elevenlabs", "ElevenLabs");
 
     companion object {
+        private val spacedName = Regex("(?i)lux\\s*asr")
+
         fun label(id: String?): String? =
             id?.takeIf { it.isNotBlank() }?.let { raw ->
-                entries.find { it.id == raw }?.displayName ?: raw
+                entries.find { it.id.equals(raw, ignoreCase = true) }?.displayName
+                    ?: spacedName.replace(raw, "LuxASR")
             }
     }
 }

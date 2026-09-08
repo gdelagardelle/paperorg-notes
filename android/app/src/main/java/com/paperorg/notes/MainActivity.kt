@@ -7,6 +7,8 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.DisposableEffect
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -26,7 +28,23 @@ class MainActivity : ComponentActivity() {
         )
         hideAndroidFooter()
         setContent {
-            PaperorgNotesTheme {
+            val dark = isSystemInDarkTheme()
+            DisposableEffect(dark) {
+                enableEdgeToEdge(
+                    statusBarStyle = if (dark) {
+                        SystemBarStyle.dark(Color.TRANSPARENT)
+                    } else {
+                        SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                    },
+                    navigationBarStyle = if (dark) {
+                        SystemBarStyle.dark(Color.TRANSPARENT)
+                    } else {
+                        SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                    },
+                )
+                onDispose { }
+            }
+            PaperorgNotesTheme(darkTheme = dark) {
                 AppRoot(model)
             }
         }

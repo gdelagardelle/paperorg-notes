@@ -69,6 +69,9 @@ class DomainTest {
     fun providerLabelMapsKnownIds() {
         assertEquals("LuxASR", ProviderId.label("luxasr"))
         assertEquals("OpenAI", ProviderId.label("openai"))
+        assertEquals("LuxASR", ProviderId.label("Lux ASR"))
+        assertEquals("LuxASR", ProviderId.label("lux asr"))
+        assertEquals("LuxASR", ProviderId.label("LuxAsr"))
     }
 
     @Test

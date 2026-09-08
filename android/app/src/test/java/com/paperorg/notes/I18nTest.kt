@@ -30,6 +30,22 @@ class I18nTest {
         }
     }
 
+    @Test
+    fun luxAsrIsWrittenAsOneWord() {
+        val forbidden = listOf("Lux ASR", "Lux asr", "lux asr", "LUX ASR", "Lux Asr")
+        for (path in listOf(
+            "src/main/res/values/strings.xml",
+            "src/main/res/values-fr/strings.xml",
+            "src/main/res/values-de/strings.xml",
+        )) {
+            val xml = File(path).readText()
+            forbidden.forEach { variant ->
+                assertTrue("$path must not contain '$variant'", !xml.contains(variant))
+            }
+            assertTrue("$path must name LuxASR", xml.contains("LuxASR"))
+        }
+    }
+
     private fun names(path: String): Set<String> {
         val file = File(path)
         assertTrue(file.path, file.isFile)

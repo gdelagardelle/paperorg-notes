@@ -20,7 +20,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -33,7 +32,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -73,6 +71,9 @@ import com.paperorg.notes.ui.theme.Error
 import com.paperorg.notes.ui.theme.Primary
 import com.paperorg.notes.ui.theme.Surface
 import com.paperorg.notes.ui.theme.TextSecondary
+import com.paperorg.notes.ui.theme.destructiveTextButtonColors
+import com.paperorg.notes.ui.theme.notesSwitchColors
+import com.paperorg.notes.ui.theme.textButtonColors
 
 @Composable
 fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
@@ -135,6 +136,7 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                 TextButton(
                     onClick = { uri.openUri(BillingRepository.manageSubscriptionsUrl(context.packageName)) },
                     modifier = Modifier.padding(horizontal = 8.dp),
+                    colors = textButtonColors(),
                 ) { Text(stringResource(R.string.settings_manage_play)) }
             } else {
                 plans.forEach { plan ->
@@ -150,6 +152,7 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                         TextButton(
                             onClick = { activity?.let { model.buyPro(it, plan) } },
                             enabled = activity != null,
+                            colors = textButtonColors(),
                         ) { Text(stringResource(R.string.settings_subscribe)) }
                     }
                 }
@@ -160,6 +163,7 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                 TextButton(
                     onClick = { model.restorePurchases() },
                     modifier = Modifier.padding(horizontal = 8.dp),
+                    colors = textButtonColors(),
                 ) { Text(stringResource(R.string.settings_restore)) }
             }
             billingMessage?.let { message ->
@@ -242,6 +246,7 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                         }
                     },
                     enabled = newTerm.trim().isNotEmpty() && (isPro || terms.size < settings.freeVocabularyLimit),
+                    colors = textButtonColors(),
                 ) { Text(stringResource(R.string.common_add)) }
             }
         }
@@ -319,11 +324,12 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                     context.startActivity(Intent.createChooser(share, context.getString(R.string.chooser_export)))
                 },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                colors = textButtonColors(),
             ) { Text(stringResource(R.string.settings_export_all)) }
             TextButton(
                 onClick = { confirmDelete = true },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = Error),
+                colors = destructiveTextButtonColors(),
             ) { Text(stringResource(R.string.settings_delete_all)) }
         }
 
@@ -342,7 +348,11 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
             SettingsHint(stringResource(R.string.about_other_path))
             Text(stringResource(R.string.about_luxasr_title), fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp))
             SettingsHint(stringResource(R.string.about_luxasr_credit))
-            TextButton(onClick = { uri.openUri("https://luxasr.uni.lu") }, modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)) {
+            TextButton(
+                onClick = { uri.openUri("https://luxasr.uni.lu") },
+                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+                colors = textButtonColors(),
+            ) {
                 Text("luxasr.uni.lu")
             }
         }
@@ -365,9 +375,16 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
             title = { Text(stringResource(R.string.settings_delete_all_title)) },
             text = { Text(stringResource(R.string.settings_delete_all_body)) },
             confirmButton = {
-                TextButton(onClick = { model.deleteAll(); confirmDelete = false }) { Text(stringResource(R.string.settings_delete_everything)) }
+                TextButton(
+                    onClick = { model.deleteAll(); confirmDelete = false },
+                    colors = destructiveTextButtonColors(),
+                ) { Text(stringResource(R.string.settings_delete_everything)) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.common_cancel)) } },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }, colors = textButtonColors()) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            },
         )
     }
 }
@@ -459,6 +476,7 @@ private fun EmailSettingsSection(model: AppViewModel) {
                     }
                 },
                 enabled = newEmail.trim().isNotEmpty(),
+                colors = textButtonColors(),
             ) { Text(stringResource(R.string.common_add)) }
         }
         validation?.let {
@@ -541,6 +559,7 @@ private fun EmailSettingsSection(model: AppViewModel) {
                     )
                 },
                 enabled = !sendingTest && testAddress.trim().isNotEmpty(),
+                colors = textButtonColors(),
             ) { Text(if (sendingTest) stringResource(R.string.email_sending) else stringResource(R.string.email_send_test)) }
         }
         testResult?.let {
@@ -588,7 +607,7 @@ private fun SettingsToggle(title: String, checked: Boolean, onChecked: (Boolean)
         Switch(
             checked = checked,
             onCheckedChange = onChecked,
-            colors = SwitchDefaults.colors(checkedTrackColor = Accent, checkedThumbColor = Color.White),
+            colors = notesSwitchColors(),
         )
     }
 }
