@@ -58,6 +58,8 @@ Product ID: `com.paperorg.notes.pro.monthly`
 - Swift 5.9+
 - A Paperorg backend for included Free and Pro processing
 
+See [docs/ANDROID.md](docs/ANDROID.md) for the Kotlin / Compose client.
+
 ## Getting Started
 
 ### 1. Generate Xcode Project
