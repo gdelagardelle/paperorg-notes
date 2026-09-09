@@ -20,7 +20,7 @@ Replace the three UI mockups with device captures from internal testing before p
 ## English
 
 **Title:** Paperorg Notes  
-**Short description (80):** Luxembourgish voice notes. Record, summarise, email. 30 free minutes a month.  
+**Short description (max 80):** Luxembourgish voice notes. Record, transcribe, summarise and share.
 **Full description:**
 
 Paperorg Notes turns speech into structured notes. Record on this phone, transcribe in Lëtzebuergesch, French, German, English and Portuguese, and get a summary, action items, and a PDF you can send.
@@ -36,7 +36,7 @@ Lëtzebuergesch uses LuxASR from the University of Luxembourg. Other languages u
 ## French
 
 **Title:** Paperorg Notes  
-**Short description (80):** Notes vocales avec transcription luxembourgeoise. 30 minutes gratuites par mois, sans compte.  
+**Short description (max 80):** Notes vocales en luxembourgeois. Enregistrez, transcrivez et partagez.
 **Full description:**
 
 Paperorg Notes transforme la voix en notes structurées. Enregistrez sur ce téléphone, transcrivez en lëtzebuergesch, français, allemand, anglais et portugais, et obtenez un résumé, des actions et un PDF à envoyer.
@@ -50,7 +50,7 @@ Le lëtzebuergesch passe par LuxASR (Université du Luxembourg). Les autres lang
 ## German
 
 **Title:** Paperorg Notes  
-**Short description (80):** Sprachnotizen mit luxemburgischer Transkription. 30 Gratisminuten im Monat, ohne Konto.  
+**Short description (max 80):** Luxemburgische Sprachnotizen aufnehmen, transkribieren und teilen.
 **Full description:**
 
 Paperorg Notes macht aus Sprache strukturierte Notizen. Nehmen Sie auf diesem Telefon auf, transkribieren Sie auf Lëtzebuergesch, Französisch, Deutsch, Englisch und Portugiesisch, und erhalten Sie Zusammenfassung, Aufgaben und ein PDF zum Versand.
