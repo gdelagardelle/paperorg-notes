@@ -20,7 +20,7 @@ Replace the three UI mockups with device captures from internal testing before p
 ## English
 
 **Title:** Paperorg Notes  
-**Short description (80):** Voice notes with Luxembourgish transcription. Record, summarise, email — 30 free minutes a month.  
+**Short description (80):** Luxembourgish voice notes. Record, summarise, email. 30 free minutes a month.  
 **Full description:**
 
 Paperorg Notes turns speech into structured notes. Record on this phone, transcribe in Lëtzebuergesch, French, German, English and Portuguese, and get a summary, action items, and a PDF you can send.
