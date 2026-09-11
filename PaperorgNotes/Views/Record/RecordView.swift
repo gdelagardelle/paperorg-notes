@@ -412,6 +412,14 @@ struct RecordView: View {
             modelContext.delete(note)
             throw RecordingError.saveFailed("Could not create the recording. Please try again.")
         }
+        environment.recordingService.onSegmentReady = { [weak note] noteID in
+            guard let note, note.id == noteID else { return }
+            Task {
+                // Errors leave durable queue entries intact. Stop/reconnect retries
+                // missing chunks without interrupting ongoing microphone capture.
+                try? await environment.processRecordingUseCase.transcribeCompletedSegments(note: note)
+            }
+        }
         pulseAnimation = true
     }
     

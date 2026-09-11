@@ -12,12 +12,16 @@ import com.paperorg.notes.data.PdfNoteWriter
 import com.paperorg.notes.data.PlayIntegrityClient
 import com.paperorg.notes.data.ProcessRecording
 import com.paperorg.notes.data.RecordingController
+import com.paperorg.notes.data.RecordingWork
 import com.paperorg.notes.data.SecureSettings
 import com.paperorg.notes.data.db.NotesDatabase
 import com.paperorg.notes.data.db.NotesRepository
 import com.paperorg.notes.domain.Note
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class PaperorgNotesApp : Application() {
     lateinit var settings: SecureSettings
@@ -55,6 +59,15 @@ class PaperorgNotesApp : Application() {
         gdpr = GdprExport(this, recording)
         billing = BillingRepository(this) { notesApi }
         audioImport = AudioImport(this, recording)
+        recording.onSegmentReady = { noteId -> RecordingWork.enqueue(this, noteId) }
+        // Only startup recovery closes an abandoned .open file; live rotation never restarts the mic.
+        val recovered = recording.recoverInterrupted()
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            recovered.forEach { noteId ->
+                processRecording.recover(noteId)
+                RecordingWork.enqueue(this@PaperorgNotesApp, noteId)
+            }
+        }
     }
 
     suspend fun emailNoteIfConfigured(noteId: String) {

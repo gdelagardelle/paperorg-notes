@@ -83,9 +83,10 @@ final class AppEnvironment {
             summaryService: summaryService,
             storageService: storageService,
             qualityPipeline: qualityPipeline,
-            settingsService: settingsService
+            settingsService: settingsService,
+            proBackendClient: proBackendClient
         )
-        self.deleteNoteUseCase = DeleteNoteUseCase(storageService: storageService)
+        self.deleteNoteUseCase = DeleteNoteUseCase(storageService: storageService, recordingService: recordingService)
     }
     
     static let live: AppEnvironment = {

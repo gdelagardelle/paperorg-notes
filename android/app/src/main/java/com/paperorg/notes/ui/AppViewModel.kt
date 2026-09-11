@@ -14,6 +14,7 @@ import com.paperorg.notes.data.EmailComposer
 import com.paperorg.notes.data.PdfNoteWriter
 import com.paperorg.notes.data.ProPlan
 import com.paperorg.notes.data.RecordingForegroundService
+import com.paperorg.notes.data.RecordingWork
 import com.paperorg.notes.data.UserFacingError
 import com.paperorg.notes.domain.EmailAddresses
 import com.paperorg.notes.domain.EmailServerStatus
@@ -25,6 +26,7 @@ import com.paperorg.notes.domain.NoteStatus
 import com.paperorg.notes.domain.OutputType
 import com.paperorg.notes.domain.ProcessingStage
 import com.paperorg.notes.domain.UsageInfo
+import com.paperorg.notes.domain.RecordingLimit
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -78,6 +80,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val recording get() = app.recording
 
     private var ticker: Job? = null
+    private var stopping = false
 
     init {
         val language = AppLanguage.fromCode(app.settings.defaultLanguage)
@@ -145,6 +148,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun startRecording() {
+        if (_record.value.processing || app.recording.state != RecordingState.Idle) return
+        _record.update { it.copy(processing = true) }
         stopPlayback()
         val noteId = UUID.randomUUID().toString()
         viewModelScope.launch {
@@ -155,7 +160,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 createdAtMillis = now,
                 updatedAtMillis = now,
                 durationSeconds = 0.0,
-                audioFileName = "$noteId.m4a",
+                audioFileName = "$noteId.wav",
                 language = _record.value.language.code,
                 outputType = _record.value.outputType.code,
                 status = NoteStatus.Draft.name.lowercase(),
@@ -163,14 +168,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             app.notes.save(note)
             try {
                 withContext(Dispatchers.Main) {
-                    app.recording.start(noteId)
+                    app.recording.start(noteId, RecordingLimit.seconds(_record.value.usage))
                 }
                 RecordingForegroundService.start(getApplication(), _record.value.usage?.maxRecordingMinutes)
-                _record.update { it.copy(recordingState = RecordingState.Recording, error = null) }
+                _record.update { it.copy(recordingState = RecordingState.Recording, processing = false, error = null) }
                 startTicker()
             } catch (error: Exception) {
+                app.recording.cancel()
                 app.notes.delete(noteId)
-                _record.update { it.copy(error = error.message ?: getApplication<Application>().getString(R.string.error_mic)) }
+                _record.update { it.copy(processing = false, error = error.message ?: getApplication<Application>().getString(R.string.error_mic)) }
             }
         }
     }
@@ -190,10 +196,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun stopAndProcess() {
+        if (stopping) return
+        stopping = true
         viewModelScope.launch {
+          try {
             val noteId = app.recording.currentNoteId ?: return@launch
             val duration = app.recording.durationSeconds()
-            if (app.recording.stop() == null) return@launch
+            if (withContext(Dispatchers.IO) { app.recording.stop() } == null) return@launch
             RecordingForegroundService.stop(getApplication())
             ticker?.cancel()
             _record.update {
@@ -202,10 +211,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     processing = true,
                     processingStage = ProcessingStage.Saving,
                     durationLabel = DurationFormat.format(duration),
+                    error = app.recording.captureError,
                 )
             }
             val note = app.notes.get(noteId)?.copy(durationSeconds = duration) ?: return@launch
-            app.notes.save(note)
+            // execute derives the final duration under its queue lock. Do not overwrite
+            // a Ready note if an already-running durable worker wins this race.
+            RecordingWork.enqueue(getApplication(), noteId)
             try {
                 app.processRecording.execute(note) { stage ->
                     _record.update { state -> state.copy(processingStage = stage) }
@@ -218,6 +230,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _record.update { it.copy(processing = false, processingStage = null) }
                 refreshUsage()
             }
+          } catch (error: Exception) {
+              _record.update { it.copy(processing = false, error = humanError(error)) }
+          } finally { stopping = false }
         }
     }
 
@@ -271,13 +286,24 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun retry(note: Note, language: AppLanguage = AppLanguage.fromCode(note.language)) {
+        if (_record.value.processing || app.recording.state != RecordingState.Idle) return
         viewModelScope.launch {
             stopPlayback()
             val updated = note.copy(language = language.code)
-            app.notes.save(updated)
+            if (app.recording.segments(note.id) != null && note.status == NoteStatus.Ready.name.lowercase()) {
+                _record.update { it.copy(error = "This recording already has a saved transcript. Use Summarize again to update its summary; saved segments are not billed again.") }
+                return@launch
+            }
+            if (language.code != note.language) {
+                if (app.recording.segments(note.id) != null) {
+                    _record.update { it.copy(error = "This recording already has saved transcription segments. Retry in its original language.") }
+                    return@launch
+                }
+                app.notes.save(updated)
+            }
             _record.update { it.copy(processing = true, error = null) }
             try {
-                app.processRecording.execute(updated) { stage ->
+                app.processRecording.execute(updated, forceLegacyRetry = true) { stage ->
                     _record.update { state -> state.copy(processingStage = stage) }
                 }
                 app.emailNoteIfConfigured(updated.id)
@@ -330,8 +356,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun delete(note: Note) {
         viewModelScope.launch {
             stopPlayback()
-            app.recording.deleteAudio(note.id)
-            app.notes.delete(note.id)
+            if (app.recording.currentNoteId == note.id) {
+                app.recording.cancel()
+                ticker?.cancel()
+                RecordingForegroundService.stop(getApplication())
+                _record.update { it.copy(recordingState = RecordingState.Idle) }
+            }
+            RecordingWork.cancel(getApplication(), note.id)
+            app.processRecording.delete(note.id)
         }
     }
 
@@ -344,8 +376,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun deleteAll() {
         viewModelScope.launch {
             stopPlayback()
-            app.notes.deleteAll()
-            app.recording.deleteAllAudio()
+            if (app.recording.state != RecordingState.Idle) app.recording.cancel()
+            notes.value.forEach { RecordingWork.cancel(getApplication(), it.id) }
+            app.processRecording.deleteAll()
             app.settings.reset()
             _privacy.value = false
             _record.update { RecordUiState() }
@@ -362,7 +395,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val cutoff = System.currentTimeMillis() - days * 24L * 60 * 60 * 1000
         viewModelScope.launch {
             notes.filter { it.createdAtMillis < cutoff }.forEach { note ->
-                app.recording.deleteAudio(note.id)
+                app.processRecording.removeExpiredAudio(note.id)
             }
         }
     }
@@ -458,6 +491,10 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
                 if (app.recording.state == RecordingState.Idle) break
+                if (app.recording.captureFinished) {
+                    stopAndProcess()
+                    break
+                }
                 val cap = _record.value.usage?.maxRecordingMinutes
                 if (cap != null && cap > 0 && seconds >= cap * 60.0) {
                     stopAndProcess()

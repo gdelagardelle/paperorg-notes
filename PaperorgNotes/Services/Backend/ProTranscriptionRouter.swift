@@ -28,6 +28,9 @@ final class ProTranscriptionRouter {
 
         for provider in registry.orderedProviders(for: request.language) {
             if provider.identifier == ProviderID.apple.rawValue {
+                // Segments must remain in the server's durable identity ledger.
+                // A local fallback would bypass its cumulative cap and replay state.
+                if request.recordingSegment != nil { continue }
                 do {
                     let result = try await appleProvider.transcribe(
                         request,
@@ -51,24 +54,24 @@ final class ProTranscriptionRouter {
                         request: request,
                         durationSeconds: duration
                     )
-                    result = try parseLuxASR(data, request: request, startedAt: startedAt)
+                    result = try parseBackendResult(data, provider: .luxasr, request: request, startedAt: startedAt)
                 case ProviderID.elevenlabs.rawValue:
                     let data = try await client.transcribeElevenLabs(
                         request: request,
                         durationSeconds: duration
                     )
-                    result = try parseElevenLabs(data, request: request, startedAt: startedAt)
+                    result = try parseBackendResult(data, provider: .elevenlabs, request: request, startedAt: startedAt)
                 case ProviderID.openai.rawValue:
                     let data = try await client.transcribeOpenAI(
                         request: request,
                         durationSeconds: duration
                     )
-                    result = try parseOpenAI(data, request: request, startedAt: startedAt)
+                    result = try parseBackendResult(data, provider: .openai, request: request, startedAt: startedAt)
                 default:
                     continue
                 }
 
-                guard !result.fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                guard RecordingTranscriptPolicy.accepts(text: result.fullText, isSegment: request.recordingSegment != nil) else {
                     throw TranscriptionError.emptyResult
                 }
                 attemptLog.append("\(provider.identifier): succeeded via Pro backend")
@@ -85,10 +88,32 @@ final class ProTranscriptionRouter {
                    backendError.stopsProviderFallback {
                     throw backendError
                 }
+                if request.recordingSegment != nil {
+                    // Never try another provider after an ambiguous response.
+                    // Retry this same stable segment identity through the queue.
+                    throw error
+                }
             }
         }
 
         throw lastError ?? TranscriptionError.noProviderAvailable(request.language)
+    }
+
+    private func parseBackendResult(
+        _ data: Data, provider: ProviderID, request: TranscriptionRequest, startedAt: Date
+    ) throws -> TranscriptionResult {
+        // The response may be a cached success from a different provider after
+        // a lost response or a changed preference. Parse the original schema.
+        let payload = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        let original = request.recordingSegment == nil ? nil : payload?["_recording_provider"] as? String
+        switch original ?? provider.rawValue {
+        case ProviderID.luxasr.rawValue:
+            return try parseLuxASR(data, request: request, startedAt: startedAt)
+        case ProviderID.elevenlabs.rawValue:
+            return try parseElevenLabs(data, request: request, startedAt: startedAt)
+        default:
+            return try parseOpenAI(data, request: request, startedAt: startedAt)
+        }
     }
 
     private func tagged(_ result: TranscriptionResult, attemptLog: [String]) -> TranscriptionResult {
@@ -173,7 +198,7 @@ final class ProTranscriptionRouter {
     private func parseLuxASR(_ data: Data, request: TranscriptionRequest, startedAt: Date) throws -> TranscriptionResult {
         if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
            let text = (json["text"] as? String) ?? (json["transcript"] as? String),
-           !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+           RecordingTranscriptPolicy.accepts(text: text, isSegment: request.recordingSegment != nil) {
             return TranscriptionResult(
                 providerId: ProviderID.luxasr.rawValue,
                 language: request.language,

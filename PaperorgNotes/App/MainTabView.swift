@@ -31,8 +31,10 @@ struct RootView: View {
             await retryWaitingTranscriptions()
         }
         .onAppear {
-            recoverInterruptedProcessing()
-            Task { await retryWaitingTranscriptions() }
+            Task {
+                await recoverInterruptedProcessing()
+                await retryWaitingTranscriptions()
+            }
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if settings.faceIDEnabled,
@@ -42,8 +44,8 @@ struct RootView: View {
                 isUnlocked = false
             }
             if newPhase == .active, settings.hasCompletedPlanSelection {
-                recoverInterruptedProcessing()
                 Task {
+                    await recoverInterruptedProcessing()
                     await environment.subscriptionService.refreshEntitlements(reportError: false)
                     await retryWaitingTranscriptions()
                 }
@@ -51,6 +53,9 @@ struct RootView: View {
         }
         .onChange(of: environment.connectivityMonitor.isConnected) { _, isConnected in
             if isConnected {
+                if let noteID = environment.recordingService.currentNoteId {
+                    environment.recordingService.onSegmentReady?(noteID)
+                }
                 Task { await retryWaitingTranscriptions() }
             }
         }
@@ -62,13 +67,13 @@ struct RootView: View {
         .onOpenURL { environment.deepLinkHandler.handle($0) }
     }
 
-    private func recoverInterruptedProcessing() {
+    private func recoverInterruptedProcessing() async {
         // Never finalize checkpoints while a live recording session is open.
         // Widget launches fire scenePhase .active right after auto-start, which used to
         // move the in-progress temp file and stop the recorder after ~1 second.
         guard environment.recordingService.state == .idle else { return }
 
-        let recoveredRecordings = environment.recordingService.recoverInterruptedRecordings(
+        let recoveredRecordings = await environment.recordingService.recoverInterruptedRecordings(
             excludingSessionId: environment.recordingService.sessionId
         )
         let recoveredByNoteID = Dictionary(
@@ -85,7 +90,7 @@ struct RootView: View {
                 && (note.durationSeconds <= 0 || !audioExists(for: note.id))
             if needsRecovery,
                note.id != environment.recordingService.currentNoteId,
-               let recovered = environment.recordingService.recoverRecording(for: note.id) {
+               let recovered = await environment.recordingService.recoverRecording(for: note.id) {
                 applyRecovery(recovered, to: note)
             }
         }

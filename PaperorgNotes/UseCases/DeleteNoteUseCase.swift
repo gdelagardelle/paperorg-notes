@@ -4,12 +4,15 @@ import SwiftData
 @MainActor
 final class DeleteNoteUseCase {
     private let storageService: StorageService
+    private let recordingService: RecordingService?
     
-    init(storageService: StorageService) {
+    init(storageService: StorageService, recordingService: RecordingService? = nil) {
         self.storageService = storageService
+        self.recordingService = recordingService
     }
     
     func deleteAudio(for note: Note, context: ModelContext) throws {
+        if recordingService?.currentNoteId == note.id { recordingService?.cancel() }
         storageService.deleteAudio(for: note.id)
         note.audioDeletedAt = .now
         note.updatedAt = .now
@@ -17,6 +20,7 @@ final class DeleteNoteUseCase {
     }
     
     func deleteNote(_ note: Note, context: ModelContext) throws {
+        if recordingService?.currentNoteId == note.id { recordingService?.cancel() }
         storageService.deleteAudio(for: note.id)
         for segment in note.segments {
             context.delete(segment)
