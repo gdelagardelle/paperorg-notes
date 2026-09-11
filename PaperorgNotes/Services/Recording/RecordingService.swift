@@ -575,7 +575,7 @@ final class RecordingService: NSObject {
         }
     }
 
-    private static let activeSessionKey = "com.paperorg.notes.activeRecordingSession"
+    private static let activeSessionKey = "com.paperorg.voicenotes.activeRecordingSession"
 
     private func persistActiveSession() {
         guard let noteId = currentNoteId, let temp = tempURL else { return }

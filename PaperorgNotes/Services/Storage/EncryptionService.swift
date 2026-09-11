@@ -3,7 +3,7 @@ import CryptoKit
 import Security
 
 final class EncryptionService: Sendable {
-    private let keyTag = "com.paperorg.notes.encryption.key"
+    private let keyTag = "com.paperorg.voicenotes.encryption.key"
     
     func encrypt(data: Data) throws -> Data {
         let key = try getOrCreateKey()

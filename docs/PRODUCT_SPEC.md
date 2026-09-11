@@ -186,6 +186,6 @@ Sections always labeled as AI-generated; never silently invent missing content.
 ## 8. App Identity
 
 - **Display name:** Paperorg Notes
-- **Bundle ID:** `com.paperorg.notes`
+- **Bundle ID:** `com.paperorg.voicenotes`
 - **Primary accent:** Deep teal / warm paper tones
 - **Tone:** Premium, calm, trustworthy, multilingual

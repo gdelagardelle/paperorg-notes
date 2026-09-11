@@ -248,7 +248,7 @@ enum ProBackendError: LocalizedError {
 }
 
 enum SubscriptionProduct {
-    static let proMonthly = "com.paperorg.notes.pro.monthly"
+    static let proMonthly = "com.paperorg.voicenotes.pro.monthly"
 }
 
 enum ProBackendHTTPMapping {
