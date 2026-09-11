@@ -192,7 +192,7 @@ Use Paperorg's own mail (e.g. `notes@paperorg.com` via Microsoft 365 / Outlook S
 |-------|--------|
 | Recording loss on sleep/lock | Fixed in `dffbf25` — checkpoints, background task, no Face ID during recording |
 | Review-before-send dark mode | Fixed in `f0831fa` |
-| StoreKit / Pro subscription | Backend configured; App Store product `com.paperorg.notes.pro.monthly` was **Missing Metadata** in App Store Connect (blocks on-device Pro verify) |
+| StoreKit / Pro subscription | Backend configured; App Store product `com.paperorg.voicenotes.pro.monthly` was **Missing Metadata** in App Store Connect (blocks on-device Pro verify) |
 | notes-api Apple StoreKit API | Working on VPS with `.p8` key file, `APPLE_USE_SANDBOX=true` for TestFlight |
 | Platform auth (Phase C/D) | Code ready; Release still has `PAPERORG_USE_PLATFORM_AUTH=NO` in `project.yml` |
 
@@ -222,7 +222,7 @@ Use Paperorg's own mail (e.g. `notes@paperorg.com` via Microsoft 365 / Outlook S
 4. Remove `EMAIL_SMTP_*` from notes-api once Platform relay works
 
 ### Priority 4 — App Store Connect
-- Complete subscription metadata for `com.paperorg.notes.pro.monthly` so Pro verify works on device
+- Complete subscription metadata for `com.paperorg.voicenotes.pro.monthly` so Pro verify works on device
 
 ---
 

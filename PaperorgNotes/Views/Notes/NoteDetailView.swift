@@ -401,10 +401,17 @@ struct NoteDetailView: View {
     }
     
     private func applyTrim(start: TimeInterval, end: TimeInterval) async {
+        guard note.noteStatus == .ready, !isProcessing else {
+            trimError = "Finish transcription before trimming this recording."
+            return
+        }
         let source = environment.storageService.audioURL(for: note.id)
         do {
             let trimmed = try await AudioTrimService.trim(sourceURL: source, start: start, end: end)
             try environment.storageService.replaceAudio(at: source, with: trimmed)
+            // The explicit edit creates new source audio. Original segment
+            // identities/results must never be applied to the trimmed file.
+            try? FileManager.default.removeItem(at: environment.storageService.segmentDirectory(for: note.id))
             note.durationSeconds = end - start
             note.audioDeletedAt = nil
             note.updatedAt = .now
@@ -454,9 +461,13 @@ struct NoteDetailView: View {
     }
 
     private func attemptRecordingRecovery() {
+        Task { await recoverRecordingAudio() }
+    }
+
+    private func recoverRecordingAudio() async {
         guard !audioAvailable else { return }
         guard note.noteStatus == .draft || note.durationSeconds <= 0 else { return }
-        guard let recovered = environment.recordingService.recoverRecording(for: note.id) else { return }
+        guard let recovered = await environment.recordingService.recoverRecording(for: note.id), !note.isDeleted else { return }
 
         note.audioFileName = recovered.audioURL.lastPathComponent
         note.durationSeconds = recovered.duration

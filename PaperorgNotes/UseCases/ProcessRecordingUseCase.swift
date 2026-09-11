@@ -22,19 +22,43 @@ final class ProcessRecordingUseCase {
     private let storageService: StorageService
     private let qualityPipeline: QualityPipeline
     private let settingsService: SettingsService
+    private let proBackendClient: ProBackendClient
+    private let segmentQueue = SegmentTranscriptionQueue()
+    private var finalizingNoteIDs: Set<UUID> = []
     
     init(
         transcriptionService: TranscriptionService,
         summaryService: SummaryService,
         storageService: StorageService,
         qualityPipeline: QualityPipeline,
-        settingsService: SettingsService
+        settingsService: SettingsService,
+        proBackendClient: ProBackendClient
     ) {
         self.transcriptionService = transcriptionService
         self.summaryService = summaryService
         self.storageService = storageService
         self.qualityPipeline = qualityPipeline
         self.settingsService = settingsService
+        self.proBackendClient = proBackendClient
+    }
+
+    /// Capturing stays draft: only completed files are uploaded, and no summary
+    /// is generated until Stop has durably closed the final chunk.
+    func transcribeCompletedSegments(note: Note) async throws {
+        let store = SegmentRecordingStore(directory: storageService.segmentDirectory(for: note.id))
+        guard !(try store.chunks()).isEmpty else { return }
+        guard try await proBackendClient.supportsSegmentedTranscription() else {
+            throw TranscriptionError.providerError("Your audio is saved. The server needs a segmented-recording update before this note can be transcribed.")
+        }
+        let sessionID = try store.sessionID()
+        let language = note.appLanguage.isAutoDetect ? settingsService.defaultLanguage : note.appLanguage
+        try await segmentQueue.drain(store: store) { [self] chunk in
+            let request = TranscriptionRequest(audioURL: store.directory.appendingPathComponent(chunk.fileName),
+                language: language, enableDiarization: false, prompt: settingsService.transcriptionPrompt(),
+                fallbackLanguage: settingsService.defaultLanguage,
+                recordingSegment: RecordingSegmentIdentity(sessionID: sessionID, index: chunk.index, startSeconds: chunk.startSeconds))
+            return try await transcriptionService.transcribe(request)
+        }
     }
     
     func execute(
@@ -42,6 +66,9 @@ final class ProcessRecordingUseCase {
         audioURL: URL,
         onStageChange: @escaping (ProcessingStage) -> Void
     ) async throws {
+        guard !finalizingNoteIDs.contains(note.id) else { return }
+        finalizingNoteIDs.insert(note.id)
+        defer { finalizingNoteIDs.remove(note.id) }
         let startedAt = Date()
         var debugEvents = [
             "Started: \(ISO8601DateFormatter().string(from: startedAt))",
@@ -87,7 +114,20 @@ final class ProcessRecordingUseCase {
                 prompt: settingsService.transcriptionPrompt(),
                 fallbackLanguage: settingsService.defaultLanguage
             )
-            let initialResult = try await transcriptionService.transcribe(request)
+            let segmentStore = SegmentRecordingStore(directory: storageService.segmentDirectory(for: note.id))
+            let initialResult: TranscriptionResult
+            if FileManager.default.fileExists(atPath: segmentStore.directory.appendingPathComponent("session.json").path) {
+                guard segmentStore.isCaptureFinished else {
+                    throw TranscriptionError.providerError("Recording recovery is not finished. Your audio is saved; reopen the app to recover it before retrying.")
+                }
+                try await transcribeCompletedSegments(note: note)
+                guard let combined = try segmentStore.combinedResult() else {
+                    throw TranscriptionError.providerError("Some audio chunks are still pending. Your audio is saved; retry when connected.")
+                }
+                initialResult = combined
+            } else {
+                initialResult = try await transcriptionService.transcribe(request)
+            }
             let resolvedLanguage = initialResult.language
             if note.appLanguage.isAutoDetect {
                 note.language = resolvedLanguage.rawValue
@@ -126,6 +166,9 @@ final class ProcessRecordingUseCase {
                 language: resolvedLanguage,
                 onStageChange: advance
             )
+            guard !note.isDeleted, FileManager.default.fileExists(atPath: audioURL.path) else {
+                throw CancellationError()
+            }
             debugEvents.append(summary.usedFallback ? "Summary: fallback" : "Summary: generated")
             if let output = summary.output {
                 debugEvents.append("Summary short chars: \(output.shortSummary.count)")
@@ -145,6 +188,7 @@ final class ProcessRecordingUseCase {
             note.processingDebug = debugEvents.joined(separator: "\n")
             try save(note)
         } catch {
+            guard !note.isDeleted else { throw CancellationError() }
             debugEvents.append("Failed at +\(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s")
             debugEvents.append("Error: \(error.localizedDescription)")
             let waitsForConnectivity = OfflineTranscriptionRecoveryPolicy.isConnectivityFailure(error)
@@ -194,6 +238,7 @@ final class ProcessRecordingUseCase {
                 note.processingStage = stage.rawValue
                 onStageChange(stage)
             }
+            guard !note.isDeleted else { throw CancellationError() }
             replaceSummary(on: note, summary: summary)
             note.status = NoteStatus.ready.rawValue
             note.processingStage = ProcessingStage.ready.rawValue
@@ -351,5 +396,31 @@ final class ProcessRecordingUseCase {
         }
         
         return sections
+    }
+}
+
+@MainActor
+final class SegmentTranscriptionQueue {
+    private var workers: [URL: Task<Void, Error>] = [:]
+
+    func drain(store: SegmentRecordingStore,
+               transcribe: @escaping @MainActor (RecordingAudioChunk) async throws -> TranscriptionResult) async throws {
+        if let worker = workers[store.directory] {
+            try await worker.value
+            // A final chunk can close immediately after the old worker's last scan.
+            return try await drain(store: store, transcribe: transcribe)
+        }
+        let worker = Task { @MainActor in
+            defer { self.workers[store.directory] = nil }
+            while true {
+                try Task.checkCancellation()
+                guard let next = try store.chunks().first(where: { try store.result(index: $0.index) == nil }) else { return }
+                let result = try await transcribe(next)
+                try Task.checkCancellation()
+                try store.saveResult(result, index: next.index)
+            }
+        }
+        workers[store.directory] = worker
+        try await worker.value
     }
 }

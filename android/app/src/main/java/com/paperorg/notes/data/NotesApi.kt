@@ -19,6 +19,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import java.util.Locale
 
 class NotesApiException(val status: Int, message: String) : IOException(message)
 
@@ -55,12 +56,27 @@ class NotesApi(
         return UsageParser.parse(execute(request).toString())
     }
 
+    fun requireSegmentedRecording() {
+        registerIfNeeded()
+        val payload = try { execute(authorized("$baseUrl/v1/recording-capabilities").get().build()) }
+        catch (error: NotesApiException) {
+            if (error.status == 404) throw IllegalStateException("The server needs an update before this recording can be transcribed. Your audio is saved.")
+            throw error
+        }
+        check(payload.optBoolean("segmented_transcription")) {
+            "The server needs an update before this segmented recording can be transcribed. Your audio is saved."
+        }
+    }
+
     fun transcribe(
         provider: String,
         audio: File,
         language: AppLanguage,
         durationSeconds: Double,
         prompt: String? = null,
+        recordingSessionId: String? = null,
+        segmentIndex: Int? = null,
+        segmentStartSeconds: Double? = null,
     ): String {
         registerIfNeeded()
         val usage = runCatching { usage() }.getOrNull()
@@ -78,7 +94,13 @@ class NotesApi(
                 // imported MP3 announced as M4A is rejected upstream.
                 audio.asRequestBody(AudioFormat.forFileName(audio.name).mimeType.toMediaType()),
             )
-            .addFormDataPart("duration_seconds", "%.2f".format(durationSeconds))
+            .addFormDataPart("duration_seconds", String.format(Locale.US, "%.2f", durationSeconds))
+        if (recordingSessionId != null) {
+            require(segmentIndex != null && segmentStartSeconds != null)
+            builder.addFormDataPart("recording_session_id", recordingSessionId)
+                .addFormDataPart("segment_index", segmentIndex.toString())
+                .addFormDataPart("segment_start_seconds", String.format(Locale.US, "%.2f", segmentStartSeconds))
+        }
         when (provider) {
             "luxasr" -> builder.addFormDataPart("language", "lb")
             "elevenlabs" -> {

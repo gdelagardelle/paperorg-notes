@@ -16,6 +16,193 @@ import XCTest
 @testable import PaperorgNotes
 
 final class AudioFileReaderTests: XCTestCase {
+    func testUnsupportedInterleavedInputFailsBeforeCaptureInsteadOfIndexingChannelPointers() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let format = try XCTUnwrap(AVAudioFormat(commonFormat: .pcmFormatFloat32,
+            sampleRate: 48_000, channels: 2, interleaved: true))
+        XCTAssertThrowsError(try ContinuousSegmentWriter(directory: directory,
+            archiveURL: directory.appendingPathComponent("archive.caf"), format: format, maximumSeconds: 180))
+    }
+    @MainActor
+    func testCrashRecoveryRestoresUncommittedTailBeforeMarkingCaptureComplete() async throws {
+        let storage = StorageService()
+        let noteID = UUID(), sessionID = UUID()
+        let directory = storage.segmentDirectory(for: noteID)
+        let archive = storage.recordingsDirectory.appendingPathComponent("temp-\(sessionID.uuidString).caf")
+        defer { storage.deleteAudio(for: noteID); try? FileManager.default.removeItem(at: archive) }
+        let store = SegmentRecordingStore(directory: directory)
+        try store.saveSession(sessionID)
+        let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1))
+        var writer: ContinuousSegmentWriter? = try ContinuousSegmentWriter(directory: directory,
+            archiveURL: archive, format: format, segmentSeconds: 2, maximumSeconds: 180)
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 48_000))
+        buffer.frameLength = 48_000
+        for index in 0..<48_000 { buffer.floatChannelData![0][index] = 0.1 }
+        for _ in 0..<3 { try writer?.append(buffer) }
+        writer = nil // Simulate process loss without the normal final chunk commit.
+        try storage.saveCheckpoint(sessionId: sessionID, noteId: noteID, tempAudioPath: archive.path, duration: 2)
+        XCTAssertEqual(try store.chunks().count, 1)
+        XCTAssertFalse(store.isCaptureFinished)
+        let recovered = await RecordingService(storage: storage).recoverRecording(for: noteID)
+        XCTAssertEqual(try XCTUnwrap(recovered).duration, 3, accuracy: 0.1)
+        XCTAssertEqual(try store.chunks().map(\.duration), [2, 1])
+        XCTAssertTrue(store.isCaptureFinished)
+        XCTAssertNil(storage.loadCheckpoint(sessionId: sessionID))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: archive.path))
+    }
+    func testSilentChunkIsCachedAndTextOnlySpeechGetsAnAbsoluteSegment() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = SegmentRecordingStore(directory: directory)
+        for index in 0..<2 {
+            try store.saveChunk(RecordingAudioChunk(index: index, startSeconds: Double(index * 120), duration: 120, fileName: "\(index).m4a"))
+            try store.saveResult(TranscriptionResult(providerId: "fixture", language: .english, segments: [],
+                fullText: index == 0 ? "" : "Speech after silence.", averageConfidence: 1,
+                processingTimeMs: 0, metadata: [:]), index: index)
+        }
+        let combined = try XCTUnwrap(store.combinedResult())
+        XCTAssertEqual(combined.fullText, "Speech after silence.")
+        XCTAssertEqual(combined.segments.count, 1)
+        XCTAssertEqual(combined.segments.first?.startTime, 120)
+        XCTAssertEqual(combined.segments.first?.endTime, 240)
+    }
+    func testNativeRateThreeMinuteCaptureProducesPlayable120And60SecondChunks() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let archive = directory.appendingPathComponent("archive.caf")
+        let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1))
+        let writer = try ContinuousSegmentWriter(directory: directory, archiveURL: archive, format: format, maximumSeconds: 180)
+        let capped = expectation(description: "Capture reports cap without relying on the UI timer")
+        writer.onCap = { capped.fulfill() }
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 48_000))
+        buffer.frameLength = 48_000
+        for index in 0..<48_000 { buffer.floatChannelData![0][index] = 0.2 * sin(2 * .pi * 440 * Float(index) / 48_000) }
+        for _ in 0..<181 { try writer.append(buffer) }
+        try writer.finish()
+        wait(for: [capped], timeout: 1)
+        let store = SegmentRecordingStore(directory: directory)
+        let chunks = try store.chunks()
+        XCTAssertEqual(chunks.map(\.duration), [120, 60])
+        XCTAssertEqual(try AVAudioFile(forReading: archive).length, 8_640_000)
+        XCTAssertEqual(AudioTrimService.playableDuration(of: directory.appendingPathComponent("0.m4a")), 120, accuracy: 0.1)
+        XCTAssertEqual(AudioTrimService.playableDuration(of: directory.appendingPathComponent("1.m4a")), 60, accuracy: 0.1)
+        let final = directory.appendingPathComponent("final.m4a")
+        try ContinuousSegmentWriter.encodeArchive(archive, to: final)
+        XCTAssertEqual(AudioTrimService.playableDuration(of: final), 180, accuracy: 0.1)
+        if let exportPath = ProcessInfo.processInfo.environment["PAPERORG_SEGMENT_FIXTURE_EXPORT_DIR"] {
+            let export = URL(fileURLWithPath: exportPath)
+            try FileManager.default.createDirectory(at: export, withIntermediateDirectories: true)
+            for name in ["0.m4a", "1.m4a", "final.m4a"] {
+                try FileManager.default.copyItem(at: directory.appendingPathComponent(name), to: export.appendingPathComponent(name))
+            }
+        }
+    }
+    @MainActor
+    func testDeletingAudioRemovesItsRecoveryCheckpointAndPrivateArchive() throws {
+        let storage = StorageService()
+        let noteID = UUID(), sessionID = UUID()
+        let archive = storage.recordingsDirectory.appendingPathComponent("temp-\(sessionID.uuidString).caf")
+        try Data("private audio".utf8).write(to: archive)
+        try storage.saveCheckpoint(sessionId: sessionID, noteId: noteID, tempAudioPath: archive.path, duration: 2)
+        defer { try? FileManager.default.removeItem(at: archive); storage.deleteCheckpoint(sessionId: sessionID) }
+        storage.deleteAudio(for: noteID)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: archive.path))
+        XCTAssertNil(storage.loadCheckpoint(sessionId: sessionID))
+    }
+    func testPCMArchiveCanBeReopenedBeforeWriterIsClosedForCrashRecovery() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let archiveURL = directory.appendingPathComponent("archive.caf")
+        let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1))
+        let writer = try ContinuousSegmentWriter(directory: directory, archiveURL: archiveURL, format: format, maximumSeconds: 180)
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 48_000))
+        buffer.frameLength = 48_000
+        for index in 0..<48_000 { buffer.floatChannelData![0][index] = 0.1 }
+        try writer.append(buffer)
+        let reopened = try AVAudioFile(forReading: archiveURL)
+        XCTAssertEqual(reopened.length, 48_000)
+        let recovered = directory.appendingPathComponent("recovered.m4a")
+        try ContinuousSegmentWriter.encodeArchive(archiveURL, to: recovered)
+        XCTAssertGreaterThan(AudioTrimService.playableDuration(of: recovered), 0.9)
+        try writer.finish()
+    }
+    @MainActor
+    func testSegmentQueueRetriesOnlyMissingResultsAfterNetworkFailure() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = SegmentRecordingStore(directory: directory)
+        for index in 0..<2 {
+            try store.saveChunk(RecordingAudioChunk(index: index, startSeconds: Double(index * 120), duration: 120, fileName: "\(index).m4a"))
+        }
+        let queue = SegmentTranscriptionQueue()
+        var attempts: [Int] = []
+        func result(_ index: Int) -> TranscriptionResult {
+            TranscriptionResult(providerId: "fixture", language: .english, segments: [], fullText: "Part \(index)", averageConfidence: 1, processingTimeMs: 0, metadata: [:])
+        }
+        do {
+            try await queue.drain(store: store) { chunk in
+                attempts.append(chunk.index)
+                if chunk.index == 1 { throw URLError(.notConnectedToInternet) }
+                return result(chunk.index)
+            }
+            XCTFail("The failed chunk must remain queued")
+        } catch { XCTAssertTrue(error is URLError) }
+        let reopened = SegmentRecordingStore(directory: directory)
+        try await queue.drain(store: reopened) { chunk in
+            attempts.append(chunk.index)
+            return result(chunk.index)
+        }
+        XCTAssertEqual(attempts, [0, 1, 1])
+        XCTAssertEqual(try reopened.combinedResult()?.fullText, "Part 0\n\nPart 1")
+    }
+    func testContinuousWriterRotatesWithoutLosingFramesAndCapsTotalCapture() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 16_000, channels: 1))
+        let writer = try ContinuousSegmentWriter(directory: directory, archiveURL: directory.appendingPathComponent("archive.caf"), format: format, segmentSeconds: 2, maximumSeconds: 5)
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16_000))
+        buffer.frameLength = 16_000
+        for index in 0..<16_000 { buffer.floatChannelData![0][index] = 0.2 }
+        for _ in 0..<7 { try writer.append(buffer) }
+        try writer.finish()
+        XCTAssertEqual(writer.duration, 5, accuracy: 0.001)
+        let chunks = try SegmentRecordingStore(directory: directory).chunks()
+        XCTAssertEqual(chunks.map(\.index), [0, 1, 2])
+        XCTAssertEqual(chunks.map(\.startSeconds), [0, 2, 4])
+        XCTAssertEqual(chunks.map(\.duration), [2, 2, 1])
+        let archive = try AVAudioFile(forReading: directory.appendingPathComponent("archive.caf"))
+        XCTAssertEqual(archive.length, 80_000)
+    }
+
+    func testDurableSegmentResultsSurviveReopeningAndCombineInCaptureOrder() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = SegmentRecordingStore(directory: directory)
+        try store.saveChunk(RecordingAudioChunk(index: 1, startSeconds: 120, duration: 20, fileName: "1.m4a"))
+        try store.saveChunk(RecordingAudioChunk(index: 0, startSeconds: 0, duration: 120, fileName: "0.m4a"))
+        func result(_ text: String) -> TranscriptionResult {
+            TranscriptionResult(providerId: "test", language: .english, segments: [TranscriptSegmentDTO(index: 0, text: text, startTime: 1, endTime: 2, confidence: 1)], fullText: text, averageConfidence: 1, processingTimeMs: 1, metadata: [:])
+        }
+        try store.saveResult(result("Second."), index: 1)
+        XCTAssertNil(try store.combinedResult())
+        try store.saveResult(result("First."), index: 0)
+        let combined = try XCTUnwrap(SegmentRecordingStore(directory: directory).combinedResult())
+        XCTAssertEqual(combined.fullText, "First.\n\nSecond.")
+        XCTAssertEqual(combined.segments.map(\.startTime), [1, 121])
+        XCTAssertEqual(combined.segments.map(\.index), [0, 1])
+    }
+    @MainActor
+    func testDeletingAudioAlsoDeletesDurableSegments() throws {
+        let storage = StorageService()
+        let id = UUID()
+        let directory = storage.recordingsDirectory.appendingPathComponent("\(id.uuidString)-segments")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try Data("private audio".utf8).write(to: directory.appendingPathComponent("0.m4a"))
+        storage.deleteAudio(for: id)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: directory.path))
+    }
     func testMalformedAudioHasZeroPlayableDuration() throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("paperorg-invalid-audio-\(UUID().uuidString).m4a")

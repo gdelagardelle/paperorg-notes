@@ -1,4 +1,5 @@
 import Foundation
+import AVFoundation
 import SwiftData
 import UIKit
 
@@ -118,6 +119,20 @@ final class StorageService {
     func deleteAudio(for noteId: UUID) {
         let url = audioURL(for: noteId)
         try? fileManager.removeItem(at: url)
+        try? fileManager.removeItem(at: segmentDirectory(for: noteId))
+        for checkpoint in loadPendingCheckpoints() where checkpoint.noteId == noteId {
+            let temporary = URL(fileURLWithPath: checkpoint.tempAudioPath).standardizedFileURL
+            if temporary.deletingLastPathComponent() == recordingsDirectory.standardizedFileURL,
+               temporary.lastPathComponent.hasPrefix("temp-") {
+                try? fileManager.removeItem(at: temporary)
+                try? fileManager.removeItem(at: temporary.deletingPathExtension().appendingPathExtension("m4a"))
+            }
+            deleteCheckpoint(sessionId: checkpoint.sessionId)
+        }
+    }
+
+    func segmentDirectory(for noteId: UUID) -> URL {
+        recordingsDirectory.appendingPathComponent("\(noteId.uuidString)-segments", isDirectory: true)
     }
 
     func replaceAudio(at destination: URL, with source: URL) throws {
@@ -272,6 +287,87 @@ final class StorageService {
         let zipURL = gdprDirectory.appendingPathComponent("paperorg-export-\(Int(Date.now.timeIntervalSince1970)).zip")
         try ZipUtility.zip(directory: tempDir, to: zipURL)
         return zipURL
+    }
+}
+
+struct RecordingAudioChunk: Codable, Sendable {
+    let index: Int
+    let startSeconds: Double
+    let duration: Double
+    let fileName: String
+}
+
+/// Each closed chunk and each successful response is committed independently.
+/// No read/modify/write manifest race between capture and network completion.
+struct SegmentRecordingStore: Sendable {
+    let directory: URL
+
+    func saveChunk(_ chunk: RecordingAudioChunk) throws {
+        try write(chunk, name: "chunk-\(chunk.index).json")
+    }
+
+    func chunks() throws -> [RecordingAudioChunk] {
+        guard FileManager.default.fileExists(atPath: directory.path) else { return [] }
+        return try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+            .filter { $0.lastPathComponent.hasPrefix("chunk-") && $0.pathExtension == "json" }
+            .map { try JSONDecoder().decode(RecordingAudioChunk.self, from: Data(contentsOf: $0)) }
+            .sorted { $0.index < $1.index }
+    }
+
+    func saveResult(_ result: TranscriptionResult, index: Int) throws {
+        // A deleted note must not be resurrected by an in-flight response.
+        guard FileManager.default.fileExists(atPath: directory.path) else { throw CancellationError() }
+        try write(result, name: "result-\(index).json")
+    }
+
+    func result(index: Int) throws -> TranscriptionResult? {
+        let url = directory.appendingPathComponent("result-\(index).json")
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return try JSONDecoder().decode(TranscriptionResult.self, from: Data(contentsOf: url))
+    }
+
+    func combinedResult() throws -> TranscriptionResult? {
+        let chunks = try chunks()
+        guard !chunks.isEmpty else { return nil }
+        var segments: [TranscriptSegmentDTO] = []
+        var results: [TranscriptionResult] = []
+        for (expected, chunk) in chunks.enumerated() {
+            guard chunk.index == expected, let result = try result(index: chunk.index) else { return nil }
+            results.append(result)
+            var localSegments = result.segments.sorted { $0.index < $1.index }
+            if localSegments.isEmpty, !result.fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                localSegments = [TranscriptSegmentDTO(index: 0, text: result.fullText, startTime: 0,
+                    endTime: chunk.duration, confidence: result.averageConfidence, providerId: result.providerId)]
+            }
+            for segment in localSegments {
+                segments.append(TranscriptSegmentDTO(id: segment.id, index: segments.count,
+                    text: segment.text, startTime: chunk.startSeconds + segment.startTime,
+                    endTime: chunk.startSeconds + min(segment.endTime, chunk.duration),
+                    confidence: segment.confidence, speakerLabel: segment.speakerLabel,
+                    isUnclear: segment.isUnclear, providerId: segment.providerId))
+            }
+        }
+        let first = results[0]
+        return TranscriptionResult(providerId: first.providerId, language: first.language,
+            segments: segments, fullText: results.map { $0.fullText.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }.joined(separator: "\n\n"),
+            averageConfidence: results.map(\.averageConfidence).reduce(0, +) / Double(results.count),
+            processingTimeMs: results.map(\.processingTimeMs).reduce(0, +), metadata: ["segmented": "true"])
+    }
+
+    func saveSession(_ sessionID: UUID) throws { try write(sessionID, name: "session.json") }
+    func markCaptureFinished() throws { try write(true, name: "finished.json") }
+    var isCaptureFinished: Bool {
+        guard let data = try? Data(contentsOf: directory.appendingPathComponent("finished.json")) else { return false }
+        return (try? JSONDecoder().decode(Bool.self, from: data)) == true
+    }
+    func sessionID() throws -> UUID {
+        try JSONDecoder().decode(UUID.self, from: Data(contentsOf: directory.appendingPathComponent("session.json")))
+    }
+
+    private func write<T: Encodable>(_ value: T, name: String) throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try JSONEncoder().encode(value).write(to: directory.appendingPathComponent(name), options: .atomic)
     }
 }
 

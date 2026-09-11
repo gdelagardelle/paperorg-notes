@@ -41,6 +41,7 @@ struct TranscriptionRequest: Sendable {
     let prompt: String?
     let segmentTimeRange: ClosedRange<Double>?
     let fallbackLanguage: AppLanguage
+    let recordingSegment: RecordingSegmentIdentity?
     
     var autoDetect: Bool { language.isAutoDetect }
     
@@ -50,7 +51,8 @@ struct TranscriptionRequest: Sendable {
         enableDiarization: Bool = true,
         prompt: String? = nil,
         segmentTimeRange: ClosedRange<Double>? = nil,
-        fallbackLanguage: AppLanguage = .english
+        fallbackLanguage: AppLanguage = .english,
+        recordingSegment: RecordingSegmentIdentity? = nil
     ) {
         self.audioURL = audioURL
         self.language = language
@@ -58,6 +60,7 @@ struct TranscriptionRequest: Sendable {
         self.prompt = prompt
         self.segmentTimeRange = segmentTimeRange
         self.fallbackLanguage = fallbackLanguage
+        self.recordingSegment = recordingSegment
     }
 }
 

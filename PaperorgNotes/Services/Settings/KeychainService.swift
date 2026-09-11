@@ -2,13 +2,13 @@ import Foundation
 import Security
 
 enum KeychainKey: String {
-    case openAIAPIKey = "com.paperorg.notes.openai.apikey"
-    case elevenLabsAPIKey = "com.paperorg.notes.elevenlabs.apikey"
-    case luxASRAPIKey = "com.paperorg.notes.luxasr.apikey"
-    case proAccessToken = "com.paperorg.notes.pro.access"
-    case appAttestKeyID = "com.paperorg.notes.app-attest.key-id"
-    case deviceID = "com.paperorg.notes.device.id"
-    case smtpPassword = "com.paperorg.notes.smtp.password"
+    case openAIAPIKey = "com.paperorg.voicenotes.openai.apikey"
+    case elevenLabsAPIKey = "com.paperorg.voicenotes.elevenlabs.apikey"
+    case luxASRAPIKey = "com.paperorg.voicenotes.luxasr.apikey"
+    case proAccessToken = "com.paperorg.voicenotes.pro.access"
+    case appAttestKeyID = "com.paperorg.voicenotes.app-attest.key-id"
+    case deviceID = "com.paperorg.voicenotes.device.id"
+    case smtpPassword = "com.paperorg.voicenotes.smtp.password"
 }
 
 final class KeychainService: Sendable {

@@ -1,5 +1,46 @@
 import Foundation
 
+enum RecordingTranscriptPolicy {
+    static func accepts(text: String, isSegment: Bool) -> Bool {
+        // A quiet portion of a meeting is a completed provider result, not a
+        // reason to retry paid work or abandon the following speech.
+        isSegment || !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+}
+
+struct RecordingSegmentIdentity: Codable, Sendable {
+    let sessionID: UUID
+    let index: Int
+    let startSeconds: Double
+
+    func multipartFields() throws -> [(String, String)] {
+        guard index >= 0, startSeconds.isFinite, startSeconds >= 0 else {
+            throw ProBackendError.recordingSegmentConflict
+        }
+        return [
+            ("recording_session_id", sessionID.uuidString.lowercased()),
+            ("segment_index", String(index)),
+            ("segment_start_seconds", String(startSeconds))
+        ]
+    }
+}
+
+struct RecordingCapabilities: Decodable {
+    let segmentedTranscription: Bool?
+    let segmentSeconds: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case segmentedTranscription = "segmented_transcription"
+        case segmentSeconds = "segment_seconds"
+    }
+
+    var supported: Bool { segmentedTranscription == true && segmentSeconds == 120 }
+
+    static func decode(_ data: Data) throws -> Self {
+        try JSONDecoder().decode(Self.self, from: data)
+    }
+}
+
 enum SubscriptionPlan: String, Codable, CaseIterable, Identifiable, Sendable {
     case free
     case pro
@@ -168,6 +209,8 @@ enum ProBackendError: LocalizedError {
     case usageLimitReached
     case deviceIntegrityVerificationFailed
     case audioTooLong
+    case recordingSegmentPending
+    case recordingSegmentConflict
     case serverError(String)
 
     var errorDescription: String? {
@@ -182,6 +225,10 @@ enum ProBackendError: LocalizedError {
             return "This device could not be verified securely. Please try again."
         case .audioTooLong:
             return L10n.Import.errorServerTooLong
+        case .recordingSegmentPending:
+            return "This audio segment is still being checked. Your recording is saved."
+        case .recordingSegmentConflict:
+            return "This audio segment could not be matched safely. Your recording is saved."
         case .serverError:
             return "Paperorg Pro is temporarily unavailable. Please try again later."
         }
@@ -192,7 +239,7 @@ enum ProBackendError: LocalizedError {
     var stopsProviderFallback: Bool {
         switch self {
         case .audioTooLong, .usageLimitReached, .subscriptionRequired,
-             .deviceIntegrityVerificationFailed:
+             .deviceIntegrityVerificationFailed, .recordingSegmentPending, .recordingSegmentConflict:
             return true
         case .notAuthenticated, .serverError:
             return false
@@ -201,7 +248,7 @@ enum ProBackendError: LocalizedError {
 }
 
 enum SubscriptionProduct {
-    static let proMonthly = "com.paperorg.notes.pro.monthly"
+    static let proMonthly = "com.paperorg.voicenotes.pro.monthly"
 }
 
 enum ProBackendHTTPMapping {
@@ -217,6 +264,8 @@ enum ProBackendHTTPMapping {
             return .subscriptionRequired
         case 403:
             return .deviceIntegrityVerificationFailed
+        case 409:
+            return message == "segment_pending" ? .recordingSegmentPending : .recordingSegmentConflict
         case 413:
             return treats413AsAudioTooLong ? .audioTooLong : .serverError(message)
         case 429:

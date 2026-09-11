@@ -42,7 +42,7 @@ class RecordingForegroundService : Service() {
             }
             val seconds = app.recording.durationSeconds()
             updateNotification(DurationFormat.format(seconds))
-            if (maxMinutes > 0 && seconds >= maxMinutes * 60.0) {
+            if (app.recording.captureFinished || maxMinutes > 0 && seconds >= maxMinutes * 60.0) {
                 requestStop()
                 return
             }
@@ -104,7 +104,7 @@ class RecordingForegroundService : Service() {
         stopForeground(STOP_FOREGROUND_REMOVE)
         scope.launch {
             val note = app.notes.get(noteId)?.copy(durationSeconds = duration) ?: return@launch
-            app.notes.save(note)
+            RecordingWork.enqueue(app, noteId)
             runCatching { app.processRecording.execute(note) { } }
             runCatching { app.emailNoteIfConfigured(noteId) }
             stopSelf()

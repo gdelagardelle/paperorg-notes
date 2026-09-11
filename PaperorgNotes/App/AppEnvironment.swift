@@ -7,7 +7,7 @@ import SwiftUI
 final class ConnectivityMonitor {
     private(set) var isConnected = false
     @ObservationIgnored private let monitor: NWPathMonitor
-    @ObservationIgnored private let queue = DispatchQueue(label: "com.paperorg.notes.connectivity")
+    @ObservationIgnored private let queue = DispatchQueue(label: "com.paperorg.voicenotes.connectivity")
 
     init(monitor: NWPathMonitor = NWPathMonitor()) {
         self.monitor = monitor
@@ -83,9 +83,10 @@ final class AppEnvironment {
             summaryService: summaryService,
             storageService: storageService,
             qualityPipeline: qualityPipeline,
-            settingsService: settingsService
+            settingsService: settingsService,
+            proBackendClient: proBackendClient
         )
-        self.deleteNoteUseCase = DeleteNoteUseCase(storageService: storageService)
+        self.deleteNoteUseCase = DeleteNoteUseCase(storageService: storageService, recordingService: recordingService)
     }
     
     static let live: AppEnvironment = {

@@ -47,13 +47,15 @@
   <main>
     <p class="muted">Data protection</p>
     <h1>Privacy notice</h1>
-    <p class="muted">Last updated: 31 August 2026</p>
+    <p class="muted">Last updated: 11 September 2026</p>
 
     <div class="box">
       <p>
-        <strong>In short:</strong> recordings and notes live on your iPhone. They leave it
-        only when you ask for a transcript or a summary, and then only to be turned into
-        text and sent straight back. There are no ads, no trackers and no analytics.
+        <strong>In short:</strong> recordings and notes are saved on your device. When you
+        use cloud transcription, completed audio segments can be sent for processing
+        while you continue recording. We temporarily keep encrypted transcription results
+        to recover interrupted requests without repeating paid processing. There are no
+        ads, no trackers and no analytics.
       </p>
     </div>
 
@@ -65,22 +67,28 @@
       <a href="mailto:hello@luxxow.com">hello@luxxow.com</a>.
     </p>
 
-    <h2>2. What stays on your iPhone</h2>
+    <h2>2. What is saved on your device</h2>
     <p>
       Your recordings, transcripts, summaries and any notes you write are stored on the
-      device. Deleting a note deletes its audio with it, and deleting the app removes the
-      lot.
+      device, including audio segments awaiting transcription. Deleting a note deletes
+      its local audio and segment cache. Deleting local data does not itself erase
+      server-side usage or duplicate-prevention records described below. Device or cloud
+      backups are controlled separately by your device and backup settings.
     </p>
     <p>
       The microphone is used only while you are recording, and only after iOS has asked your
-      permission.
+      permission. On Android, the app requests Android microphone permission.
     </p>
 
     <h2>3. What happens when you transcribe</h2>
     <p>
       Transcription and summarising do not run on the device. When you ask for either, the
-      recording is sent to our own service at <code>notes-api.paperorg.com</code>, which
-      passes it to the provider that does the work and returns the text to your iPhone.
+      audio is sent to our own service at <code>notes-api.paperorg.com</code>, which
+      passes it to the provider that does the work and returns the text to your device.
+      With cloud transcription enabled, completed segments (approximately two minutes
+      each) may upload while the next segment records. A combined summary is requested
+      after recording stops and all segments have been transcribed. Offline segments
+      remain on your device and can be retried when connectivity returns.
     </p>
     <p>The providers we use for that are:</p>
     <ul>
@@ -96,25 +104,49 @@
     <ul>
       <li>Legal basis: performance of a contract (GDPR art. 6(1)(b)) — it is the feature you asked for.</li>
       <li>
-        Nothing is sent while you only record and play back locally. The transfer happens at
-        the moment you ask for a transcript or a summary.
+        Playing saved audio locally does not upload it. Using cloud recording and
+        transcription can transfer completed audio segments before you tap Stop.
       </li>
     </ul>
+
+    <h3>Transcription replay and retention</h3>
+    <p>
+      For segmented recordings, our backend encrypts and caches successful transcription
+      responses for up to 24 hours so a lost connection can recover the same result
+      without another provider request. Expired response content is removed by startup
+      and hourly cleanup, normally within 25 hours in the running service. Service
+      outages can delay cleanup. This replay cache does not store raw audio.
+    </p>
+    <p>
+      Separate duplicate-prevention records contain the account or device-associated
+      user identifier, recording and segment identifiers, an audio fingerprint (SHA-256),
+      segment offset, duration and processing state. They do not contain the recording
+      or transcript text, but they are not anonymous. They are retained after the replay
+      content expires to prevent the same request being processed or charged again and
+      to enforce recording limits. These records currently have no automatic expiry.
+      Contact <a href="mailto:hello@luxxow.com">hello@luxxow.com</a> for access or erasure
+      requests; deleting a note on your device does not submit such a request.
+    </p>
+    <p>
+      The replay-cache expiry is not a promise that third-party providers or backup
+      systems delete all their copies at that time. Their processing and retention
+      arrangements are separate. Contact us for information about those arrangements.
+    </p>
 
     <h2>4. Your account and Pro</h2>
     <p>
       The free tier includes a monthly allowance of cloud minutes. Paperorg Pro raises it.
       Accounts and entitlements are handled by Paperorg Platform, and a purchase is made
-      through Apple, not by us: we are told that a subscription is valid, not how you paid
+      through Apple or Google Play, not by us: we are told that a subscription is valid, not how you paid
       for it. We never see your card.
     </p>
 
     <h2>5. Checking the app is genuine</h2>
     <p>
       Before the service will transcribe anything, it checks that the request came from a
-      real, unmodified copy of the app, using Apple&apos;s App Attest. That check identifies
-      the app, not you, and it exists so that the transcription allowance cannot be drained
-      by something pretending to be Paperorg Notes.
+      genuine app installation using Apple&apos;s App Attest or Google Play Integrity,
+      as applicable. These checks and device-associated identifiers support abuse
+      prevention and usage limits; they do not make device-associated records anonymous.
     </p>
 
     <h2>6. What we do not do</h2>
