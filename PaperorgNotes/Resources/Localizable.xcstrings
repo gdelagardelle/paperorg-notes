@@ -7616,6 +7616,50 @@
         }
       }
     },
+    "settings.pro.confirming": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro purchase received — confirming"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Achat Pro reçu — confirmation en cours"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro-Kauf erhalten — Bestätigung läuft"
+          }
+        }
+      }
+    },
+    "settings.pro.confirming_hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple confirmed your purchase. Linking it to your account usually takes a few seconds. Tap the refresh icon if this stays here."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple a confirmé votre achat. La liaison à votre compte prend généralement quelques secondes. Touchez l’icône d’actualisation si cela reste affiché."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple hat Ihren Kauf bestätigt. Die Verknüpfung mit Ihrem Konto dauert meist wenige Sekunden. Tippen Sie auf das Aktualisieren-Symbol, falls dies stehen bleibt."
+          }
+        }
+      }
+    },
     "settings.pro.hint": {
       "extractionState": "stale",
       "localizations": {

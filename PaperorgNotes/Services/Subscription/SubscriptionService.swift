@@ -45,8 +45,35 @@ final class SubscriptionService {
         isServerProActive || settings.storeKitProTrusted
     }
 
+    var isServerProConfirmed: Bool {
+        isServerProActive
+    }
+
+    var isProPendingServerConfirmation: Bool {
+        settings.storeKitProTrusted && !isServerProActive
+    }
+
     var usageInfo: ProUsageInfo? {
         settings.cachedProUsage
+    }
+
+    /// Usage for UI: server truth when available, otherwise an optimistic Pro
+    /// allowance while StoreKit is confirmed but Platform has not linked yet.
+    var displayUsageInfo: ProUsageInfo? {
+        if let usage = usageInfo, usage.isPro {
+            return usage
+        }
+        if isProPendingServerConfirmation {
+            return ProUsageInfo(
+                isPro: true,
+                minutesLimit: 600,
+                minutesUsed: usageInfo?.minutesUsed ?? 0,
+                minutesRemaining: 600,
+                periodKey: usageInfo?.periodKey ?? Self.currentPeriodKey(),
+                proExpiresAt: nil
+            )
+        }
+        return usageInfo
     }
 
     var selectedPlan: SubscriptionPlan {
@@ -376,6 +403,13 @@ final class SubscriptionService {
             return "Pro is activating. You can use the app now. (\(message))"
         }
         return "Pro is activating. You can use the app now."
+    }
+
+    private static func currentPeriodKey() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        return formatter.string(from: Date())
     }
 
     private static func backendServerMessage(from error: Error) -> String? {
