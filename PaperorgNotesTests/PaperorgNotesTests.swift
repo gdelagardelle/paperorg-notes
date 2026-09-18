@@ -518,7 +518,8 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
         let service = SubscriptionService(
             settings: settings,
-            proBackend: TestSubscriptionVerifier(outcome: .failure)
+            proBackend: TestSubscriptionVerifier(outcome: .failure),
+            loadStoreKitEntitlementsOnLaunch: false
         )
 
         let confirmed = await service.confirmSubscription(
@@ -529,7 +530,11 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         XCTAssertFalse(confirmed)
         XCTAssertEqual(settings.selectedPlan, .free)
         XCTAssertFalse(service.isProActive)
-        XCTAssertEqual(service.lastError, L10n.Subscription.verificationPending)
+        XCTAssertFalse(settings.storeKitProTrusted)
+        XCTAssertEqual(
+            service.lastError,
+            "Pro is activating. You can use the app now."
+        )
     }
 
     func testVerifiedSubscriptionGrantsPro() async {
@@ -549,7 +554,8 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
         let service = SubscriptionService(
             settings: settings,
-            proBackend: TestSubscriptionVerifier(outcome: .success(usage))
+            proBackend: TestSubscriptionVerifier(outcome: .success(usage)),
+            loadStoreKitEntitlementsOnLaunch: false
         )
 
         let confirmed = await service.confirmSubscription(
@@ -581,7 +587,8 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
         let service = SubscriptionService(
             settings: settings,
-            proBackend: TestSubscriptionVerifier(outcome: .success(usage))
+            proBackend: TestSubscriptionVerifier(outcome: .success(usage)),
+            loadStoreKitEntitlementsOnLaunch: false
         )
 
         let confirmed = await service.confirmSubscription(
@@ -606,7 +613,8 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         settings.storeKitProTrusted = true
         let service = SubscriptionService(
             settings: settings,
-            proBackend: TestSubscriptionVerifier(outcome: .failure)
+            proBackend: TestSubscriptionVerifier(outcome: .failure),
+            loadStoreKitEntitlementsOnLaunch: false
         )
 
         XCTAssertTrue(service.isProActive)
@@ -632,7 +640,8 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         settings.selectedPlan = .pro
         let service = SubscriptionService(
             settings: settings,
-            proBackend: TestSubscriptionVerifier(outcome: .success(usage))
+            proBackend: TestSubscriptionVerifier(outcome: .success(usage)),
+            loadStoreKitEntitlementsOnLaunch: false
         )
 
         await service.refreshEntitlements()

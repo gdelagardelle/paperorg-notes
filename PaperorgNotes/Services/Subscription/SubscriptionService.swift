@@ -28,11 +28,17 @@ final class SubscriptionService {
     private var updatesTask: Task<Void, Never>?
     private var backgroundConfirmationTask: Task<Void, Never>?
 
-    init(settings: SettingsService, proBackend: any SubscriptionVerifying) {
+    init(
+        settings: SettingsService,
+        proBackend: any SubscriptionVerifying,
+        loadStoreKitEntitlementsOnLaunch: Bool = true
+    ) {
         self.settings = settings
         self.proBackend = proBackend
         updatesTask = listenForTransactions()
-        Task { await refreshStoreKitProStatus() }
+        if loadStoreKitEntitlementsOnLaunch {
+            Task { await refreshStoreKitProStatus() }
+        }
     }
 
     var isProActive: Bool {
