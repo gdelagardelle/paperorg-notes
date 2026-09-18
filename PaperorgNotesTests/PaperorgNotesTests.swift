@@ -533,7 +533,7 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         XCTAssertFalse(settings.storeKitProTrusted)
         XCTAssertEqual(
             service.lastError,
-            "Pro is activating. You can use the app now."
+            "Pro is activating. You can use the app now. (Verification unavailable)"
         )
     }
 
