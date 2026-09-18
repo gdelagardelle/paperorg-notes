@@ -322,9 +322,9 @@ final class SettingsService {
         // provider keys. Those keys are no longer used and are deleted without
         // reading them when the app first launches this version.
         for account in [
-            "com.paperorg.notes.openai.apikey",
-            "com.paperorg.notes.elevenlabs.apikey",
-            "com.paperorg.notes.luxasr.apikey"
+            "com.paperorg.voicenotes.openai.apikey",
+            "com.paperorg.voicenotes.elevenlabs.apikey",
+            "com.paperorg.voicenotes.luxasr.apikey"
         ] {
             keychain.deleteLegacySecret(account)
         }

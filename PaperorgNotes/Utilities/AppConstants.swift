@@ -1,7 +1,7 @@
 import Foundation
 
 enum AppConstants {
-    static let appGroupID = "group.com.paperorg.notes"
+    static let appGroupID = "group.com.paperorg.voicenotes"
     static let urlScheme = "paperorgnotes"
     
     enum UserDefaultsKeys {

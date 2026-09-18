@@ -5,7 +5,7 @@
 - [ ] Xcode: **Product → Archive** (Release configuration)
 - [ ] Validate App in Organizer
 - [ ] Upload to App Store Connect
-- [ ] App Store Connect: create app record `com.paperorg.notes`
+- [ ] App Store Connect: create app record `com.paperorg.voicenotes`
 
 ## Required in App Store Connect
 

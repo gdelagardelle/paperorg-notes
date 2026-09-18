@@ -1,7 +1,7 @@
 import Foundation
 
 enum QuickRecordSharedStore {
-    static let appGroupID = "group.com.paperorg.notes"
+    static let appGroupID = "group.com.paperorg.voicenotes"
     static let pendingKey = "pendingQuickRecord"
     static let requestedAtKey = "quickRecordRequestedAt"
     static let recordURL = URL(string: "paperorgnotes://record")!

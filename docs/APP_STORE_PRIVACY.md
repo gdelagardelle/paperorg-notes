@@ -87,7 +87,7 @@ Paperorg Notes turns voice into structured notes. Record on your iPhone, transcr
 ## Review notes for Apple
 
 - Microphone used for voice recording only
-- Pro subscription: `com.paperorg.notes.pro.monthly`
+- Pro subscription: `com.paperorg.voicenotes.pro.monthly`
 - Sandbox test account available on request
 - Backend URL: `[your production URL]` — required for Pro transcription
 - Free and Pro cloud processing require the Paperorg backend

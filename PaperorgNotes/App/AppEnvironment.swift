@@ -7,7 +7,7 @@ import SwiftUI
 final class ConnectivityMonitor {
     private(set) var isConnected = false
     @ObservationIgnored private let monitor: NWPathMonitor
-    @ObservationIgnored private let queue = DispatchQueue(label: "com.paperorg.notes.connectivity")
+    @ObservationIgnored private let queue = DispatchQueue(label: "com.paperorg.voicenotes.connectivity")
 
     init(monitor: NWPathMonitor = NWPathMonitor()) {
         self.monitor = monitor

@@ -13,7 +13,7 @@ Observed at adoption commit `7c6db33`.
   `backend/` and had drifted from the deployed service.
 - Subscription: StoreKit 2 client in
   `PaperorgNotes/Services/Subscription/SubscriptionService.swift`; product ID
-  `com.paperorg.notes.pro.monthly`.
+  `com.paperorg.voicenotes.pro.monthly`.
 
 ## Relevant data flow
 

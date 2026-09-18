@@ -8,7 +8,7 @@
   ],
   "settings" : {
     "_applicationInternalID" : "0",
-    "_developerTeamID" : "3N4Q2GQ558",
+    "_developerTeamID" : "CZY6SHVSXB",
     "_failTransactionsEnabled" : false,
     "_lastSynchronizedDate" : 773020800,
     "_locale" : "en_US",
@@ -88,7 +88,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.paperorg.notes.pro.monthly",
+          "productID" : "com.paperorg.voicenotes.pro.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Paperorg Pro Monthly",
           "subscriptionGroupID" : "paperorg-pro",

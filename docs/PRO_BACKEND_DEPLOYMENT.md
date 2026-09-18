@@ -20,8 +20,8 @@ Copy `backend/.env.example` → production secrets:
 | `PRO_MINUTES_PER_MONTH` | `600` |
 | `FREE_MINUTES_PER_MONTH` | `30` |
 | `TRANSCRIPTION_REQUESTS_PER_15_MINUTES` | `12` |
-| `APPLE_BUNDLE_ID` | `com.paperorg.notes` |
-| `APPLE_PRO_PRODUCT_ID` | `com.paperorg.notes.pro.monthly` |
+| `APPLE_BUNDLE_ID` | `com.paperorg.voicenotes` |
+| `APPLE_PRO_PRODUCT_ID` | `com.paperorg.voicenotes.pro.monthly` |
 | `APPLE_ISSUER_ID` | App Store Connect → Keys |
 | `APPLE_KEY_ID` | App Store Connect → Keys |
 | `APPLE_PRIVATE_KEY` | Path to `.p8` or PEM string |

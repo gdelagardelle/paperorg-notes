@@ -57,7 +57,7 @@ private final class SMTPClient: @unchecked Sendable {
     private let password: String
     private let from: String
     private var connection: NWConnection?
-    private let queue = DispatchQueue(label: "com.paperorg.notes.smtp")
+    private let queue = DispatchQueue(label: "com.paperorg.voicenotes.smtp")
 
     init(host: String, port: Int, username: String, password: String, from: String) {
         self.host = host
