@@ -357,6 +357,9 @@ final class SubscriptionService {
 
     private static func friendlyVerificationError(for error: Error) -> String {
         if let message = backendServerMessage(from: error), !message.isEmpty {
+            if message.localizedCaseInsensitiveContains("signed transaction data is not accepted") {
+                return "Pro is activating. Update to the latest TestFlight build, then tap Subscribe again."
+            }
             if message.localizedCaseInsensitiveContains("transaction not found") {
                 return "Pro is activating. You can use the app now; server confirmation may take a moment."
             }
