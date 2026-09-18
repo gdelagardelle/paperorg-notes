@@ -213,7 +213,9 @@ struct PaywallView: View {
                     if environment.settingsService.usePlatformAuth,
                        !environment.subscriptionService.isProActive {
                         Button(String(localized: "paywall.refresh")) {
-                            Task { await environment.subscriptionService.restorePurchases() }
+                            Task {
+                                _ = await environment.subscriptionService.syncEntitlementsFromStore()
+                            }
                         }
                         .buttonStyle(SecondaryButtonStyle())
                     }
@@ -248,6 +250,10 @@ struct PaywallView: View {
     }
 
     private var purchaseButtonTitle: String {
+        if environment.subscriptionService.lastError != nil,
+           !environment.subscriptionService.isProActive {
+            return String(localized: "paywall.retry_activation")
+        }
         if let product = environment.subscriptionService.products.first {
             return String(localized: "paywall.subscribe \(product.displayPrice)")
         }

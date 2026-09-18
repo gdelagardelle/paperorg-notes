@@ -90,6 +90,11 @@ final class SubscriptionService {
     }
 
     func purchasePro() async -> Bool {
+        // A prior purchase may still be on-device waiting for backend confirmation.
+        if await syncEntitlementsFromStore(reportError: false) {
+            return true
+        }
+
         guard let product = products.first else {
             lastError = L10n.Subscription.productUnavailable
             return false
@@ -103,14 +108,16 @@ final class SubscriptionService {
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
-                let confirmed = await handle(
+                let signedInfo = signedTransactionInfo(from: verification)
+                if await confirmWithRetries(
                     transaction: transaction,
-                    signedTransactionInfo: signedTransactionInfo(from: verification)
-                )
-                if confirmed {
+                    signedTransactionInfo: signedInfo
+                ) {
                     await transaction.finish()
+                    return true
                 }
-                return confirmed
+                // Leave the transaction open so another Subscribe tap can retry.
+                return false
             case .userCancelled:
                 return false
             case .pending:
@@ -125,24 +132,38 @@ final class SubscriptionService {
         }
     }
 
-    func restorePurchases() async {
-        do {
-            try await AppStore.sync()
-            for await result in Transaction.currentEntitlements {
-                if let transaction = try? checkVerified(result),
-                   transaction.productID == SubscriptionProduct.proMonthly {
-                    if await handle(
-                        transaction: transaction,
-                        signedTransactionInfo: signedTransactionInfo(from: result)
-                    ) {
-                        await transaction.finish()
-                    }
-                }
+    /// Re-checks local StoreKit entitlements and confirms Pro with Platform.
+    /// Does not call `AppStore.sync()` — that prompts for an App Store password.
+    @discardableResult
+    func syncEntitlementsFromStore(reportError: Bool = true) async -> Bool {
+        var confirmedAny = false
+        for await result in Transaction.unfinished {
+            if await processEntitlement(result) {
+                confirmedAny = true
             }
-            await refreshEntitlements()
-        } catch {
-            lastError = error.localizedDescription
         }
+        for await result in Transaction.currentEntitlements {
+            if await processEntitlement(result) {
+                confirmedAny = true
+            }
+        }
+        if isProActive {
+            lastError = nil
+            return true
+        }
+        await refreshEntitlements(reportError: false)
+        if isProActive {
+            lastError = nil
+            return true
+        }
+        if !confirmedAny, reportError, lastError == nil {
+            lastError = L10n.Subscription.entitlementUnavailable
+        }
+        return isProActive
+    }
+
+    func restorePurchases() async {
+        _ = await syncEntitlementsFromStore()
     }
 
     #if DEBUG
@@ -173,28 +194,49 @@ final class SubscriptionService {
     private func listenForTransactions() -> Task<Void, Never> {
         Task {
             for await result in Transaction.updates {
-                if let transaction = try? checkVerified(result) {
-                    if await handle(
-                        transaction: transaction,
-                        signedTransactionInfo: signedTransactionInfo(from: result)
-                    ) {
-                        await transaction.finish()
-                    }
-                }
+                _ = await processEntitlement(result)
             }
         }
     }
 
     @discardableResult
-    private func handle(
+    private func processEntitlement(_ result: VerificationResult<Transaction>) async -> Bool {
+        guard let transaction = try? checkVerified(result),
+              transaction.productID == SubscriptionProduct.proMonthly else {
+            return false
+        }
+        let confirmed = await confirmSubscription(
+            productID: transaction.productID,
+            transactionID: String(transaction.id),
+            signedTransactionInfo: signedTransactionInfo(from: result)
+        )
+        if confirmed {
+            await transaction.finish()
+        }
+        return confirmed
+    }
+
+    private func confirmWithRetries(
         transaction: Transaction,
         signedTransactionInfo: String?
     ) async -> Bool {
-        await confirmSubscription(
-            productID: transaction.productID,
-            transactionID: String(transaction.id),
-            signedTransactionInfo: signedTransactionInfo
-        )
+        let retryDelaysNanoseconds: [UInt64] = [0, 1_000_000_000, 2_000_000_000, 4_000_000_000]
+        for delay in retryDelaysNanoseconds {
+            if delay > 0 {
+                try? await Task.sleep(nanoseconds: delay)
+            }
+            if await confirmSubscription(
+                productID: transaction.productID,
+                transactionID: String(transaction.id),
+                signedTransactionInfo: signedTransactionInfo
+            ) {
+                return true
+            }
+            if await syncEntitlementsFromStore(reportError: false), isProActive {
+                return true
+            }
+        }
+        return false
     }
 
     /// Pro stays locked until the backend has independently confirmed the
@@ -240,7 +282,7 @@ final class SubscriptionService {
     private static func friendlyVerificationError(for error: Error) -> String {
         if let message = backendServerMessage(from: error), !message.isEmpty {
             if message.localizedCaseInsensitiveContains("transaction not found") {
-                return "Your purchase went through, but the server has not matched it yet. Tap Restore Purchases, wait a minute, then Refresh Status."
+                return "Your purchase went through, but activation is still in progress. Tap Subscribe again in a few seconds."
             }
             if message.localizedCaseInsensitiveContains("missing metadata")
                 || message.localizedCaseInsensitiveContains("not available for purchase") {
@@ -248,7 +290,7 @@ final class SubscriptionService {
             }
             return "Your purchase is complete, but Pro could not be activated yet: \(message)"
         }
-        return L10n.Subscription.verificationPending
+        return "Your purchase went through, but Pro is still activating. Tap Subscribe again in a few seconds."
     }
 
     private static func backendServerMessage(from error: Error) -> String? {

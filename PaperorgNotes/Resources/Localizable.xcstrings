@@ -4760,6 +4760,28 @@
         }
       }
     },
+    "paywall.retry_activation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activate Pro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activer Pro"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro aktivieren"
+          }
+        }
+      }
+    },
     "paywall.renewal": {
       "extractionState": "stale",
       "localizations": {
