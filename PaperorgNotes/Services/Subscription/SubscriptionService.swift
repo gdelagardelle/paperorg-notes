@@ -69,6 +69,7 @@ final class SubscriptionService {
     func refreshEntitlements(reportError: Bool = true) async {
         do {
             let usage = try await proBackend.refreshUsage()
+            settings.cachedProUsage = usage
             applyUsageEntitlements(usage)
         } catch {
             if reportError {
@@ -81,6 +82,10 @@ final class SubscriptionService {
         if usage.isPro {
             settings.selectedPlan = .pro
             settings.applyProEntitlements()
+        } else if settings.selectedPlan == .pro {
+            // A lapsed or unverified Pro selection must not block the free
+            // included-minutes path on the next refresh.
+            settings.selectedPlan = .free
         }
     }
 
@@ -94,7 +99,7 @@ final class SubscriptionService {
         defer { purchaseInProgress = false }
 
         do {
-            let result = try await product.purchase()
+            let result = try await purchase(product)
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
@@ -112,7 +117,7 @@ final class SubscriptionService {
                 return false
             }
         } catch {
-            lastError = error.localizedDescription
+            lastError = Self.friendlyPurchaseError(for: error)
             return false
         }
     }
@@ -204,6 +209,33 @@ final class SubscriptionService {
             lastError = L10n.Subscription.verificationPending
             return false
         }
+    }
+
+    private func purchase(_ product: Product) async throws -> Product.PurchaseResult {
+        #if canImport(UIKit)
+        if #available(iOS 18.2, *) {
+            guard let viewController = PurchasePresenter.topViewController() else {
+                throw PurchasePresentationError.missingViewController
+            }
+            return try await product.purchase(confirmIn: viewController)
+        }
+        #endif
+        return try await product.purchase()
+    }
+
+    private static func friendlyPurchaseError(for error: Error) -> String {
+        if error is PurchasePresentationError {
+            return "The App Store sheet could not open. Close any open sheets and try again."
+        }
+        let nsError = error as NSError
+        if nsError.domain == "SKInternalErrorDomain" {
+            return "The App Store could not complete the purchase. Try again in a moment, or restart the app. If this keeps happening, check that you are signed into the App Store."
+        }
+        return error.localizedDescription
+    }
+
+    private enum PurchasePresentationError: Error {
+        case missingViewController
     }
 
     private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {

@@ -26,6 +26,7 @@ struct RootView: View {
         .task {
             // A background refresh should never surface as a paywall failure.
             // Explicit restore and purchase actions still report their errors.
+            await bootstrapIncludedMinutesIfNeeded()
             await environment.subscriptionService.refreshEntitlements(reportError: false)
             await retryWaitingTranscriptions()
         }
@@ -59,6 +60,16 @@ struct RootView: View {
             }
         }
         .onOpenURL { environment.deepLinkHandler.handle($0) }
+    }
+
+    private func bootstrapIncludedMinutesIfNeeded() async {
+        guard environment.settingsService.hasCompletedPlanSelection else { return }
+        guard !environment.settingsService.usesBackendProcessing else { return }
+        do {
+            _ = try await environment.proBackendClient.register()
+        } catch {
+            // Record and Settings will offer the included-minutes sheet instead.
+        }
     }
 
     private func recoverInterruptedProcessing() {

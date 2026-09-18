@@ -45,15 +45,20 @@ struct SettingsView: View {
                         }
                         SettingsSectionHint(text: L10n.Included.detail)
                         Button(L10n.Settings.upgradePro) { showPaywall = true }
-                    } else if settings.selectedPlan == .pro {
-                        Text(L10n.Settings.proSelected)
-                            .font(.caption)
-                            .foregroundStyle(AppTheme.error)
-                        Button(L10n.Settings.subscribePro) { showPaywall = true }
                     } else {
-                        SettingsSectionHint(text: String(localized: "settings.free.hint"))
+                        if settings.selectedPlan == .pro {
+                            Text(L10n.Settings.proSelected)
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.error)
+                        } else {
+                            SettingsSectionHint(text: String(localized: "settings.free.hint"))
+                        }
                         Button(L10n.Included.title) { showIncludedMinutesAccess = true }
-                        Button(L10n.Settings.upgradePro) { showPaywall = true }
+                        Button(
+                            settings.selectedPlan == .pro
+                                ? L10n.Settings.subscribePro
+                                : L10n.Settings.upgradePro
+                        ) { showPaywall = true }
                     }
                     HStack(spacing: 8) {
                         Circle()

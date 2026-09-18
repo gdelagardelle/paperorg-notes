@@ -594,6 +594,34 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         XCTAssertFalse(service.isProActive)
         XCTAssertEqual(service.lastError, L10n.Subscription.entitlementUnavailable)
     }
+
+    func testRefreshDowngradesStaleProSelectionWhenEntitlementLapsed() async {
+        let suiteName = "SubscriptionRefreshDowngradeStalePro"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let usage = ProUsageInfo(
+            isPro: false,
+            minutesLimit: 30,
+            minutesUsed: 0,
+            minutesRemaining: 30,
+            periodKey: "2026-09",
+            proExpiresAt: nil
+        )
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        settings.selectedPlan = .pro
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .success(usage))
+        )
+
+        await service.refreshEntitlements()
+
+        XCTAssertEqual(settings.selectedPlan, .free)
+        XCTAssertFalse(service.isProActive)
+        XCTAssertTrue(settings.usesIncludedBackend)
+    }
 }
 
 @MainActor

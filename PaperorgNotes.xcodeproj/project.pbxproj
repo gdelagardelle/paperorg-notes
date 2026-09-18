@@ -50,6 +50,7 @@
 		86D9F89F6DE0D92FF1189E16 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E44CE8EB8204467D2F453A2 /* AudioPlaybackService.swift */; };
 		879EB14C132EDB84188AD160 /* PlanSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */; };
 		87C1DF8AFD2418DBAF9B3FC2 /* SettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9824E63EEC45F2200D535A2F /* SettingsService.swift */; };
+		8B4900212BDB9B89F0B28B6A /* PurchasePresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9779823E1BF0DA8B2EBFD414 /* PurchasePresenter.swift */; };
 		8C0D6EA0DC38CD6AFDC3C11C /* AudioTrimService.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED20357D5435D4ECE33D822A /* AudioTrimService.swift */; };
 		958031920000A50C401A194D /* RecordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C32F8A10B9DF8469B8745043 /* RecordView.swift */; };
 		96EE2A629E724164161E4373 /* PaperorgNotesWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829314BC54DCB82DDAC7E449 /* PaperorgNotesWidgetBundle.swift */; };
@@ -179,6 +180,7 @@
 		902B6D6A36F9BC9D7688A140 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		923CEA82446856AA18906690 /* PaperorgNotes.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PaperorgNotes.entitlements; sourceTree = "<group>"; };
 		93893A2E19AAAF5CE666C272 /* PaperorgNotesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesTests.swift; sourceTree = "<group>"; };
+		9779823E1BF0DA8B2EBFD414 /* PurchasePresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasePresenter.swift; sourceTree = "<group>"; };
 		9824E63EEC45F2200D535A2F /* SettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsService.swift; sourceTree = "<group>"; };
 		9D34CD6703E1B9404B252C40 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		A0A47C931C30D4142808038E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -290,6 +292,7 @@
 				68B74C5620F1B13BDE12A809 /* DeepLinkHandler.swift */,
 				565A7124A59F839DA2119477 /* L10n.swift */,
 				EB19E21168DDA27DF38BDFAC /* OpenAITranscriptionParser.swift */,
+				9779823E1BF0DA8B2EBFD414 /* PurchasePresenter.swift */,
 				1E96C7CBD0EF7A5A63DF8FC5 /* QuickRecordSharedStore.swift */,
 				1720A754F02F5E075400BFF0 /* SummaryJSONParser.swift */,
 				FCAB3926F318D19B375B4D66 /* TranscriptTextFormatter.swift */,
@@ -761,6 +764,7 @@
 				45A23803A98BFB53B9D59593 /* ProTranscriptionRouter.swift in Sources */,
 				6AE3CD48C33A80509A37F80C /* ProUsageCard.swift in Sources */,
 				51E2E8EC0F74C349152E75BF /* ProcessRecordingUseCase.swift in Sources */,
+				8B4900212BDB9B89F0B28B6A /* PurchasePresenter.swift in Sources */,
 				5659B8363936129D5E6448BA /* QualityPipeline.swift in Sources */,
 				ADD2EECA433DF2B4E19B3A2B /* QuickRecordSharedStore.swift in Sources */,
 				958031920000A50C401A194D /* RecordView.swift in Sources */,
@@ -837,7 +841,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CURRENT_PROJECT_VERSION = 56;
+				CURRENT_PROJECT_VERSION = 60;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -995,7 +999,7 @@
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 56;
+				CURRENT_PROJECT_VERSION = 60;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1020,7 +1024,7 @@
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 56;
+				CURRENT_PROJECT_VERSION = 60;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -1109,7 +1113,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CURRENT_PROJECT_VERSION = 56;
+				CURRENT_PROJECT_VERSION = 60;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
