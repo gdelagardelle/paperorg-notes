@@ -83,7 +83,8 @@ final class AppEnvironment {
             summaryService: summaryService,
             storageService: storageService,
             qualityPipeline: qualityPipeline,
-            settingsService: settingsService
+            settingsService: settingsService,
+            subscriptionService: subscriptionService
         )
         self.deleteNoteUseCase = DeleteNoteUseCase(storageService: storageService)
     }

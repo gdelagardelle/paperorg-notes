@@ -22,19 +22,22 @@ final class ProcessRecordingUseCase {
     private let storageService: StorageService
     private let qualityPipeline: QualityPipeline
     private let settingsService: SettingsService
+    private let subscriptionService: SubscriptionService
     
     init(
         transcriptionService: TranscriptionService,
         summaryService: SummaryService,
         storageService: StorageService,
         qualityPipeline: QualityPipeline,
-        settingsService: SettingsService
+        settingsService: SettingsService,
+        subscriptionService: SubscriptionService
     ) {
         self.transcriptionService = transcriptionService
         self.summaryService = summaryService
         self.storageService = storageService
         self.qualityPipeline = qualityPipeline
         self.settingsService = settingsService
+        self.subscriptionService = subscriptionService
     }
     
     func execute(
@@ -61,6 +64,7 @@ final class ProcessRecordingUseCase {
 
         do {
             advance(.transcribing)
+            await subscriptionService.ensureServerProConfirmedBeforeProcessing()
             storageService.prepareAudioForReading(noteId: note.id)
 
             let measuredDuration = AudioTrimService.playableDuration(of: audioURL)

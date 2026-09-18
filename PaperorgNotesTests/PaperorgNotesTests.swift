@@ -595,6 +595,25 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         XCTAssertEqual(service.lastError, L10n.Subscription.entitlementUnavailable)
     }
 
+    func testStoreKitProTrustUnlocksBeforeServerConfirmation() {
+        let suiteName = "SubscriptionStoreKitProTrust"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        settings.usePlatformAuth = true
+        settings.storeKitProTrusted = true
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .failure)
+        )
+
+        XCTAssertTrue(service.isProActive)
+        XCTAssertTrue(settings.usesProBackend)
+        XCTAssertFalse(settings.usesIncludedBackend)
+    }
+
     func testRefreshDowngradesStaleProSelectionWhenEntitlementLapsed() async {
         let suiteName = "SubscriptionRefreshDowngradeStalePro"
         let defaults = UserDefaults(suiteName: suiteName)!

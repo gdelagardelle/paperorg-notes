@@ -26,15 +26,17 @@ final class SubscriptionService {
     private(set) var purchaseInProgress = false
     private(set) var lastError: String?
     private var updatesTask: Task<Void, Never>?
+    private var backgroundConfirmationTask: Task<Void, Never>?
 
     init(settings: SettingsService, proBackend: any SubscriptionVerifying) {
         self.settings = settings
         self.proBackend = proBackend
         updatesTask = listenForTransactions()
+        Task { await refreshStoreKitProStatus() }
     }
 
     var isProActive: Bool {
-        settings.cachedProUsage?.isPro == true
+        isServerProActive || settings.storeKitProTrusted
     }
 
     var usageInfo: ProUsageInfo? {
@@ -44,6 +46,10 @@ final class SubscriptionService {
     var selectedPlan: SubscriptionPlan {
         get { settings.selectedPlan }
         set { settings.selectedPlan = newValue }
+    }
+
+    private var isServerProActive: Bool {
+        settings.cachedProUsage?.isPro == true
     }
 
     /// Loads the App Store product metadata used for the displayed price.
@@ -67,6 +73,7 @@ final class SubscriptionService {
     /// the paywall is opening, so callers can opt out of treating a transient
     /// refresh failure as a purchase error.
     func refreshEntitlements(reportError: Bool = true) async {
+        await refreshStoreKitProStatus()
         do {
             let usage = try await proBackend.refreshUsage()
             settings.cachedProUsage = usage
@@ -80,9 +87,10 @@ final class SubscriptionService {
 
     private func applyUsageEntitlements(_ usage: ProUsageInfo) {
         if usage.isPro {
+            settings.storeKitProTrusted = true
             settings.selectedPlan = .pro
             settings.applyProEntitlements()
-        } else if settings.selectedPlan == .pro {
+        } else if settings.selectedPlan == .pro, !settings.storeKitProTrusted {
             // A lapsed or unverified Pro selection must not block the free
             // included-minutes path on the next refresh.
             settings.selectedPlan = .free
@@ -90,8 +98,10 @@ final class SubscriptionService {
     }
 
     func purchasePro() async -> Bool {
-        // A prior purchase may still be on-device waiting for backend confirmation.
-        if await syncEntitlementsFromStore(reportError: false) {
+        await refreshStoreKitProStatus()
+        if isProActive {
+            lastError = nil
+            scheduleBackgroundServerConfirmation()
             return true
         }
 
@@ -109,15 +119,12 @@ final class SubscriptionService {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
                 let signedInfo = signedTransactionInfo(from: verification)
-                if await confirmWithRetries(
+                applyStoreKitProTrust()
+                scheduleBackgroundServerConfirmation(
                     transaction: transaction,
                     signedTransactionInfo: signedInfo
-                ) {
-                    await transaction.finish()
-                    return true
-                }
-                // Leave the transaction open so another Subscribe tap can retry.
-                return false
+                )
+                return true
             case .userCancelled:
                 return false
             case .pending:
@@ -136,6 +143,7 @@ final class SubscriptionService {
     /// Does not call `AppStore.sync()` — that prompts for an App Store password.
     @discardableResult
     func syncEntitlementsFromStore(reportError: Bool = true) async -> Bool {
+        await refreshStoreKitProStatus()
         var confirmedAny = false
         for await result in Transaction.unfinished {
             if await processEntitlement(result) {
@@ -164,6 +172,26 @@ final class SubscriptionService {
 
     func restorePurchases() async {
         _ = await syncEntitlementsFromStore()
+    }
+
+    /// Best-effort Platform confirmation before cloud transcription when Pro is
+    /// trusted locally from StoreKit but the server has not caught up yet.
+    func ensureServerProConfirmedBeforeProcessing() async {
+        guard settings.storeKitProTrusted, !isServerProActive else { return }
+        _ = await syncEntitlementsFromStore(reportError: false)
+    }
+
+    @discardableResult
+    func refreshStoreKitProStatus() async -> Bool {
+        let active = await hasActiveStoreKitProEntitlement()
+        settings.storeKitProTrusted = active
+        if active {
+            settings.selectedPlan = .pro
+            settings.applyProEntitlements()
+        } else if !isServerProActive {
+            settings.storeKitProTrusted = false
+        }
+        return active
     }
 
     #if DEBUG
@@ -205,6 +233,7 @@ final class SubscriptionService {
               transaction.productID == SubscriptionProduct.proMonthly else {
             return false
         }
+        applyStoreKitProTrust()
         let confirmed = await confirmSubscription(
             productID: transaction.productID,
             transactionID: String(transaction.id),
@@ -213,14 +242,33 @@ final class SubscriptionService {
         if confirmed {
             await transaction.finish()
         }
-        return confirmed
+        return confirmed || settings.storeKitProTrusted
+    }
+
+    private func scheduleBackgroundServerConfirmation(
+        transaction: Transaction? = nil,
+        signedTransactionInfo: String? = nil
+    ) {
+        backgroundConfirmationTask?.cancel()
+        backgroundConfirmationTask = Task {
+            if let transaction {
+                if await confirmWithRetries(
+                    transaction: transaction,
+                    signedTransactionInfo: signedTransactionInfo
+                ) {
+                    await transaction.finish()
+                }
+                return
+            }
+            _ = await syncEntitlementsFromStore(reportError: false)
+        }
     }
 
     private func confirmWithRetries(
         transaction: Transaction,
         signedTransactionInfo: String?
     ) async -> Bool {
-        let retryDelaysNanoseconds: [UInt64] = [0, 1_000_000_000, 2_000_000_000, 4_000_000_000]
+        let retryDelaysNanoseconds: [UInt64] = [0, 1_000_000_000, 2_000_000_000, 4_000_000_000, 8_000_000_000]
         for delay in retryDelaysNanoseconds {
             if delay > 0 {
                 try? await Task.sleep(nanoseconds: delay)
@@ -232,11 +280,34 @@ final class SubscriptionService {
             ) {
                 return true
             }
-            if await syncEntitlementsFromStore(reportError: false), isProActive {
+            await refreshEntitlements(reportError: false)
+            if isServerProActive {
                 return true
             }
         }
         return false
+    }
+
+    private func applyStoreKitProTrust() {
+        settings.storeKitProTrusted = true
+        settings.selectedPlan = .pro
+        settings.applyProEntitlements()
+        lastError = nil
+    }
+
+    private func hasActiveStoreKitProEntitlement() async -> Bool {
+        for await result in Transaction.unfinished {
+            if isProEntitlement(result) { return true }
+        }
+        for await result in Transaction.currentEntitlements {
+            if isProEntitlement(result) { return true }
+        }
+        return false
+    }
+
+    private func isProEntitlement(_ result: VerificationResult<Transaction>) -> Bool {
+        guard let transaction = try? checkVerified(result) else { return false }
+        return transaction.productID == SubscriptionProduct.proMonthly
     }
 
     /// Pro stays locked until the backend has independently confirmed the
@@ -260,11 +331,16 @@ final class SubscriptionService {
                 return false
             }
             settings.cachedProUsage = usage
+            settings.storeKitProTrusted = true
             settings.selectedPlan = .pro
             settings.applyProEntitlements()
             lastError = nil
             return true
         } catch {
+            if settings.storeKitProTrusted {
+                // Keep Pro unlocked locally; background retries continue elsewhere.
+                return false
+            }
             lastError = Self.friendlyVerificationError(for: error)
             return false
         }
@@ -282,15 +358,15 @@ final class SubscriptionService {
     private static func friendlyVerificationError(for error: Error) -> String {
         if let message = backendServerMessage(from: error), !message.isEmpty {
             if message.localizedCaseInsensitiveContains("transaction not found") {
-                return "Your purchase went through, but activation is still in progress. Tap Subscribe again in a few seconds."
+                return "Pro is activating. You can use the app now; server confirmation may take a moment."
             }
             if message.localizedCaseInsensitiveContains("missing metadata")
                 || message.localizedCaseInsensitiveContains("not available for purchase") {
                 return "Pro subscription setup is still incomplete in App Store Connect. Free included minutes still work — cancel here and use Continue Free in Settings."
             }
-            return "Your purchase is complete, but Pro could not be activated yet: \(message)"
+            return "Pro is activating. You can use the app now. (\(message))"
         }
-        return "Your purchase went through, but Pro is still activating. Tap Subscribe again in a few seconds."
+        return "Pro is activating. You can use the app now."
     }
 
     private static func backendServerMessage(from error: Error) -> String? {
