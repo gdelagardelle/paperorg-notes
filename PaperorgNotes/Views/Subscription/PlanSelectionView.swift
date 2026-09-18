@@ -213,7 +213,7 @@ struct PaywallView: View {
                     if environment.settingsService.usePlatformAuth,
                        !environment.subscriptionService.isProActive {
                         Button(String(localized: "paywall.refresh")) {
-                            Task { await environment.subscriptionService.refreshEntitlements() }
+                            Task { await environment.subscriptionService.restorePurchases() }
                         }
                         .buttonStyle(SecondaryButtonStyle())
                     }

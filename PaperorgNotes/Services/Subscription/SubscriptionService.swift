@@ -103,7 +103,10 @@ final class SubscriptionService {
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
-                let confirmed = await handle(transaction: transaction)
+                let confirmed = await handle(
+                    transaction: transaction,
+                    signedTransactionInfo: signedTransactionInfo(from: verification)
+                )
                 if confirmed {
                     await transaction.finish()
                 }
@@ -128,7 +131,10 @@ final class SubscriptionService {
             for await result in Transaction.currentEntitlements {
                 if let transaction = try? checkVerified(result),
                    transaction.productID == SubscriptionProduct.proMonthly {
-                    if await handle(transaction: transaction) {
+                    if await handle(
+                        transaction: transaction,
+                        signedTransactionInfo: signedTransactionInfo(from: result)
+                    ) {
                         await transaction.finish()
                     }
                 }
@@ -168,7 +174,10 @@ final class SubscriptionService {
         Task {
             for await result in Transaction.updates {
                 if let transaction = try? checkVerified(result) {
-                    if await handle(transaction: transaction) {
+                    if await handle(
+                        transaction: transaction,
+                        signedTransactionInfo: signedTransactionInfo(from: result)
+                    ) {
                         await transaction.finish()
                     }
                 }
@@ -177,10 +186,14 @@ final class SubscriptionService {
     }
 
     @discardableResult
-    private func handle(transaction: Transaction) async -> Bool {
+    private func handle(
+        transaction: Transaction,
+        signedTransactionInfo: String?
+    ) async -> Bool {
         await confirmSubscription(
             productID: transaction.productID,
-            transactionID: String(transaction.id)
+            transactionID: String(transaction.id),
+            signedTransactionInfo: signedTransactionInfo
         )
     }
 
@@ -188,13 +201,17 @@ final class SubscriptionService {
     /// StoreKit transaction with Apple. This prevents a successful sheet from
     /// being presented as an active entitlement when verification is unavailable.
     @discardableResult
-    func confirmSubscription(productID: String, transactionID: String?) async -> Bool {
+    func confirmSubscription(
+        productID: String,
+        transactionID: String?,
+        signedTransactionInfo: String? = nil
+    ) async -> Bool {
         guard productID == SubscriptionProduct.proMonthly else { return false }
         do {
             let usage = try await proBackend.verifySubscription(
                 productID: productID,
                 transactionID: transactionID,
-                signedTransactionInfo: nil
+                signedTransactionInfo: signedTransactionInfo
             )
             guard usage.isPro else {
                 lastError = L10n.Subscription.entitlementUnavailable
@@ -206,9 +223,39 @@ final class SubscriptionService {
             lastError = nil
             return true
         } catch {
-            lastError = L10n.Subscription.verificationPending
+            lastError = Self.friendlyVerificationError(for: error)
             return false
         }
+    }
+
+    private func signedTransactionInfo(from result: VerificationResult<Transaction>) -> String? {
+        switch result {
+        case .verified:
+            return result.jwsRepresentation
+        case .unverified:
+            return nil
+        }
+    }
+
+    private static func friendlyVerificationError(for error: Error) -> String {
+        if let message = backendServerMessage(from: error), !message.isEmpty {
+            if message.localizedCaseInsensitiveContains("transaction not found") {
+                return "Your purchase went through, but the server has not matched it yet. Tap Restore Purchases, wait a minute, then Refresh Status."
+            }
+            if message.localizedCaseInsensitiveContains("missing metadata")
+                || message.localizedCaseInsensitiveContains("not available for purchase") {
+                return "Pro subscription setup is still incomplete in App Store Connect. Free included minutes still work — cancel here and use Continue Free in Settings."
+            }
+            return "Your purchase is complete, but Pro could not be activated yet: \(message)"
+        }
+        return L10n.Subscription.verificationPending
+    }
+
+    private static func backendServerMessage(from error: Error) -> String? {
+        if case ProBackendError.serverError(let message) = error {
+            return message
+        }
+        return nil
     }
 
     private func purchase(_ product: Product) async throws -> Product.PurchaseResult {
