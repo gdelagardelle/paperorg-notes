@@ -27,15 +27,22 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section(L10n.Settings.proSection) {
-                    if environment.subscriptionService.isProActive {
+                    if environment.subscriptionService.isServerProConfirmed {
                         Label(L10n.Settings.proActive, systemImage: "checkmark.seal.fill")
                             .foregroundStyle(AppTheme.accent)
-                        if let usage = environment.subscriptionService.usageInfo {
+                        if let usage = environment.subscriptionService.displayUsageInfo {
                             ProUsageCard(usage: usage) {
                                 Task { await environment.subscriptionService.refreshEntitlements() }
                             }
                         }
                         SettingsSectionHint(text: L10n.Settings.proHint)
+                    } else if environment.subscriptionService.isProPendingServerConfirmation {
+                        Label(L10n.Settings.proConfirming, systemImage: "clock.arrow.circlepath")
+                            .foregroundStyle(AppTheme.accent)
+                        Button(String(localized: "paywall.refresh")) {
+                            Task { await environment.subscriptionService.syncEntitlementsFromStore() }
+                        }
+                        SettingsSectionHint(text: L10n.Settings.proConfirmingHint)
                     } else if settings.usesIncludedBackend,
                               let usage = settings.cachedProUsage {
                         Label(L10n.Included.active, systemImage: "clock.badge.checkmark")
@@ -45,15 +52,20 @@ struct SettingsView: View {
                         }
                         SettingsSectionHint(text: L10n.Included.detail)
                         Button(L10n.Settings.upgradePro) { showPaywall = true }
-                    } else if settings.selectedPlan == .pro {
-                        Text(L10n.Settings.proSelected)
-                            .font(.caption)
-                            .foregroundStyle(AppTheme.error)
-                        Button(L10n.Settings.subscribePro) { showPaywall = true }
                     } else {
-                        SettingsSectionHint(text: String(localized: "settings.free.hint"))
+                        if settings.selectedPlan == .pro {
+                            Text(L10n.Settings.proSelected)
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.error)
+                        } else {
+                            SettingsSectionHint(text: String(localized: "settings.free.hint"))
+                        }
                         Button(L10n.Included.title) { showIncludedMinutesAccess = true }
-                        Button(L10n.Settings.upgradePro) { showPaywall = true }
+                        Button(
+                            settings.selectedPlan == .pro
+                                ? L10n.Settings.subscribePro
+                                : L10n.Settings.upgradePro
+                        ) { showPaywall = true }
                     }
                     HStack(spacing: 8) {
                         Circle()
@@ -380,6 +392,11 @@ struct SettingsView: View {
                     retentionDays: environment.settingsService.effectiveAudioRetentionDays
                 )
                 try? modelContext.save()
+            }
+            .task {
+                if environment.subscriptionService.isProPendingServerConfirmation {
+                    await environment.subscriptionService.syncEntitlementsFromStore(reportError: false)
+                }
             }
             .alert("Delete All Data?", isPresented: $showDeleteConfirmation) {
                 Button("Delete Everything", role: .destructive) {

@@ -366,12 +366,6 @@ struct RecordView: View {
     }
     
     private func startRecording() {
-        if environment.settingsService.selectedPlan == .pro,
-           !environment.subscriptionService.isProActive {
-            showPaywall = true
-            return
-        }
-
         if !environment.settingsService.usesBackendProcessing {
             showIncludedMinutesAccess = true
             return
@@ -424,12 +418,6 @@ struct RecordView: View {
     }
     
     private func beginImport() {
-        if environment.settingsService.selectedPlan == .pro,
-           !environment.subscriptionService.isProActive {
-            showPaywall = true
-            return
-        }
-
         if !environment.settingsService.usesBackendProcessing {
             showIncludedMinutesAccess = true
             return
@@ -689,13 +677,6 @@ struct RecordView: View {
     }
 
     private func startRecordingFromQuickRecord() async {
-        if environment.settingsService.selectedPlan == .pro,
-           !environment.subscriptionService.isProActive {
-            environment.deepLinkHandler.clearQuickRecordFlag()
-            showPaywall = true
-            return
-        }
-
         if !environment.settingsService.usesBackendProcessing {
             environment.deepLinkHandler.clearQuickRecordFlag()
             showIncludedMinutesAccess = true

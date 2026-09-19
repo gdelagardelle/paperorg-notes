@@ -4760,6 +4760,40 @@
         }
       }
     },
+    "paywall.retry_activation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activate Pro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activer Pro"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro aktivieren"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro aktivéieren"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativar Pro"
+          }
+        }
+      }
+    },
     "paywall.renewal": {
       "extractionState": "stale",
       "localizations": {
@@ -7590,6 +7624,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "Subscrição Pro ativa"
+          }
+        }
+      }
+    },
+    "settings.pro.confirming": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro purchase received — confirming"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Achat Pro reçu — confirmation en cours"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro-Kauf erhalten — Bestätigung läuft"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro-Kaf kritt — Bestätegung leeft"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compra Pro recebida — a confirmar"
+          }
+        }
+      }
+    },
+    "settings.pro.confirming_hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple confirmed your purchase. Your cloud minutes will appear once activation is complete. Tap Refresh status to check again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple a confirmé votre achat. Vos minutes cloud s’afficheront une fois l’activation terminée. Touchez Actualiser le statut pour vérifier à nouveau."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple hat Ihren Kauf bestätigt. Ihre Cloud-Minuten werden nach der Aktivierung angezeigt. Tippen Sie auf Status aktualisieren, um erneut zu prüfen."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple huet Äre Kaf bestätegt. Är Cloud-Minutte ginn ugewisen, soubal d’Aktivéierung ofgeschloss ass. Tippt op Status aktualiséieren, fir nach eng Kéier ze kucken."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Apple confirmou a sua compra. Os minutos na nuvem serão apresentados quando a ativação estiver concluída. Toque em Atualizar estado para verificar novamente."
           }
         }
       }

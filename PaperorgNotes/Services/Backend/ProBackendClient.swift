@@ -103,10 +103,12 @@ final class ProBackendClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         try authorize(&request)
 
+        // Platform verifies purchases server-side via App Store Server API using
+        // transaction_id only. Sending signed_transaction_info is rejected.
         let body = VerifySubscriptionRequest(
             productID: productID,
             transactionID: transactionID,
-            signedTransactionInfo: signedTransactionInfo
+            signedTransactionInfo: settings.usePlatformAuth ? nil : signedTransactionInfo
         )
         request.httpBody = try JSONEncoder().encode(body)
 

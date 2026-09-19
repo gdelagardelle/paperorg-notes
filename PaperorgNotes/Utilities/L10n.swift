@@ -12,6 +12,8 @@ enum L10n {
         static let title = String(localized: "settings.title")
         static let proSection = String(localized: "settings.pro.section")
         static let proActive = String(localized: "settings.pro.active")
+        static let proConfirming = String(localized: "settings.pro.confirming")
+        static let proConfirmingHint = String(localized: "settings.pro.confirming_hint")
         static let proHint = String(localized: "settings.pro.hint")
         static let upgradePro = String(localized: "settings.pro.upgrade")
         static let subscribePro = String(localized: "settings.pro.subscribe")

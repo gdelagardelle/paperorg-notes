@@ -1,3 +1,5 @@
+> Historical August implementation record. For current launch preparation, use [the release checklist](docs/TESTFLIGHT_CHECKLIST.md). The app now uses accountless, server-managed included minutes.
+
 # Plan — included minutes launch
 
 Execution profile: solo (Codex-only). This environment cannot provide an

@@ -705,7 +705,8 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
         let service = SubscriptionService(
             settings: settings,
-            proBackend: TestSubscriptionVerifier(outcome: .failure)
+            proBackend: TestSubscriptionVerifier(outcome: .failure),
+            loadStoreKitEntitlementsOnLaunch: false
         )
 
         let confirmed = await service.confirmSubscription(
@@ -716,7 +717,11 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         XCTAssertFalse(confirmed)
         XCTAssertEqual(settings.selectedPlan, .free)
         XCTAssertFalse(service.isProActive)
-        XCTAssertEqual(service.lastError, L10n.Subscription.verificationPending)
+        XCTAssertFalse(settings.storeKitProTrusted)
+        XCTAssertEqual(
+            service.lastError,
+            "Pro is activating. You can use the app now. (Verification unavailable)"
+        )
     }
 
     func testVerifiedSubscriptionGrantsPro() async {
@@ -736,7 +741,8 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
         let service = SubscriptionService(
             settings: settings,
-            proBackend: TestSubscriptionVerifier(outcome: .success(usage))
+            proBackend: TestSubscriptionVerifier(outcome: .success(usage)),
+            loadStoreKitEntitlementsOnLaunch: false
         )
 
         let confirmed = await service.confirmSubscription(
@@ -768,7 +774,8 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
         let service = SubscriptionService(
             settings: settings,
-            proBackend: TestSubscriptionVerifier(outcome: .success(usage))
+            proBackend: TestSubscriptionVerifier(outcome: .success(usage)),
+            loadStoreKitEntitlementsOnLaunch: false
         )
 
         let confirmed = await service.confirmSubscription(
@@ -780,6 +787,105 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         XCTAssertEqual(settings.selectedPlan, .free)
         XCTAssertFalse(service.isProActive)
         XCTAssertEqual(service.lastError, L10n.Subscription.entitlementUnavailable)
+    }
+
+    func testStoreKitProTrustUnlocksBeforeServerConfirmation() {
+        let suiteName = "SubscriptionStoreKitProTrust"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        settings.usePlatformAuth = true
+        settings.storeKitProTrusted = true
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .failure),
+            loadStoreKitEntitlementsOnLaunch: false
+        )
+
+        XCTAssertTrue(service.isProActive)
+        XCTAssertTrue(settings.usesProBackend)
+        XCTAssertFalse(settings.usesIncludedBackend)
+    }
+
+    func testPendingPurchaseDoesNotInventCloudMinutes() async {
+        let suiteName = "SubscriptionPendingCloudAllowance"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        settings.storeKitProTrusted = true
+        settings.cachedProUsage = ProUsageInfo(
+            isPro: false, minutesLimit: 30, minutesUsed: 30, minutesRemaining: 0,
+            periodKey: "2026-09", proExpiresAt: nil
+        )
+        let confirmedUsage = ProUsageInfo(
+            isPro: true, minutesLimit: 600, minutesUsed: 30, minutesRemaining: 570,
+            periodKey: "2026-09", proExpiresAt: nil
+        )
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .success(confirmedUsage)),
+            loadStoreKitEntitlementsOnLaunch: false
+        )
+        XCTAssertTrue(service.isProPendingServerConfirmation)
+        XCTAssertNil(service.displayUsageInfo)
+        let confirmed = await service.confirmSubscription(
+            productID: SubscriptionProduct.proMonthly, transactionID: "123"
+        )
+        XCTAssertTrue(confirmed)
+        XCTAssertFalse(service.isProPendingServerConfirmation)
+        XCTAssertEqual(service.displayUsageInfo?.minutesRemaining, 570)
+    }
+
+    func testUnfinishedTransactionsMustStillBeCurrentAndNotRevoked() {
+        let now = Date(timeIntervalSince1970: 1_000)
+        let future = now.addingTimeInterval(60)
+        let cases: [(String, Date?, Date?, Bool, Bool)] = [
+            (SubscriptionProduct.proMonthly, future, nil, false, true),
+            (SubscriptionProduct.proMonthly, now, nil, false, false),
+            (SubscriptionProduct.proMonthly, now.addingTimeInterval(-1), nil, false, false),
+            (SubscriptionProduct.proMonthly, future, now, false, false),
+            (SubscriptionProduct.proMonthly, future, nil, true, false),
+            (SubscriptionProduct.proMonthly, nil, nil, false, false),
+            ("another.product", future, nil, false, false),
+        ]
+        for (product, expiry, revoked, upgraded, expected) in cases {
+            XCTAssertEqual(SubscriptionService.isActiveProTransaction(
+                productID: product, expirationDate: expiry, revocationDate: revoked,
+                isUpgraded: upgraded, now: now
+            ), expected)
+        }
+    }
+
+    func testRefreshDowngradesStaleProSelectionWhenEntitlementLapsed() async {
+        let suiteName = "SubscriptionRefreshDowngradeStalePro"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let usage = ProUsageInfo(
+            isPro: false,
+            minutesLimit: 30,
+            minutesUsed: 0,
+            minutesRemaining: 30,
+            periodKey: "2026-09",
+            proExpiresAt: nil
+        )
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        settings.selectedPlan = .pro
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .success(usage)),
+            loadStoreKitEntitlementsOnLaunch: false
+        )
+
+        await service.refreshEntitlements()
+
+        XCTAssertEqual(settings.selectedPlan, .free)
+        XCTAssertFalse(service.isProActive)
+        XCTAssertTrue(settings.usesIncludedBackend)
     }
 }
 

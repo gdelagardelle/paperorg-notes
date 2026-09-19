@@ -22,6 +22,7 @@ final class ProcessRecordingUseCase {
     private let storageService: StorageService
     private let qualityPipeline: QualityPipeline
     private let settingsService: SettingsService
+    private let subscriptionService: SubscriptionService
     private let proBackendClient: ProBackendClient
     private let segmentQueue = SegmentTranscriptionQueue()
     private var finalizingNoteIDs: Set<UUID> = []
@@ -32,7 +33,8 @@ final class ProcessRecordingUseCase {
         storageService: StorageService,
         qualityPipeline: QualityPipeline,
         settingsService: SettingsService,
-        proBackendClient: ProBackendClient
+        proBackendClient: ProBackendClient,
+        subscriptionService: SubscriptionService
     ) {
         self.transcriptionService = transcriptionService
         self.summaryService = summaryService
@@ -40,6 +42,7 @@ final class ProcessRecordingUseCase {
         self.qualityPipeline = qualityPipeline
         self.settingsService = settingsService
         self.proBackendClient = proBackendClient
+        self.subscriptionService = subscriptionService
     }
 
     /// Capturing stays draft: only completed files are uploaded, and no summary
@@ -47,6 +50,7 @@ final class ProcessRecordingUseCase {
     func transcribeCompletedSegments(note: Note) async throws {
         let store = SegmentRecordingStore(directory: storageService.segmentDirectory(for: note.id))
         guard !(try store.chunks()).isEmpty else { return }
+        await subscriptionService.ensureServerProConfirmedBeforeProcessing()
         guard try await proBackendClient.supportsSegmentedTranscription() else {
             throw TranscriptionError.providerError("Your audio is saved. The server needs a segmented-recording update before this note can be transcribed.")
         }
@@ -88,6 +92,7 @@ final class ProcessRecordingUseCase {
 
         do {
             advance(.transcribing)
+            await subscriptionService.ensureServerProConfirmedBeforeProcessing()
             storageService.prepareAudioForReading(noteId: note.id)
 
             let measuredDuration = AudioTrimService.playableDuration(of: audioURL)
