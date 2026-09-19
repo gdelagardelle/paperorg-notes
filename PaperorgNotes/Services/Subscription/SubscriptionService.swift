@@ -60,7 +60,8 @@ final class SubscriptionService {
     /// Display only the allowance actually returned by the server.
     /// A verified purchase can unlock local features while cloud activation is pending.
     var displayUsageInfo: ProUsageInfo? {
-        isProPendingServerConfirmation ? nil : usageInfo
+        guard !isProPendingServerConfirmation, let usage = usageInfo else { return nil }
+        return usage.isPro && !usage.hasActiveProEntitlement ? nil : usage
     }
 
     var selectedPlan: SubscriptionPlan {
@@ -69,7 +70,7 @@ final class SubscriptionService {
     }
 
     private var isServerProActive: Bool {
-        settings.cachedProUsage?.isPro == true
+        settings.cachedProUsage?.hasActiveProEntitlement == true
     }
 
     /// Loads the App Store product metadata used for the displayed price.
@@ -106,8 +107,7 @@ final class SubscriptionService {
     }
 
     private func applyUsageEntitlements(_ usage: ProUsageInfo) {
-        if usage.isPro {
-            settings.storeKitProTrusted = true
+        if usage.hasActiveProEntitlement {
             settings.selectedPlan = .pro
             settings.applyProEntitlements()
         } else if settings.selectedPlan == .pro, !settings.storeKitProTrusted {
@@ -364,12 +364,11 @@ final class SubscriptionService {
                 transactionID: transactionID,
                 signedTransactionInfo: signedTransactionInfo
             )
-            guard usage.isPro else {
+            guard usage.hasActiveProEntitlement else {
                 lastError = L10n.Subscription.entitlementUnavailable
                 return false
             }
             settings.cachedProUsage = usage
-            settings.storeKitProTrusted = true
             settings.selectedPlan = .pro
             settings.applyProEntitlements()
             lastError = nil
@@ -379,7 +378,7 @@ final class SubscriptionService {
                 // Keep Pro unlocked locally; background retries continue elsewhere.
                 return false
             }
-            lastError = Self.friendlyVerificationError(for: error)
+            lastError = L10n.Subscription.entitlementUnavailable
             return false
         }
     }
@@ -391,30 +390,6 @@ final class SubscriptionService {
         case .unverified:
             return nil
         }
-    }
-
-    private static func friendlyVerificationError(for error: Error) -> String {
-        if let message = backendServerMessage(from: error), !message.isEmpty {
-            if message.localizedCaseInsensitiveContains("signed transaction data is not accepted") {
-                return "Pro is activating. Update to the latest TestFlight build, then tap Subscribe again."
-            }
-            if message.localizedCaseInsensitiveContains("transaction not found") {
-                return "Pro is activating. You can use the app now; server confirmation may take a moment."
-            }
-            if message.localizedCaseInsensitiveContains("missing metadata")
-                || message.localizedCaseInsensitiveContains("not available for purchase") {
-                return "Pro subscription setup is still incomplete in App Store Connect. Free included minutes still work — cancel here and use Continue Free in Settings."
-            }
-            return "Pro is activating. You can use the app now. (\(message))"
-        }
-        return "Pro is activating. You can use the app now."
-    }
-
-    private static func backendServerMessage(from error: Error) -> String? {
-        if case ProBackendError.serverError(let message) = error {
-            return message
-        }
-        return nil
     }
 
     private func purchase(_ product: Product) async throws -> Product.PurchaseResult {

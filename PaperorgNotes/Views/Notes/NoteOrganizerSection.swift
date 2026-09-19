@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct NoteOrganizerSection: View {
     @Bindable var note: Note

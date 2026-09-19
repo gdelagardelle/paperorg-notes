@@ -720,7 +720,7 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         XCTAssertFalse(settings.storeKitProTrusted)
         XCTAssertEqual(
             service.lastError,
-            "Pro is activating. You can use the app now. (Verification unavailable)"
+            L10n.Subscription.entitlementUnavailable
         )
     }
 
@@ -736,7 +736,7 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
             minutesUsed: 0,
             minutesRemaining: 600,
             periodKey: "2026-08",
-            proExpiresAt: "2026-09-01T00:00:00Z"
+            proExpiresAt: ISO8601DateFormatter().string(from: Date().addingTimeInterval(3600))
         )
         let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
         let service = SubscriptionService(
@@ -754,7 +754,66 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         XCTAssertEqual(settings.selectedPlan, .pro)
         XCTAssertTrue(service.isProActive)
         XCTAssertEqual(service.usageInfo, usage)
+        XCTAssertFalse(settings.storeKitProTrusted, "Server verification must not impersonate StoreKit trust")
         XCTAssertNil(service.lastError)
+    }
+
+    func testExpiredOrMalformedCachedProCannotUnlockPaidFeatures() {
+        let suiteName = "SubscriptionExpiredServerCache"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        settings.usePlatformAuth = true
+        settings.selectedPlan = .pro
+        let service = SubscriptionService(
+            settings: settings, proBackend: TestSubscriptionVerifier(outcome: .failure),
+            loadStoreKitEntitlementsOnLaunch: false
+        )
+        for expiry in ["2020-01-01T00:00:00Z", "2020-01-01T00:00:00.123Z", "not-a-date"] {
+            settings.cachedProUsage = ProUsageInfo(
+                isPro: true, minutesLimit: 600, minutesUsed: 0, minutesRemaining: 600,
+                periodKey: "2020-01", proExpiresAt: expiry
+            )
+            XCTAssertFalse(service.isProActive, expiry)
+            XCTAssertFalse(service.isServerProConfirmed, expiry)
+            XCTAssertFalse(settings.usesProBackend, expiry)
+            XCTAssertNil(service.displayUsageInfo, expiry)
+        }
+    }
+
+    func testPreviousLaunchTrustMustBeReverifiedByStoreKit() {
+        let suiteName = "SubscriptionPersistedStoreKitTrust"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set(true, forKey: "storeKitProTrusted")
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        let service = SubscriptionService(
+            settings: settings, proBackend: TestSubscriptionVerifier(outcome: .failure),
+            loadStoreKitEntitlementsOnLaunch: false
+        )
+        XCTAssertFalse(settings.storeKitProTrusted)
+        XCTAssertFalse(service.isProActive)
+        XCTAssertFalse(settings.usesProBackend)
+    }
+
+    func testExpiredServerVerificationCannotActivatePro() async {
+        let suiteName = "SubscriptionExpiredVerification"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        let expired = ProUsageInfo(isPro: true, minutesLimit: 600, minutesUsed: 0,
+            minutesRemaining: 600, periodKey: "2020-01", proExpiresAt: "2020-01-01T00:00:00Z")
+        let service = SubscriptionService(settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .success(expired)),
+            loadStoreKitEntitlementsOnLaunch: false)
+        let confirmed = await service.confirmSubscription(
+            productID: SubscriptionProduct.proMonthly, transactionID: "expired")
+        XCTAssertFalse(confirmed)
+        XCTAssertFalse(service.isProActive)
+        XCTAssertFalse(settings.storeKitProTrusted)
     }
 
     func testUnentitledVerificationDoesNotGrantPro() async {
@@ -1203,7 +1262,10 @@ final class TranscriptionFallbackPolicyTests: XCTestCase {
 
     func testTransientBackendErrorsMayTryTheNextProvider() {
         XCTAssertFalse(ProBackendError.serverError("timeout").stopsProviderFallback)
-        XCTAssertFalse(ProBackendError.notAuthenticated.stopsProviderFallback)
+    }
+
+    func testAuthenticationRejectionCannotFallThroughToUnmeteredSpeech() {
+        XCTAssertTrue(ProBackendError.notAuthenticated.stopsProviderFallback)
     }
 }
 

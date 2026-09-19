@@ -1,6 +1,6 @@
 # PaperOrg Notes — release checklist
 
-Updated 19 September 2026. Candidate: **1.0.0 (67)** on `codex/launch-preparation`.
+Updated 20 September 2026. Candidate: **1.0.0 (68)** on `codex/launch-preparation`.
 
 ## Candidate contents
 
@@ -9,6 +9,10 @@ Updated 19 September 2026. Candidate: **1.0.0 (67)** on `codex/launch-preparatio
 - Server-confirmed cloud usage only: pending activation no longer displays an invented 600-minute balance.
 - Expired, revoked or upgraded unfinished StoreKit transactions cannot grant local Pro access.
 - Complete English, French, German, Luxembourgish and Portuguese subscription copy.
+- Expired or malformed server entitlements cannot unlock Pro or display stale cloud allowance.
+- StoreKit trust is verified anew at launch; server confirmation cannot impersonate it.
+- Failed verification without purchase proof shows a retry message; authentication rejection stops provider fallback.
+- Build and review details: [20 September validation](LAUNCH_VALIDATION-2026-09-20.md).
 
 ## Build and source evidence
 

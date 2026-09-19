@@ -155,7 +155,7 @@ struct PaywallView: View {
                     }
                     .surfaceCard()
 
-                    if let usage = environment.subscriptionService.usageInfo, usage.isPro {
+                    if let usage = environment.subscriptionService.displayUsageInfo, usage.hasActiveProEntitlement {
                         Label(
                             L10n.Included.remaining(Int(usage.minutesRemaining.rounded(.down))),
                             systemImage: "clock.fill"
