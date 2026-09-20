@@ -1,3 +1,5 @@
+> Historical August implementation record. For current launch preparation, use [the release checklist](docs/TESTFLIGHT_CHECKLIST.md). The app now uses accountless, server-managed included minutes.
+
 # Review
 
 ## Task 1 — Apple identity foundation

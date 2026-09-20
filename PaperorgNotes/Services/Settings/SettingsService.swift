@@ -46,6 +46,7 @@ final class SettingsService {
         static let platformUserID = "platformUserID"
         static let subscriptionTokenBackendURL = "subscriptionTokenBackendURL"
         static let hasSeenIncludedMinutesUpgradePrompt = "hasSeenIncludedMinutesUpgradePrompt"
+        static let storeKitProTrusted = "storeKitProTrusted"
     }
     
     var defaultLanguage: AppLanguage {
@@ -248,11 +249,14 @@ final class SettingsService {
         }
     }
 
+    /// True when StoreKit shows an active Pro subscription before Platform confirms it.
+    var storeKitProTrusted: Bool
+
     var usesProBackend: Bool {
         if usePlatformAuth {
-            return cachedProUsage?.isPro == true
+            return cachedProUsage?.hasActiveProEntitlement == true || storeKitProTrusted
         }
-        return selectedPlan == .pro && cachedProUsage?.isPro == true
+        return selectedPlan == .pro && (cachedProUsage?.hasActiveProEntitlement == true || storeKitProTrusted)
     }
 
     var usesIncludedBackend: Bool {
@@ -387,6 +391,10 @@ final class SettingsService {
         self.platformUserID = defaults.string(forKey: Keys.platformUserID)
         self.subscriptionTokenBackendURL = defaults.string(forKey: Keys.subscriptionTokenBackendURL)
         self.hasSeenIncludedMinutesUpgradePrompt = defaults.bool(forKey: Keys.hasSeenIncludedMinutesUpgradePrompt)
+        // A persisted boolean cannot prove a subscription is still active.
+        // StoreKit restores verified current entitlements on every launch.
+        self.storeKitProTrusted = false
+        defaults.removeObject(forKey: Keys.storeKitProTrusted)
         self.proBackendBaseURL = defaults.string(forKey: Keys.proBackendBaseURL)
             ?? BackendConfiguration.defaultProBackendURL
         self.platformAPIBaseURL = defaults.string(forKey: Keys.platformAPIBaseURL)
@@ -499,6 +507,7 @@ final class SettingsService {
         hasCompletedPlanSelection = false
         cachedProUsage = nil
         hasSeenIncludedMinutesUpgradePrompt = false
+        storeKitProTrusted = false
         platformUserID = nil
         subscriptionTokenBackendURL = nil
         usePlatformAuth = BackendConfiguration.usePlatformAuthByDefault

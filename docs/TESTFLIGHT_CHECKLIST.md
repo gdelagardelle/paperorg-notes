@@ -1,102 +1,74 @@
-# Paperorg Notes — TestFlight & App Store Checklist
+# PaperOrg Notes — release checklist
 
-> **The backend lives in a separate repository**,
-> [gdelagardelle/paperorg-notes-api](https://github.com/gdelagardelle/paperorg-notes-api).
-> `backend/...` paths below are relative to that repository, not this one.
+Updated 20 September 2026. Candidate: **1.0.0 (68)** on `codex/launch-preparation`.
 
-Use this before submitting build **1.0.0** to TestFlight.
+## Candidate contents
 
----
+- Continuous segmented recording, persisted segments, interruption and offline recovery from main.
+- Free-entry and subscription activation fixes from the build-66 branch.
+- Server-confirmed cloud usage only: pending activation no longer displays an invented 600-minute balance.
+- Expired, revoked or upgraded unfinished StoreKit transactions cannot grant local Pro access.
+- Complete English, French, German, Luxembourgish and Portuguese subscription copy.
+- Expired or malformed server entitlements cannot unlock Pro or display stale cloud allowance.
+- StoreKit trust is verified anew at launch; server confirmation cannot impersonate it.
+- Failed verification without purchase proof shows a retry message; authentication rejection stops provider fallback.
+- Build and review details: [20 September validation](LAUNCH_VALIDATION-2026-09-20.md).
 
-## App Store Connect
+## Build and source evidence
 
-- [ ] App record created with bundle ID `com.paperorg.voicenotes`
-- [ ] Subscription product: `com.paperorg.voicenotes.pro.monthly` (auto-renewable)
-- [ ] Pricing and localizations (EN, FR, DE minimum for LU market)
-- [ ] Privacy policy URL live (see `docs/privacy.html` — publish to GitHub Pages)
-- [ ] Complete App Store privacy labels using [`docs/APP_STORE_PRIVACY.md`](APP_STORE_PRIVACY.md)
-- [ ] App category: **Productivity**
-- [ ] Age rating questionnaire completed
-- [ ] Export compliance: **ITSAppUsesNonExemptEncryption = NO** (already in Info.plist)
+- [ ] Record commit SHA and archive location, then verify bundle, team and build metadata.
+- [ ] Localization and processing/recovery guards pass.
+- [ ] Unit and UI suites pass; document any skip.
+- [ ] Release analyzer passes with Swift warnings as errors.
+- [ ] Android unit tests and debug assembly pass for the consolidated source.
+- [ ] CI passes on the PR revision.
+- [ ] Apple processes the exact candidate and makes it available to internal Beta testers.
 
----
+## Live services and purchases
 
-## Pro backend (production)
+The Release app uses `https://notes-api.paperorg.com` and `https://poplatform.paperorg.com`. Provider credentials stay server-side. Free is device-bound with 30 minutes/month; Pro includes 600. Session caps are three minutes Free and 180 Pro. Verify those limits against server responses on the candidate.
 
-You are deploying the backend separately. When live, set **Release** build URL in `project.yml`:
+**Open production blocker:** on 19 September both running services used `APPLE_USE_SANDBOX=true`. The authoritative Platform checkout was `91985d1`; its App Store verification and notification code select one environment. Production transaction and notification support must be implemented and validated while preserving TestFlight/App Review sandbox compatibility. Do not merely flip a flag on the shared live service. Apple requires transaction lookup in the environment that generated the transaction: [TransactionIdNotFoundError](https://developer.apple.com/documentation/appstoreserverapi/transactionidnotfounderror).
 
-```yaml
-configs:
-  Release:
-    PAPERORG_PRO_BACKEND_URL: "https://YOUR-PRO-BACKEND-URL"
-```
+- [ ] Verify current server identity, device attestation, provider resolution and quota accounting.
+- [ ] Verify purchase, activation retry and restore against the server; a local Pro label is not proof of cloud access.
+- [ ] Verify production and sandbox lookup, signed-data validation, renewals, expiry, refunds and notifications.
+- [ ] Check cost alerts, service monitoring, backup coverage and rollback procedures.
 
-Then run `xcodegen generate` and rebuild Release.
+Use existing PoVault connectors and protected credential intake if required. Never place credentials or reviewer passwords in these documents.
 
-Backend production env (see `backend/.env.example`):
+## Physical-device acceptance
 
-- [ ] `PAPERORG_DEV_MODE=false`
-- [ ] Strong `PAPERORG_JWT_SECRET`
-- [ ] Provider API keys set
-- [ ] App Store Connect API key (`.p8`) for subscription verification
-- [ ] `APPLE_USE_SANDBOX=false` in production
-- [ ] HTTPS only
+- [ ] Fresh install: consent, microphone permission, included Free minutes without sign-in or API keys.
+- [ ] Short recording produces audio, transcript, summary and accurate remaining minutes.
+- [ ] Pro purchase and restore remain usable after relaunch and after Free is exhausted.
+- [ ] Pending activation shows a pending message, without claiming unconfirmed cloud allowance.
+- [ ] Background, locked-screen and long recordings preserve audio across segment boundaries.
+- [ ] Interruption and offline retry preserve captured audio without duplicate usage charges.
+- [ ] Session and monthly caps are enforced with clear messages.
+- [ ] Luxembourgish native-speaker QA; French, German, English and Portuguese spot checks.
+- [ ] Import, search, PDF/text export, widget, Face ID and privacy export/deletion work.
+- [ ] Email testing uses disposable content and an explicitly approved recipient.
 
----
+## Store preparation
 
-## App Store Server API (App Store Connect → Users and Access → Keys)
+App: `6807097485`; bundle: `com.paperorg.voicenotes`; team: `CZY6SHVSXB`.
+Monthly subscription: `com.paperorg.voicenotes.pro.monthly`.
 
-- [ ] Issuer ID → `APPLE_ISSUER_ID`
-- [ ] Key ID → `APPLE_KEY_ID`
-- [ ] Private key `.p8` → `APPLE_PRIVATE_KEY` (path or PEM contents)
-- [ ] Sandbox testing: `APPLE_USE_SANDBOX=true` on staging backend
+- [ ] Replace the currently selected build 59 only after candidate acceptance.
+- [ ] Refresh reviewer instructions and contact details; include the Pro subscription in review.
+- [ ] Confirm final subscription price and localization in Apple; app displays StoreKit's price.
+- [ ] Review billing grace-period choice and notification URLs.
+- [ ] Refresh iPhone/iPad screenshots: record, transcript/summary, library, usage and plan.
+- [ ] Reconcile listing copy, privacy declaration, live policy and consent with actual behavior.
+- [ ] Set marketing URL to `https://notes.paperorg.com/` and verify support destination.
+- [ ] Keep manual release selected until the launch decision.
 
----
+## Android and public launch
 
-## Device testing (TestFlight)
+- [ ] Resolve Google merchant payment-method verification. The portal warns of account/app removal on **18 October 2026** unless fixed and approved.
+- [ ] Confirm the installed Android artifact, Play purchase/restore, Data Safety and listing.
+- [ ] Prepare public download links and pricing; retain coming-soon wording until each store is live.
+- [ ] Prepare screenshots, short demo, release copy and support ownership.
 
-- [ ] Fresh install: Privacy → Plan selection → Free path with BYOK
-- [ ] Pro path: StoreKit sandbox purchase → backend verify → transcription works
-- [ ] Restore purchases on second device
-- [ ] Usage meter updates after transcription
-- [ ] 600 min limit returns clear error when exceeded
-- [ ] SMTP auto-email (if configured)
-- [ ] Face ID lock
-- [ ] Swipe to delete note
-- [ ] Branded PDF export (Pro)
-- [ ] Luxembourgish transcription quality spot-check
-
----
-
-## Screenshots (6.7" + 6.5" minimum)
-
-Suggested screens:
-
-1. Record tab with waveform
-2. Note detail with summary + transcript
-3. Notes library
-4. Settings / Pro usage
-5. Plan selection or paywall
-6. Search results
-
----
-
-## Metadata copy (draft)
-
-**Subtitle:** Voice notes with Luxembourgish transcription  
-**Keywords:** voice notes, transcription, Luxembourgish, Lëtzebuergesch, meeting notes, AI summary
-
-**Description opening:**  
-Paperorg Notes records voice on your device, transcribes in Luxembourgish and multiple languages, and turns recordings into structured meeting notes, action items, and email drafts.
-
----
-
-## After TestFlight
-
-- [ ] Collect crash reports (Sentry optional)
-- [ ] Monitor backend logs for 402/429 rates
-- [ ] Submit for App Review when stable
-
----
-
-*Last updated: 2026-07-12*
+The date-stamped readiness assessment describes the starting state. This checklist records the remaining release gates; checked build tooling is not physical-device or store approval.

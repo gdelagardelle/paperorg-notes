@@ -1,3 +1,5 @@
+> Historical August implementation record. For current launch preparation, use [the release checklist](docs/TESTFLIGHT_CHECKLIST.md). The app now uses accountless, server-managed included minutes.
+
 # Progress
 
 - 2026-08-13 adoption baseline: iPhone 16/iOS 18.5 Xcode tests 14 passed, 1

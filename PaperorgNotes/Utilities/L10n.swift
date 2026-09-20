@@ -12,6 +12,8 @@ enum L10n {
         static let title = String(localized: "settings.title")
         static let proSection = String(localized: "settings.pro.section")
         static let proActive = String(localized: "settings.pro.active")
+        static let proConfirming = String(localized: "settings.pro.confirming")
+        static let proConfirmingHint = String(localized: "settings.pro.confirming_hint")
         static let proHint = String(localized: "settings.pro.hint")
         static let upgradePro = String(localized: "settings.pro.upgrade")
         static let subscribePro = String(localized: "settings.pro.subscribe")
@@ -45,6 +47,8 @@ enum L10n {
     }
 
     enum Subscription {
+        static let presentationUnavailable = String(localized: "subscription.presentation_unavailable")
+        static let purchaseUnavailable = String(localized: "subscription.purchase_unavailable")
         static let productUnavailable = String(localized: "subscription.product_unavailable")
         static let purchasePending = String(localized: "subscription.purchase_pending")
         static let verificationPending = String(localized: "subscription.verification_pending")
@@ -67,6 +71,8 @@ enum L10n {
         static let upgrade = String(localized: "included.upgrade")
         static let connecting = String(localized: "included.connecting")
         static let unavailable = String(localized: "included.unavailable")
+        static let offline = String(localized: "included.offline")
+        static let connectionFailed = String(localized: "included.connection_failed")
         static let active = String(localized: "included.active")
 
         static func remaining(_ minutes: Int) -> String {

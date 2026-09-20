@@ -39,6 +39,7 @@ struct PrivacyConsentView: View {
                 
                 Link(L10n.Privacy.viewPolicy, destination: URL(string: "https://gdelagardelle.github.io/paperorg-notes/privacy.html")!)
                     .font(.subheadline)
+                    .tint(AppTheme.accentText)
                 
                 Button(L10n.Privacy.continue) {
                     settings.hasAcceptedPrivacyPolicy = true

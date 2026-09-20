@@ -4760,6 +4760,40 @@
         }
       }
     },
+    "paywall.retry_activation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activate Pro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activer Pro"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro aktivieren"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro aktivéieren"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativar Pro"
+          }
+        }
+      }
+    },
     "paywall.renewal": {
       "extractionState": "stale",
       "localizations": {
@@ -7594,6 +7628,74 @@
         }
       }
     },
+    "settings.pro.confirming": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro purchase received — confirming"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Achat Pro reçu — confirmation en cours"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro-Kauf erhalten — Bestätigung läuft"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro-Kaf kritt — Bestätegung leeft"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compra Pro recebida — a confirmar"
+          }
+        }
+      }
+    },
+    "settings.pro.confirming_hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple confirmed your purchase. Your cloud minutes will appear once activation is complete. Tap Refresh status to check again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple a confirmé votre achat. Vos minutes cloud s’afficheront une fois l’activation terminée. Touchez Actualiser le statut pour vérifier à nouveau."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple hat Ihren Kauf bestätigt. Ihre Cloud-Minuten werden nach der Aktivierung angezeigt. Tippen Sie auf Status aktualisieren, um erneut zu prüfen."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple huet Äre Kaf bestätegt. Är Cloud-Minutte ginn ugewisen, soubal d’Aktivéierung ofgeschloss ass. Tippt op Status aktualiséieren, fir nach eng Kéier ze kucken."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Apple confirmou a sua compra. Os minutos na nuvem serão apresentados quando a ativação estiver concluída. Toque em Atualizar estado para verificar novamente."
+          }
+        }
+      }
+    },
     "settings.pro.hint": {
       "extractionState": "stale",
       "localizations": {
@@ -8928,6 +9030,144 @@
           "stringUnit": {
             "state": "translated",
             "value": "O Pro são 10 horas por mês e até 3 horas numa gravação, para reuniões."
+          }
+        }
+      }
+    },
+    "subscription.presentation_unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das App Store-Fenster konnte nicht geöffnet werden. Schließe alle offenen Fenster und versuche es erneut."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The App Store sheet could not open. Close any open sheets and try again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fenêtre de l’App Store n’a pas pu s’ouvrir. Fermez les fenêtres ouvertes et réessayez."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D’App Store-Fënster konnt net opgemaach ginn. Maach déi oppe Fënsteren zou a probéier nach eng Kéier."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível abrir a janela da App Store. Feche as janelas abertas e tente novamente."
+          }
+        }
+      }
+    },
+    "subscription.purchase_unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der App Store konnte den Kauf nicht abschließen. Versuche es gleich noch einmal oder starte die App neu. Falls das Problem weiterhin besteht, prüfe, ob du im App Store angemeldet bist."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The App Store could not complete the purchase. Try again in a moment, or restart the app. If this keeps happening, check that you are signed into the App Store."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’App Store n’a pas pu finaliser l’achat. Réessayez dans un instant ou redémarrez l’app. Si le problème persiste, vérifiez que vous êtes connecté à l’App Store."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den App Store konnt de Kaf net ofschléissen. Probéier et gläich nach eng Kéier oder start d’App nei. Wann de Problem weider besteet, kuck no, ob s du am App Store ugemellt bass."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A App Store não conseguiu concluir a compra. Tente novamente dentro de instantes ou reinicie a app. Se o problema persistir, verifique se tem sessão iniciada na App Store."
+          }
+        }
+      }
+    },
+    "included.offline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No internet connection. Connect to Wi-Fi or cellular and try again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune connexion Internet. Connectez-vous au Wi-Fi ou au réseau mobile, puis réessayez."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Internetverbindung. Verbinde dich mit WLAN oder dem Mobilfunknetz und versuche es erneut."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keng Internetverbindung. Verbann dech mam Wi-Fi oder mam Handysnetz a probéier nach eng Kéier."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem ligação à Internet. Ligue-se ao Wi-Fi ou à rede móvel e tente novamente."
+          }
+        }
+      }
+    },
+    "included.connection_failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not connect to Paperorg. Try again in a moment."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de se connecter à Paperorg. Réessayez dans un instant."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verbindung zu Paperorg ist fehlgeschlagen. Versuche es gleich noch einmal."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D’Verbindung mat Paperorg ass feelgeschloen. Probéier et gläich nach eng Kéier."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível ligar ao Paperorg. Tente novamente dentro de instantes."
           }
         }
       }

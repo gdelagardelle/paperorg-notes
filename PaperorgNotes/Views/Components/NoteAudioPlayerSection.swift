@@ -23,9 +23,9 @@ struct NoteAudioPlayerSection: View {
                 } label: {
                     Image(systemName: playback.isPlayingFullNote ? "pause.fill" : "play.fill")
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(AppTheme.onFilled)
                         .frame(width: 44, height: 44)
-                        .background(AppTheme.primary)
+                        .background(AppTheme.filledPrimary)
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)

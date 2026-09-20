@@ -366,12 +366,6 @@ struct RecordView: View {
     }
     
     private func startRecording() {
-        if environment.settingsService.selectedPlan == .pro,
-           !environment.subscriptionService.isProActive {
-            showPaywall = true
-            return
-        }
-
         if !environment.settingsService.usesBackendProcessing {
             showIncludedMinutesAccess = true
             return
@@ -424,12 +418,6 @@ struct RecordView: View {
     }
     
     private func beginImport() {
-        if environment.settingsService.selectedPlan == .pro,
-           !environment.subscriptionService.isProActive {
-            showPaywall = true
-            return
-        }
-
         if !environment.settingsService.usesBackendProcessing {
             showIncludedMinutesAccess = true
             return
@@ -689,13 +677,6 @@ struct RecordView: View {
     }
 
     private func startRecordingFromQuickRecord() async {
-        if environment.settingsService.selectedPlan == .pro,
-           !environment.subscriptionService.isProActive {
-            environment.deepLinkHandler.clearQuickRecordFlag()
-            showPaywall = true
-            return
-        }
-
         if !environment.settingsService.usesBackendProcessing {
             environment.deepLinkHandler.clearQuickRecordFlag()
             showIncludedMinutesAccess = true
@@ -858,7 +839,7 @@ struct ProcessingView: View {
         if stageOrder(step) < stageOrder(stage) {
             Image(systemName: "checkmark")
                 .font(.caption.bold())
-                .foregroundStyle(.white)
+                .foregroundStyle(AppTheme.onFilled)
         } else if step == stage {
             ProgressView()
                 .tint(AppTheme.accent)
@@ -872,7 +853,7 @@ struct ProcessingView: View {
     
     private func stepBackground(for step: ProcessingStage) -> Color {
         if stageOrder(step) < stageOrder(stage) {
-            return AppTheme.primary
+            return AppTheme.filledPrimary
         }
         if step == stage {
             return AppTheme.accentSoft

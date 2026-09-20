@@ -31,7 +31,7 @@ struct IncludedMinutesAccessView: View {
                     requestUpgrade = true
                     dismiss()
                 }
-                .buttonStyle(AccentButtonStyle())
+                .buttonStyle(SecondaryButtonStyle())
 
                 if isWorking {
                     ProgressView(L10n.Included.connecting)
@@ -59,6 +59,21 @@ struct IncludedMinutesAccessView: View {
         }
     }
 
+    private func friendlyRegistrationError(for error: Error) -> String {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost:
+                return L10n.Included.offline
+            default:
+                break
+            }
+        }
+        if let backend = error as? ProBackendError {
+            return backend.localizedDescription
+        }
+        return L10n.Included.connectionFailed
+    }
+
     private func activateIncludedMinutes() {
         isWorking = true
         message = nil
@@ -71,7 +86,7 @@ struct IncludedMinutesAccessView: View {
                     message = L10n.Included.unavailable
                 }
             } catch {
-                message = ProBackendError.serverError(error.localizedDescription).localizedDescription
+                message = friendlyRegistrationError(for: error)
             }
             isWorking = false
         }

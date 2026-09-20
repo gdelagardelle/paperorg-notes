@@ -190,13 +190,23 @@ struct ProUsageInfo: Codable, Sendable, Equatable {
         return formatter.string(from: date)
     }
 
-    var proExpiryDisplay: String? {
+    /// A supplied expiry must be valid and in the future. Server grants without
+    /// an expiry retain their explicit, non-expiring entitlement semantics.
+    var hasActiveProEntitlement: Bool {
+        guard isPro else { return false }
+        guard proExpiresAt != nil else { return true }
+        return proExpiryDate.map { $0 > Date() } ?? false
+    }
+
+    private var proExpiryDate: Date? {
         guard let proExpiresAt else { return nil }
         let iso = ISO8601DateFormatter()
         iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let fallback = ISO8601DateFormatter()
-        let date = iso.date(from: proExpiresAt) ?? fallback.date(from: proExpiresAt)
-        guard let date else { return nil }
+        return iso.date(from: proExpiresAt) ?? ISO8601DateFormatter().date(from: proExpiresAt)
+    }
+
+    var proExpiryDisplay: String? {
+        guard let date = proExpiryDate else { return nil }
         let display = DateFormatter()
         display.dateStyle = .medium
         return display.string(from: date)
@@ -234,14 +244,14 @@ enum ProBackendError: LocalizedError {
         }
     }
 
-    /// A 413/429/402 from notes-api is a final answer. Continuing the provider
+    /// Authentication, entitlement, and quota rejections are final answers. Continuing the provider
     /// list would reach Apple Speech for English and transcribe without a cap.
     var stopsProviderFallback: Bool {
         switch self {
-        case .audioTooLong, .usageLimitReached, .subscriptionRequired,
+        case .notAuthenticated, .audioTooLong, .usageLimitReached, .subscriptionRequired,
              .deviceIntegrityVerificationFailed, .recordingSegmentPending, .recordingSegmentConflict:
             return true
-        case .notAuthenticated, .serverError:
+        case .serverError:
             return false
         }
     }

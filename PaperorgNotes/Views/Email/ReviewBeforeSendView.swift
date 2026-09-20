@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct ReviewBeforeSendView: View {
     @Bindable var note: Note
@@ -89,7 +90,6 @@ struct ReviewBeforeSendView: View {
                 }
             }
         }
-        .preferredColorScheme(.light)
     }
     
     private struct ResolvedAttachment: Identifiable {
