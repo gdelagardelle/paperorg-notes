@@ -15,8 +15,18 @@
 
 ## Stores
 
-- Apple: monthly Pro corrected to EUR 5.99 in all 25 euro storefronts; other currencies preserved. Full English description, marketing URL and reviewer notes updated.
+- Apple: monthly Pro corrected to EUR 5.99 in all 25 euro storefronts; other currencies preserved. Full descriptions, promotional text and keywords saved in English, French, German and Portuguese. App subtitles localized. Marketing URL and reviewer notes updated.
 - Google: EUR 5.99 monthly already configured. Merchant verification still asks the owner to enter Google's bank test-deposit amount directly in the official form.
-- Reviewer contact supplied by owner: +352 691800008; hello@luxxow.com. Saving the contact and other remaining store work is being verified.
+- Reviewer contact supplied by owner: +352 691800008; hello@luxxow.com. Saved and visually verified in App Store Connect.
 
 Public release remains manual and has not been triggered. Store processing, review and installed-device purchase acceptance remain separate release gates.
+
+## Published preparation and remaining gates
+
+- Android build 6 (1.0.5) is available to the existing internal testers; release notes cover all four store languages. Google accepted the bundle with no errors and two diagnostic-file warnings. No production release was started.
+- Mobile CI run 35503575807 passed all three jobs: iOS build/tests/release analysis, Android tests/lint/assembly, and contract guards.
+- Website PRs #2 and #3 merged; Sites version 25 deployed successfully from 2fec88316bb5afb1fa2c360cc13d75fd41d154a1. Five-language pricing and limits, coming-soon availability, privacy page and support links published while preserving newer live translations.
+- iOS build 70 is signed and exported but still requires Xcode account authentication before upload; the store version still has old build 59 selected. Website sign-in does not refresh Xcode upload credentials.
+- Google foreground microphone declaration requires a real demonstration video. Background audio input is the applicable purpose; no placeholder video was submitted.
+- Owner-only Google bank-deposit verification remains pending. Google displays an account removal deadline of 18 October 2026 until verification is resolved.
+- Installed-device recording, purchase, reinstall/restore, and final store review remain outstanding acceptance gates.
