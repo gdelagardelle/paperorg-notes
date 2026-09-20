@@ -839,7 +839,7 @@ struct ProcessingView: View {
         if stageOrder(step) < stageOrder(stage) {
             Image(systemName: "checkmark")
                 .font(.caption.bold())
-                .foregroundStyle(.white)
+                .foregroundStyle(AppTheme.onFilled)
         } else if step == stage {
             ProgressView()
                 .tint(AppTheme.accent)
@@ -853,7 +853,7 @@ struct ProcessingView: View {
     
     private func stepBackground(for step: ProcessingStage) -> Color {
         if stageOrder(step) < stageOrder(stage) {
-            return AppTheme.primary
+            return AppTheme.filledPrimary
         }
         if step == stage {
             return AppTheme.accentSoft

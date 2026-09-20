@@ -191,7 +191,15 @@ final class SubscriptionService {
     }
 
     func restorePurchases() async {
-        _ = await syncEntitlementsFromStore()
+        lastError = nil
+        do {
+            // Explicit user action: ask Apple to refresh purchases across devices
+            // before consulting the local entitlement cache.
+            try await AppStore.sync()
+            _ = await syncEntitlementsFromStore()
+        } catch {
+            lastError = Self.friendlyPurchaseError(for: error)
+        }
     }
 
     /// Best-effort Platform confirmation before cloud transcription when Pro is
@@ -208,8 +216,8 @@ final class SubscriptionService {
         if active {
             settings.selectedPlan = .pro
             settings.applyProEntitlements()
-        } else if !isServerProActive {
-            settings.storeKitProTrusted = false
+        } else if !isServerProActive, settings.selectedPlan == .pro {
+            settings.selectedPlan = .free
         }
         return active
     }
@@ -250,7 +258,17 @@ final class SubscriptionService {
     @discardableResult
     private func processEntitlement(_ result: VerificationResult<Transaction>) async -> Bool {
         guard let transaction = try? checkVerified(result),
-              isProEntitlement(result) else {
+              transaction.productID == SubscriptionProduct.proMonthly else {
+            return false
+        }
+        guard isProEntitlement(result) else {
+            // A refund, expiry or upgrade can invalidate earlier local trust.
+            // Re-read all entitlements so an old transaction does not revoke a
+            // newer valid renewal. Server grants remain independently verified.
+            await refreshEntitlements(reportError: false)
+            if !settings.storeKitProTrusted {
+                backgroundConfirmationTask?.cancel()
+            }
             return false
         }
         applyStoreKitProTrust()
@@ -405,12 +423,15 @@ final class SubscriptionService {
     }
 
     private static func friendlyPurchaseError(for error: Error) -> String {
+        if case StoreKitError.systemError(let underlying) = error {
+            return friendlyPurchaseError(for: underlying)
+        }
         if error is PurchasePresentationError {
-            return "The App Store sheet could not open. Close any open sheets and try again."
+            return L10n.Subscription.presentationUnavailable
         }
         let nsError = error as NSError
         if nsError.domain == "SKInternalErrorDomain" {
-            return "The App Store could not complete the purchase. Try again in a moment, or restart the app. If this keeps happening, check that you are signed into the App Store."
+            return L10n.Subscription.purchaseUnavailable
         }
         return error.localizedDescription
     }

@@ -1,0 +1,38 @@
+{
+  "configurations": [
+    {
+      "id": "AD8748AF-E0B6-42F0-994E-A91990EDA743",
+      "name": "Launch regression",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {
+    "storeKitConfiguration": {
+      "identifier": "PaperorgNotes/Resources/PaperorgPro.storekit"
+    },
+    "targetForVariableExpansion": {
+      "containerPath": "container:PaperorgNotes.xcodeproj",
+      "identifier": "CE9B446B39A3F4D51D8E920C",
+      "name": "PaperorgNotes"
+    }
+  },
+  "testTargets": [
+    {
+      "parallelizable": false,
+      "target": {
+        "containerPath": "container:PaperorgNotes.xcodeproj",
+        "identifier": "017874723AFC7C132C772952",
+        "name": "PaperorgNotesTests"
+      }
+    },
+    {
+      "parallelizable": false,
+      "target": {
+        "containerPath": "container:PaperorgNotes.xcodeproj",
+        "identifier": "90AAB3BB8CFC8F4F9AA5AF7B",
+        "name": "PaperorgNotesUITests"
+      }
+    }
+  ],
+  "version": 1
+}

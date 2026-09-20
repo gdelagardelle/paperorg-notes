@@ -47,6 +47,8 @@ enum L10n {
     }
 
     enum Subscription {
+        static let presentationUnavailable = String(localized: "subscription.presentation_unavailable")
+        static let purchaseUnavailable = String(localized: "subscription.purchase_unavailable")
         static let productUnavailable = String(localized: "subscription.product_unavailable")
         static let purchasePending = String(localized: "subscription.purchase_pending")
         static let verificationPending = String(localized: "subscription.verification_pending")

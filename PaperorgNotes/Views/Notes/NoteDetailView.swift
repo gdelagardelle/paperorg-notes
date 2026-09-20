@@ -576,9 +576,9 @@ struct SegmentRow: View {
             Button(action: onPlay) {
                 Image(systemName: isPlaying ? "speaker.wave.2.fill" : "play.fill")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(isPlaying ? AppTheme.onAccent : AppTheme.onFilled)
                     .frame(width: 32, height: 32)
-                    .background(isPlaying ? AppTheme.accent : AppTheme.primary)
+                    .background(isPlaying ? AppTheme.accent : AppTheme.filledPrimary)
                     .clipShape(Circle())
             }
             .buttonStyle(.plain)

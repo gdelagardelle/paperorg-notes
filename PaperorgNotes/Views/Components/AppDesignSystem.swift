@@ -111,7 +111,7 @@ struct FilterChip: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
                 .background(isSelected ? AppTheme.accent : AppTheme.surfaceElevated)
-                .foregroundStyle(isSelected ? .white : AppTheme.textPrimary)
+                .foregroundStyle(isSelected ? AppTheme.onAccent : AppTheme.textPrimary)
                 .clipShape(Capsule())
                 .overlay {
                     Capsule()
@@ -140,12 +140,12 @@ struct SelectionChip: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(isSelected ? AppTheme.primary : AppTheme.surfaceElevated)
-            .foregroundStyle(isSelected ? .white : AppTheme.textPrimary)
+            .background(isSelected ? AppTheme.filledPrimary : AppTheme.surfaceElevated)
+            .foregroundStyle(isSelected ? AppTheme.onFilled : AppTheme.textPrimary)
             .clipShape(Capsule())
             .overlay {
                 Capsule()
-                    .stroke(isSelected ? AppTheme.primary : AppTheme.border, lineWidth: 1)
+                    .stroke(isSelected ? AppTheme.filledPrimary : AppTheme.border, lineWidth: 1)
             }
         }
         .buttonStyle(.plain)
@@ -578,7 +578,7 @@ struct RecordHeroButton: View {
 
                 Image(systemName: iconName)
                     .font(.system(size: 34, weight: .semibold))
-                    .foregroundStyle(AppTheme.onFilled)
+                    .foregroundStyle(AppTheme.onAccent)
             }
         }
         .buttonStyle(.plain)
@@ -652,10 +652,11 @@ struct AccentButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.headline)
-            .foregroundStyle(AppTheme.onFilled)
+            .foregroundStyle(AppTheme.onAccent)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(AppTheme.accent.opacity(configuration.isPressed ? 0.85 : 1))
+            .background(AppTheme.accent)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }

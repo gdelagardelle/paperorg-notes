@@ -9033,6 +9033,76 @@
           }
         }
       }
+    },
+    "subscription.presentation_unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das App Store-Fenster konnte nicht geöffnet werden. Schließe alle offenen Fenster und versuche es erneut."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The App Store sheet could not open. Close any open sheets and try again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fenêtre de l’App Store n’a pas pu s’ouvrir. Fermez les fenêtres ouvertes et réessayez."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D’App Store-Fënster konnt net opgemaach ginn. Maach déi oppe Fënsteren zou a probéier nach eng Kéier."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível abrir a janela da App Store. Feche as janelas abertas e tente novamente."
+          }
+        }
+      }
+    },
+    "subscription.purchase_unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der App Store konnte den Kauf nicht abschließen. Versuche es gleich noch einmal oder starte die App neu. Falls das Problem weiterhin besteht, prüfe, ob du im App Store angemeldet bist."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The App Store could not complete the purchase. Try again in a moment, or restart the app. If this keeps happening, check that you are signed into the App Store."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’App Store n’a pas pu finaliser l’achat. Réessayez dans un instant ou redémarrez l’app. Si le problème persiste, vérifiez que vous êtes connecté à l’App Store."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den App Store konnt de Kaf net ofschléissen. Probéier et gläich nach eng Kéier oder start d’App nei. Wann de Problem weider besteet, kuck no, ob s du am App Store ugemellt bass."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A App Store não conseguiu concluir a compra. Tente novamente dentro de instantes ou reinicie a app. Se o problema persistir, verifique se tem sessão iniciada na App Store."
+          }
+        }
+      }
     }
   },
   "version": "1.1"

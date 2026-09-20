@@ -77,6 +77,7 @@
 		DDBF21C5849F15F8E4C299FA /* EmailDeliveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5D7F7BD7638111E1911DF05 /* EmailDeliveryService.swift */; };
 		E06CE75A5D7421590AF23B8A /* ProBackendClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5D04D3AEBE5A039C1C1BBD /* ProBackendClient.swift */; };
 		E61A76AD8C686F34465285DB /* EmailTemplateBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6460253FE260C8E78B6A1A3 /* EmailTemplateBuilder.swift */; };
+		E87D04746DDF77EB8240BD13 /* LaunchReadinessRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C17E737443AE903205CE843 /* LaunchReadinessRegressionTests.swift */; };
 		EACCB259CA28F2C218B9F54C /* NoteOrganizerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38212408D78D6D74FA32DCC5 /* NoteOrganizerSection.swift */; };
 		EF878AEA143C2BF8B9DF64BB /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 897A6FE5BA6DB41BBC606478 /* AppInfo.swift */; };
 		F254C58B2F118C4532B9B7F4 /* ExportBrandingSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5129B0C96608861776DCB9EC /* ExportBrandingSettingsSection.swift */; };
@@ -182,6 +183,7 @@
 		93893A2E19AAAF5CE666C272 /* PaperorgNotesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesTests.swift; sourceTree = "<group>"; };
 		9779823E1BF0DA8B2EBFD414 /* PurchasePresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasePresenter.swift; sourceTree = "<group>"; };
 		9824E63EEC45F2200D535A2F /* SettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsService.swift; sourceTree = "<group>"; };
+		9C17E737443AE903205CE843 /* LaunchReadinessRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchReadinessRegressionTests.swift; sourceTree = "<group>"; };
 		9D34CD6703E1B9404B252C40 /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
 		A0A47C931C30D4142808038E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A11A5FEB0631867ABFC14D54 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -415,6 +417,7 @@
 		57B69C801314659AC6FAB746 /* PaperorgNotesTests */ = {
 			isa = PBXGroup;
 			children = (
+				9C17E737443AE903205CE843 /* LaunchReadinessRegressionTests.swift */,
 				93893A2E19AAAF5CE666C272 /* PaperorgNotesTests.swift */,
 			);
 			path = PaperorgNotesTests;
@@ -802,6 +805,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E87D04746DDF77EB8240BD13 /* LaunchReadinessRegressionTests.swift in Sources */,
 				DD2804AF339F8F6A532787B9 /* PaperorgNotesTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -843,7 +847,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 68;
+				CURRENT_PROJECT_VERSION = 69;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -999,7 +1003,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 68;
+				CURRENT_PROJECT_VERSION = 69;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1022,7 +1026,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 68;
+				CURRENT_PROJECT_VERSION = 69;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -1109,7 +1113,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 68;
+				CURRENT_PROJECT_VERSION = 69;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (

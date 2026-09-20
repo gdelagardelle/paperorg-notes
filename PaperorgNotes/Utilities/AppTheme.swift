@@ -9,6 +9,8 @@ enum AppTheme {
     /// Body text and icons. Navy in light, mist in dark.
     static let primary = adaptive(light: UIColor(red: 0.078, green: 0.137, blue: 0.239, alpha: 1), dark: UIColor(red: 0.961, green: 0.969, blue: 0.984, alpha: 1))
     static let accent = orange
+    /// Orange text needs a darker shade on pale surfaces.
+    static let accentText = adaptive(light: UIColor(red: 0.702, green: 0.255, blue: 0, alpha: 1), dark: UIColor(red: 0.961, green: 0.416, blue: 0.039, alpha: 1))
     static let background = adaptive(light: UIColor(red: 0.961, green: 0.969, blue: 0.984, alpha: 1), dark: UIColor(red: 0.043, green: 0.071, blue: 0.125, alpha: 1))
     static let surface = adaptive(light: .white, dark: UIColor(red: 0.086, green: 0.125, blue: 0.200, alpha: 1))
     static let surfaceElevated = surface
@@ -24,13 +26,14 @@ enum AppTheme {
     static let recordRed = accent
     /// Filled primary buttons: navy on light, orange on dark so the fill stays distinct from the page.
     static let filledPrimary = adaptive(light: UIColor(red: 0.078, green: 0.137, blue: 0.239, alpha: 1), dark: UIColor(red: 0.961, green: 0.416, blue: 0.039, alpha: 1))
-    static let onFilled = Color.white
+    static let onFilled = adaptive(light: .white, dark: UIColor(red: 0.078, green: 0.137, blue: 0.239, alpha: 1))
+    static let onAccent = navy
 
     static let speakerColors: [Color] = [
-        navy,
-        Color(red: 0.161, green: 0.459, blue: 0.729),
-        accent,
-        Color(red: 0.718, green: 0.267, blue: 0.118)
+        primary,
+        adaptive(light: UIColor(red: 0.153, green: 0.447, blue: 0.714, alpha: 1), dark: UIColor(red: 0.443, green: 0.718, blue: 0.949, alpha: 1)),
+        accentText,
+        adaptive(light: UIColor(red: 0.718, green: 0.267, blue: 0.118, alpha: 1), dark: UIColor(red: 1, green: 0.667, blue: 0.522, alpha: 1))
     ]
 
     static func speakerColor(for label: String?) -> Color {
@@ -71,7 +74,8 @@ struct PrimaryButtonStyle: ButtonStyle {
             .foregroundStyle(AppTheme.onFilled)
             .frame(maxWidth: .infinity)
             .padding()
-            .background(AppTheme.filledPrimary.opacity(configuration.isPressed ? 0.8 : 1))
+            .background(AppTheme.filledPrimary)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
             .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
