@@ -17,7 +17,7 @@
 
 - Apple: monthly Pro corrected to EUR 5.99 in all 25 euro storefronts; other currencies preserved. Full descriptions, promotional text and keywords saved in English, French, German and Portuguese. App subtitles localized. Marketing URL and reviewer notes updated.
 - Google: EUR 5.99 monthly already configured. Merchant verification still asks the owner to enter Google's bank test-deposit amount directly in the official form.
-- Reviewer contact supplied by owner: +352 691800008; hello@luxxow.com. Saved and visually verified in App Store Connect.
+- Owner-provided reviewer contact details saved and visually verified in App Store Connect. Contact values are intentionally omitted from this public report.
 
 Public release remains manual and has not been triggered. Store processing, review and installed-device purchase acceptance remain separate release gates.
 
@@ -30,3 +30,22 @@ Public release remains manual and has not been triggered. Store processing, revi
 - Google foreground microphone declaration requires a real demonstration video. Background audio input is the applicable purpose; no placeholder video was submitted.
 - Owner-only Google bank-deposit verification remains pending. Google displays an account removal deadline of 18 October 2026 until verification is resolved.
 - Installed-device recording, purchase, reinstall/restore, and final store review remain outstanding acceptance gates.
+
+## Final store and website verification
+
+- Mobile PR #26 merged at 44e0e98832d09d846f75fa2340788cac6dd7a809.
+- Apple subscription and group display metadata now cover English, French, German and Portuguese. Mac and Vision Pro availability are disabled pending platform validation; iPhone/iPad remain enabled.
+- Google public website field saved and published as https://notes.paperorg.com. Production availability for 176 countries/regions plus rest of world is saved in Publishing overview, not submitted.
+- Google currently refuses enabling managed publishing for this draft app. Do not send the first production release for review until launch authorization and acceptance gates are satisfied, because approved changes may publish automatically.
+- Website PR #4 corrected the stale privacy page using the mobile repository notice. Sites version 26 deployed successfully from 3cb1866474ef10560cdd65e0a7426c72b8e3e5ec. Live page verified to describe upload during recording and encrypted replay retention. Live prices verified in all five languages.
+- Protected credentials were received only by the Gradle release-signing command and the in-memory Sites Git publisher; values were not logged or persisted by this task.
+
+### Foreground microphone demonstration still needed
+
+Use the Android internal-test build 6 on a test device. Capture a short screen recording showing: open Notes; deliberately start a recording and grant microphone permission if prompted; return to the home screen; open the notification shade so the ongoing Notes recording and elapsed time are visible; stop from the notification; return to Notes and confirm capture stopped. Use only disposable, non-private test audio. Publish the resulting actual demonstration at a reviewer-accessible video URL and enter it in Play Console → App content → Foreground service permissions → Background audio input. No substitute or placeholder URL was entered.
+
+An emulator was started and the current debug build installed, but detached Android Studio window control was unreliable; no demonstration footage or physical-device acceptance is claimed.
+
+- Android production release 1 is saved as a draft using build 6 (1.0.5), named "6 (1.0.5) — Launch candidate", with all four release-note languages. It has not been submitted for review or rollout.
+
+- Production preview confirms exactly one blocking error: the foreground service declaration. The two remaining messages are diagnostic-file warnings.
