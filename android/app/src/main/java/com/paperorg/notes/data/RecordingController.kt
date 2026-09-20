@@ -1,5 +1,8 @@
 package com.paperorg.notes.data
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.content.Context
 import android.media.MediaPlayer
 import android.media.MediaRecorder
@@ -66,6 +69,9 @@ class RecordingController(private val context: Context) {
 
     fun start(noteId: String, maxSeconds: Double = 180.0) {
         if (state != RecordingState.Idle) error("Already recording.")
+        check(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            "Microphone permission is required to record. Allow microphone access in Settings and try again."
+        }
         require(maxSeconds > 0) { "Your recording allowance has been used. Audio already saved remains available." }
         check(recordingsDir.usableSpace > 64L * 1024 * 1024) { "Free some storage before recording." }
         val minimum = AudioRecord.getMinBufferSize(16000, AndroidAudioFormat.CHANNEL_IN_MONO, AndroidAudioFormat.ENCODING_PCM_16BIT)

@@ -9103,6 +9103,74 @@
           }
         }
       }
+    },
+    "included.offline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No internet connection. Connect to Wi-Fi or cellular and try again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune connexion Internet. Connectez-vous au Wi-Fi ou au réseau mobile, puis réessayez."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Internetverbindung. Verbinde dich mit WLAN oder dem Mobilfunknetz und versuche es erneut."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keng Internetverbindung. Verbann dech mam Wi-Fi oder mam Handysnetz a probéier nach eng Kéier."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem ligação à Internet. Ligue-se ao Wi-Fi ou à rede móvel e tente novamente."
+          }
+        }
+      }
+    },
+    "included.connection_failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not connect to Paperorg. Try again in a moment."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de se connecter à Paperorg. Réessayez dans un instant."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verbindung zu Paperorg ist fehlgeschlagen. Versuche es gleich noch einmal."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D’Verbindung mat Paperorg ass feelgeschloen. Probéier et gläich nach eng Kéier."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível ligar ao Paperorg. Tente novamente dentro de instantes."
+          }
+        }
+      }
     }
   },
   "version": "1.1"

@@ -65,6 +65,7 @@ import com.paperorg.notes.domain.OutputType
 import com.paperorg.notes.domain.SummaryLength
 import com.paperorg.notes.domain.UsageInfo
 import com.paperorg.notes.ui.theme.Accent
+import com.paperorg.notes.ui.theme.AccentText
 import com.paperorg.notes.ui.theme.Background
 import com.paperorg.notes.ui.theme.Border
 import com.paperorg.notes.ui.theme.Error
@@ -110,7 +111,7 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
 
         SettingsSection(stringResource(R.string.settings_section_plan)) {
             if (isPro) {
-                Text(stringResource(R.string.settings_pro_active), fontWeight = FontWeight.SemiBold, color = Accent, modifier = Modifier.padding(16.dp))
+                Text(stringResource(R.string.settings_pro_active), fontWeight = FontWeight.SemiBold, color = AccentText, modifier = Modifier.padding(16.dp))
             } else {
                 Text(stringResource(R.string.settings_free_title), fontWeight = FontWeight.SemiBold, color = Primary, modifier = Modifier.padding(start = 16.dp, top = 14.dp, end = 16.dp))
                 SettingsHint(stringResource(R.string.settings_free_hint))

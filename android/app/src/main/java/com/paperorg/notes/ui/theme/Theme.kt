@@ -23,7 +23,7 @@ private object Brand {
     val White = Color.White
     val BorderLight = Color(0xFFE0E5EC)
     val SecondaryLight = Color(0xFF4D607B)
-    val ErrorLight = Color(0xFFD64545)
+    val ErrorLight = Color(0xFFB42332)
     val HeroBottom = Color(0xFFF2F6FC)
     val DarkBg = Color(0xFF0B1220)
     val DarkSurface = Color(0xFF162033)
@@ -36,6 +36,7 @@ private object Brand {
 data class NotesPalette(
     val ink: Color,
     val accent: Color,
+    val accentText: Color,
     val background: Color,
     val surface: Color,
     val border: Color,
@@ -48,9 +49,10 @@ data class NotesPalette(
     val heroBottom: Color,
 )
 
-private val LightPalette = NotesPalette(
+internal val LightPalette = NotesPalette(
     ink = Brand.Navy,
     accent = Brand.Orange,
+    accentText = Color(0xFFB34100),
     background = Brand.Mist,
     surface = Brand.White,
     border = Brand.BorderLight,
@@ -63,9 +65,10 @@ private val LightPalette = NotesPalette(
     heroBottom = Brand.HeroBottom,
 )
 
-private val DarkPalette = NotesPalette(
+internal val DarkPalette = NotesPalette(
     ink = Brand.DarkInk,
     accent = Brand.Orange,
+    accentText = Brand.Orange,
     background = Brand.DarkBg,
     surface = Brand.DarkSurface,
     border = Brand.DarkBorder,
@@ -74,7 +77,7 @@ private val DarkPalette = NotesPalette(
     primarySoft = Brand.White.copy(alpha = 0.12f),
     accentSoft = Brand.Orange.copy(alpha = 0.22f),
     filled = Brand.Orange,
-    onFilled = Brand.White,
+    onFilled = Brand.Navy,
     heroBottom = Brand.DarkBg,
 )
 
@@ -84,6 +87,8 @@ val Primary: Color
     @Composable @ReadOnlyComposable get() = LocalNotesPalette.current.ink
 val Accent: Color
     @Composable @ReadOnlyComposable get() = LocalNotesPalette.current.accent
+val AccentText: Color
+    @Composable @ReadOnlyComposable get() = LocalNotesPalette.current.accentText
 val Background: Color
     @Composable @ReadOnlyComposable get() = LocalNotesPalette.current.background
 val HeroGradientBottom: Color
@@ -109,7 +114,7 @@ private val LightScheme = lightColorScheme(
     primary = Brand.Navy,
     onPrimary = Brand.White,
     secondary = Brand.Orange,
-    onSecondary = Brand.White,
+    onSecondary = Brand.Navy,
     background = Brand.Mist,
     onBackground = Brand.Navy,
     surface = Brand.White,
@@ -122,9 +127,9 @@ private val LightScheme = lightColorScheme(
 
 private val DarkScheme = darkColorScheme(
     primary = Brand.Orange,
-    onPrimary = Brand.White,
+    onPrimary = Brand.Navy,
     secondary = Brand.Orange,
-    onSecondary = Brand.White,
+    onSecondary = Brand.Navy,
     background = Brand.DarkBg,
     onBackground = Brand.DarkInk,
     surface = Brand.DarkSurface,

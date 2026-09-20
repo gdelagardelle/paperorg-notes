@@ -63,7 +63,7 @@ struct IncludedMinutesAccessView: View {
         if let urlError = error as? URLError {
             switch urlError.code {
             case .notConnectedToInternet, .networkConnectionLost:
-                return "No internet connection. Connect to Wi‑Fi or cellular and try again."
+                return L10n.Included.offline
             default:
                 break
             }
@@ -71,7 +71,7 @@ struct IncludedMinutesAccessView: View {
         if let backend = error as? ProBackendError {
             return backend.localizedDescription
         }
-        return "Could not connect to Paperorg. Try again in a moment."
+        return L10n.Included.connectionFailed
     }
 
     private func activateIncludedMinutes() {

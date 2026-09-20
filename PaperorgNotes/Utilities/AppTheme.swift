@@ -21,7 +21,7 @@ enum AppTheme {
     static let textPrimary = primary
     static let textSecondary = adaptive(light: UIColor(red: 0.302, green: 0.376, blue: 0.482, alpha: 1), dark: UIColor(red: 0.604, green: 0.659, blue: 0.737, alpha: 1))
     static let warning = accent
-    static let error = adaptive(light: UIColor(red: 0.84, green: 0.27, blue: 0.27, alpha: 1), dark: UIColor(red: 1.0, green: 0.541, blue: 0.502, alpha: 1))
+    static let error = adaptive(light: UIColor(red: 0.706, green: 0.137, blue: 0.196, alpha: 1), dark: UIColor(red: 1.0, green: 0.541, blue: 0.502, alpha: 1))
     static let unclearHighlight = adaptive(light: UIColor(red: 1.0, green: 0.949, blue: 0.898, alpha: 1), dark: UIColor(red: 0.22, green: 0.14, blue: 0.08, alpha: 1))
     static let recordRed = accent
     /// Filled primary buttons: navy on light, orange on dark so the fill stays distinct from the page.

@@ -64,6 +64,7 @@ import com.paperorg.notes.domain.DurationFormat
 import com.paperorg.notes.domain.Note
 import com.paperorg.notes.domain.OutputType
 import com.paperorg.notes.ui.theme.Accent
+import com.paperorg.notes.ui.theme.AccentText
 import com.paperorg.notes.ui.theme.Border
 import com.paperorg.notes.ui.theme.Primary
 import com.paperorg.notes.ui.theme.Surface
@@ -248,7 +249,7 @@ fun NoteCard(note: Note, onOpen: () -> Unit, compact: Boolean = false) {
                     fontSize = 12.sp,
                 )
                 if (compact && output != null) {
-                    Text(output.label(), color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text(output.label(), color = AccentText, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 } else {
                     note.previewSnippet.takeIf { it.isNotBlank() }?.let {
                         Text(it, color = TextSecondary, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)

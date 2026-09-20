@@ -29,7 +29,7 @@ struct SettingsView: View {
                 Section(L10n.Settings.proSection) {
                     if environment.subscriptionService.isServerProConfirmed {
                         Label(L10n.Settings.proActive, systemImage: "checkmark.seal.fill")
-                            .foregroundStyle(AppTheme.accent)
+                            .foregroundStyle(AppTheme.accentText)
                         if let usage = environment.subscriptionService.displayUsageInfo {
                             ProUsageCard(usage: usage) {
                                 Task { await environment.subscriptionService.refreshEntitlements() }
@@ -38,7 +38,7 @@ struct SettingsView: View {
                         SettingsSectionHint(text: L10n.Settings.proHint)
                     } else if environment.subscriptionService.isProPendingServerConfirmation {
                         Label(L10n.Settings.proConfirming, systemImage: "clock.arrow.circlepath")
-                            .foregroundStyle(AppTheme.accent)
+                            .foregroundStyle(AppTheme.accentText)
                         Button(String(localized: "paywall.refresh")) {
                             Task { await environment.subscriptionService.syncEntitlementsFromStore() }
                         }
@@ -46,7 +46,7 @@ struct SettingsView: View {
                     } else if settings.usesIncludedBackend,
                               let usage = settings.cachedProUsage {
                         Label(L10n.Included.active, systemImage: "clock.badge.checkmark")
-                            .foregroundStyle(AppTheme.accent)
+                            .foregroundStyle(AppTheme.accentText)
                         ProUsageCard(usage: usage) {
                             Task { await environment.subscriptionService.refreshEntitlements() }
                         }

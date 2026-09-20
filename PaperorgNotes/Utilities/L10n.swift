@@ -71,6 +71,8 @@ enum L10n {
         static let upgrade = String(localized: "included.upgrade")
         static let connecting = String(localized: "included.connecting")
         static let unavailable = String(localized: "included.unavailable")
+        static let offline = String(localized: "included.offline")
+        static let connectionFailed = String(localized: "included.connection_failed")
         static let active = String(localized: "included.active")
 
         static func remaining(_ minutes: Int) -> String {

@@ -18,6 +18,10 @@ final class ThemeReadabilityTests: XCTestCase {
                 }
             }
             XCTAssertGreaterThanOrEqual(contrast(color(AppTheme.accentText), color(AppTheme.background)), 4.5, "Privacy link text: \(style)")
+            for background in [AppTheme.surface, AppTheme.background] {
+                XCTAssertGreaterThanOrEqual(contrast(color(AppTheme.error), color(background)), 4.5, "Error text: \(style)")
+                XCTAssertGreaterThanOrEqual(contrast(color(AppTheme.accentText), color(background)), 4.5, "Status text: \(style)")
+            }
             let accent = try XCTUnwrap(UIColor(named: "AccentColor", in: .main, compatibleWith: traits))
             XCTAssertGreaterThanOrEqual(contrast(accent.resolvedColor(with: traits), color(AppTheme.background)), 4.5, "Default link: \(style)")
         }
