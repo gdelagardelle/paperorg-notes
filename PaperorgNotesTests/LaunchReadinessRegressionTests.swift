@@ -128,9 +128,11 @@ final class StoreKitRecoveryTests: XCTestCase {
         let (settings, service) = makeService()
         await service.restorePurchases()
         XCTAssertFalse(settings.storeKitProTrusted)
-        // StoreKit Test wraps the injected network failure in an internal
-        // App Store error. It must reach the localized purchase error path.
-        XCTAssertEqual(service.lastError, L10n.Subscription.purchaseUnavailable)
+        // Older runtimes preserve the injected network error; iOS 27 wraps
+        // it as an internal StoreKit error. Both must report the sync failure,
+        // rather than silently consulting the cache and claiming no entitlement.
+        XCTAssertTrue([error.localizedDescription, L10n.Subscription.purchaseUnavailable]
+            .contains(service.lastError ?? ""))
     }
 
     func testRestoreRecoversExistingPurchaseWhileServerIsOffline() async throws {
