@@ -8,6 +8,7 @@ struct RecordView: View {
     @Query(sort: \Note.createdAt, order: .reverse) private var recentNotes: [Note]
     
     @State private var selectedLanguage: AppLanguage = .autoDetect
+    @State private var recordingLanguageSegments: [RecordingLanguageSegment] = []
     @State private var selectedOutputType: OutputType = .meetingNotes
     @State private var activeNote: Note?
     @State private var showProcessing = false
@@ -26,7 +27,14 @@ struct RecordView: View {
     }
 
     private var recordLanguageOptions: [AppLanguage] {
-        AppLanguage.recordPickerLanguages
+        if isRecordingSession, !selectedLanguage.isAutoDetect {
+            return AppLanguage.spokenLanguages
+        }
+        return AppLanguage.recordPickerLanguages
+    }
+
+    private var languageChipsEnabled: Bool {
+        !isRecordingSession || !selectedLanguage.isAutoDetect
     }
 
     // Declared out of line because inferring these inside the body pushed the
@@ -180,18 +188,19 @@ struct RecordView: View {
                             SelectionChip(
                                 title: "\(language.flag) \(language.displayName)",
                                 isSelected: selectedLanguage == language,
-                                action: {
-                                    selectedLanguage = language
-                                    environment.settingsService.preferredRecordLanguage = language
-                                }
+                                action: { selectRecordLanguage(language) }
                             )
-                            .disabled(isRecordingSession)
+                            .disabled(!languageChipsEnabled)
                         }
                     }
                 }
 
                 if selectedLanguage.isAutoDetect {
                     Text(L10n.Settings.autoDetectLanguageHint)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                } else if isRecordingSession {
+                    Text(L10n.Record.languageSwitchHint)
                         .font(.caption)
                         .foregroundStyle(AppTheme.textSecondary)
                 }
@@ -406,6 +415,17 @@ struct RecordView: View {
             outputType: selectedOutputType,
             status: .draft
         )
+        if !selectedLanguage.isAutoDetect {
+            recordingLanguageSegments = [
+                RecordingLanguageSegment(
+                    languageCode: selectedLanguage.rawValue,
+                    startTime: 0
+                )
+            ]
+            note.recordingLanguageSegments = recordingLanguageSegments
+        } else {
+            recordingLanguageSegments = []
+        }
         modelContext.insert(note)
         activeNote = note
         do {
@@ -640,7 +660,39 @@ struct RecordView: View {
         guard activeNote == nil, let noteId = environment.recordingService.currentNoteId else { return }
         var descriptor = FetchDescriptor<Note>(predicate: #Predicate { $0.id == noteId })
         descriptor.fetchLimit = 1
-        activeNote = try? modelContext.fetch(descriptor).first
+        guard let note = try? modelContext.fetch(descriptor).first else { return }
+        activeNote = note
+        selectedLanguage = note.appLanguage
+        recordingLanguageSegments = note.recordingLanguageSegments
+    }
+
+    private func selectRecordLanguage(_ language: AppLanguage) {
+        guard languageChipsEnabled else { return }
+
+        if isRecordingSession {
+            switchLanguageDuringRecording(to: language)
+            return
+        }
+
+        selectedLanguage = language
+        environment.settingsService.preferredRecordLanguage = language
+    }
+
+    private func switchLanguageDuringRecording(to language: AppLanguage) {
+        guard !language.isAutoDetect, language != selectedLanguage else { return }
+
+        let boundary = environment.recordingService.duration
+        if let last = recordingLanguageSegments.last,
+           boundary - last.startTime < TranscriptionLanguagePlanner.minimumSliceDuration {
+            return
+        }
+
+        recordingLanguageSegments.append(
+            RecordingLanguageSegment(languageCode: language.rawValue, startTime: boundary)
+        )
+        selectedLanguage = language
+        activeNote?.recordingLanguageSegments = recordingLanguageSegments
+        try? modelContext.save()
     }
 
     private func scheduleQuickRecordIfNeeded() {

@@ -90,6 +90,7 @@ enum L10n {
         static let quickRecordQueuedTitle = String(localized: "record.quick_queued.title")
         static let quickRecordQueuedMessage = String(localized: "record.quick_queued.message")
         static let language = String(localized: "record.language")
+        static let languageSwitchHint = String(localized: "record.language_switch_hint")
         static let noteStyle = String(localized: "record.note_style")
         static let emptyTitle = String(localized: "record.empty.title")
         static let emptySubtitle = String(localized: "record.empty.subtitle")

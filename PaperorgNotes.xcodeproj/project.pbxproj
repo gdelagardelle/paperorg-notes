@@ -16,6 +16,7 @@
 		129CE3D23578AA4B51A0B063 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47612546C77D2EBA71ED4283 /* AppEnvironment.swift */; };
 		13AEF56FF88E35287FDA4CA3 /* ReviewBeforeSendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5DBF0A62BECF4981A7BE7 /* ReviewBeforeSendView.swift */; };
 		161EBF3F40CBF2C70C127481 /* SMTPProviderPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B48DA3432104CD2F9DB7CE /* SMTPProviderPreset.swift */; };
+		17A629BC00E4B1B0D42A9C09 /* RecordingLanguageSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A30F02359B0685563684EFE /* RecordingLanguageSegment.swift */; };
 		180B2284CCCCBFF9B09A60B4 /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B74C5620F1B13BDE12A809 /* DeepLinkHandler.swift */; };
 		184523BFC4362034B7A83B56 /* SummaryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111EBE0439A2EDDB89A24C20 /* SummaryService.swift */; };
 		1CEEF14519AA64B9827402C9 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A7124A59F839DA2119477 /* L10n.swift */; };
@@ -131,6 +132,7 @@
 		015CA9C9BF4BA1A913E6E87E /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
 		073A648ED57141A4D2B0300F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		0A2776891AC1FF283C722736 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		0A30F02359B0685563684EFE /* RecordingLanguageSegment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingLanguageSegment.swift; sourceTree = "<group>"; };
 		0C9BD304B8AD3F3CF47BD303 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		10F451B9CE45F448ED5357EA /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConstants.swift; sourceTree = "<group>"; };
 		111EBE0439A2EDDB89A24C20 /* SummaryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryService.swift; sourceTree = "<group>"; };
@@ -527,6 +529,7 @@
 			children = (
 				9D34CD6703E1B9404B252C40 /* Enums.swift */,
 				76B3C01618A0601C86CA1CF7 /* Note.swift */,
+				0A30F02359B0685563684EFE /* RecordingLanguageSegment.swift */,
 				F1B48DA3432104CD2F9DB7CE /* SMTPProviderPreset.swift */,
 				15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */,
 				3405E9F6563295A3256E4763 /* Transcript.swift */,
@@ -776,6 +779,7 @@
 				5659B8363936129D5E6448BA /* QualityPipeline.swift in Sources */,
 				ADD2EECA433DF2B4E19B3A2B /* QuickRecordSharedStore.swift in Sources */,
 				958031920000A50C401A194D /* RecordView.swift in Sources */,
+				17A629BC00E4B1B0D42A9C09 /* RecordingLanguageSegment.swift in Sources */,
 				C1929CB0E7F507F935A2A0BB /* RecordingService.swift in Sources */,
 				13AEF56FF88E35287FDA4CA3 /* ReviewBeforeSendView.swift in Sources */,
 				B56F621E4D48F4CF8B8AC067 /* SMTPEmailDeliveryService.swift in Sources */,

@@ -48,7 +48,7 @@ final class ProcessRecordingUseCase {
         let startedAt = Date()
         var debugEvents = [
             "Started: \(ISO8601DateFormatter().string(from: startedAt))",
-            "Language: \(note.appLanguage.isAutoDetect ? "Auto-detect" : note.appLanguage.displayName)",
+            "Language: \(languageDebugLabel(for: note))",
             "Audio duration: \(String(format: "%.1f", note.durationSeconds)) seconds",
             "Audio bytes: \((try? Data(contentsOf: audioURL).count) ?? 0)",
             "Diarization: disabled"
@@ -81,7 +81,7 @@ final class ProcessRecordingUseCase {
             }
 
             let initialResult = try await transcribeRecording(
-                noteLanguage: note.appLanguage,
+                note: note,
                 audioURL: audioURL
             )
             let resolvedLanguage = initialResult.language
@@ -204,10 +204,66 @@ final class ProcessRecordingUseCase {
     }
     
     private func transcribeRecording(
-        noteLanguage: AppLanguage,
+        note: Note,
         audioURL: URL
     ) async throws -> TranscriptionResult {
-        let requestLanguage = TranscriptionLanguagePlanner.requestLanguage(for: noteLanguage)
+        let noteLanguage = note.appLanguage
+        let segments = note.recordingLanguageSegments
+
+        if TranscriptionLanguagePlanner.shouldTranscribeInSlices(
+            noteLanguage: noteLanguage,
+            segments: segments
+        ) {
+            let slices = TranscriptionLanguagePlanner.recordingSlices(
+                noteLanguage: noteLanguage,
+                segments: segments,
+                totalDuration: note.durationSeconds
+            )
+            guard !slices.isEmpty else {
+                throw TranscriptionError.providerError(
+                    "Recording language switches were too close together. Record a bit longer in each language."
+                )
+            }
+
+            var sliceResults: [(slice: LanguageAudioSlice, result: TranscriptionResult)] = []
+            sliceResults.reserveCapacity(slices.count)
+
+            for slice in slices {
+                let sliceURL = try await AudioTrimService.trim(
+                    sourceURL: audioURL,
+                    start: slice.startTime,
+                    end: slice.endTime
+                )
+                defer { try? FileManager.default.removeItem(at: sliceURL) }
+
+                let result = try await transcribeSingle(
+                    noteLanguage: slice.language,
+                    audioURL: sliceURL,
+                    explicitLanguage: slice.language
+                )
+                sliceResults.append((slice, result))
+            }
+
+            guard let merged = TranscriptionLanguagePlanner.mergeTranscriptionResults(sliceResults),
+                  !merged.fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                throw TranscriptionError.emptyResult
+            }
+            return merged
+        }
+
+        return try await transcribeSingle(
+            noteLanguage: noteLanguage,
+            audioURL: audioURL,
+            explicitLanguage: noteLanguage
+        )
+    }
+
+    private func transcribeSingle(
+        noteLanguage: AppLanguage,
+        audioURL: URL,
+        explicitLanguage: AppLanguage
+    ) async throws -> TranscriptionResult {
+        let requestLanguage = TranscriptionLanguagePlanner.requestLanguage(for: explicitLanguage)
         let request = TranscriptionRequest(
             audioURL: audioURL,
             language: requestLanguage,
@@ -267,7 +323,8 @@ final class ProcessRecordingUseCase {
         let summaryLanguage = TranscriptionLanguagePlanner.summaryLanguage(
             resolvedLanguage: language,
             noteLanguage: note.appLanguage,
-            fallback: settingsService.defaultLanguage
+            fallback: settingsService.defaultLanguage,
+            hasMultipleRecordingLanguages: note.hasMultipleRecordingLanguages
         )
         return try await summaryService.generate(
             transcript: transcript,
@@ -321,6 +378,16 @@ final class ProcessRecordingUseCase {
             context.delete(section)
         }
         note.structuredSections.removeAll()
+    }
+
+    private func languageDebugLabel(for note: Note) -> String {
+        if note.hasMultipleRecordingLanguages {
+            return note.displayLanguageLabel
+        }
+        if note.appLanguage.isAutoDetect {
+            return "Auto-detect"
+        }
+        return note.appLanguage.displayName
     }
 
     private func save(_ note: Note) throws {

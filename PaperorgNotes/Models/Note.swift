@@ -12,6 +12,7 @@ final class Note {
     var audioDeletedAt: Date?
     var language: String
     var detectedLanguage: String?
+    var languageSegmentsJSON: Data?
     var languageConfidence: Double?
     var outputType: String
     var status: String
@@ -72,6 +73,40 @@ final class Note {
             return detected
         }
         return appLanguage
+    }
+
+    var recordingLanguageSegments: [RecordingLanguageSegment] {
+        get {
+            guard let languageSegmentsJSON else { return [] }
+            return (try? JSONDecoder().decode([RecordingLanguageSegment].self, from: languageSegmentsJSON)) ?? []
+        }
+        set {
+            languageSegmentsJSON = newValue.isEmpty
+                ? nil
+                : try? JSONEncoder().encode(newValue)
+        }
+    }
+
+    var hasMultipleRecordingLanguages: Bool {
+        recordingLanguageSegments.count > 1
+    }
+
+    var displayLanguageLabel: String {
+        if hasMultipleRecordingLanguages {
+            return recordingLanguageSegments
+                .compactMap { AppLanguage(rawValue: $0.languageCode)?.displayName }
+                .joined(separator: " + ")
+        }
+        return displayLanguage.displayName
+    }
+
+    var displayLanguageFlags: String {
+        if hasMultipleRecordingLanguages {
+            return recordingLanguageSegments
+                .compactMap { AppLanguage(rawValue: $0.languageCode)?.flag }
+                .joined(separator: " ")
+        }
+        return displayLanguage.flag
     }
     
     var noteStatus: NoteStatus {

@@ -6463,6 +6463,40 @@
         }
       }
     },
+    "record.language_switch_hint": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippe während der Aufnahme eine Sprache an, um zu wechseln."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap a language while recording to switch."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Touchez une langue pendant l'enregistrement pour changer."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tippt während der Opnam eng Sprooch un, fir ze wiesselen."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toque num idioma durante a gravação para mudar."
+          }
+        }
+      }
+    },
     "record.note_style": {
       "extractionState": "stale",
       "localizations": {

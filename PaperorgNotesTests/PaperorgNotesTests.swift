@@ -160,6 +160,82 @@ final class TranscriptionLanguagePlannerTests: XCTestCase {
             .english
         )
     }
+
+    func testRecordingSlicesFromLanguageBoundaries() {
+        let segments = [
+            RecordingLanguageSegment(languageCode: AppLanguage.luxembourgish.rawValue, startTime: 0),
+            RecordingLanguageSegment(languageCode: AppLanguage.french.rawValue, startTime: 30)
+        ]
+
+        let slices = TranscriptionLanguagePlanner.recordingSlices(
+            noteLanguage: .luxembourgish,
+            segments: segments,
+            totalDuration: 60
+        )
+
+        XCTAssertEqual(slices.count, 2)
+        XCTAssertEqual(slices[0].language, .luxembourgish)
+        XCTAssertEqual(slices[0].startTime, 0)
+        XCTAssertEqual(slices[0].endTime, 30)
+        XCTAssertEqual(slices[1].language, .french)
+        XCTAssertEqual(slices[1].startTime, 30)
+        XCTAssertEqual(slices[1].endTime, 60)
+    }
+
+    func testMergeTranscriptionResultsOffsetsSegmentTimes() {
+        let lbResult = TranscriptionResult(
+            providerId: ProviderID.luxasr.rawValue,
+            language: .luxembourgish,
+            segments: [
+                TranscriptSegmentDTO(
+                    index: 0,
+                    text: "Moien",
+                    startTime: 0,
+                    endTime: 2,
+                    confidence: 0.9,
+                    providerId: ProviderID.luxasr.rawValue
+                )
+            ],
+            fullText: "Moien",
+            averageConfidence: 0.9,
+            processingTimeMs: 100,
+            metadata: [:]
+        )
+        let frResult = TranscriptionResult(
+            providerId: ProviderID.openai.rawValue,
+            language: .french,
+            segments: [
+                TranscriptSegmentDTO(
+                    index: 0,
+                    text: "Bonjour",
+                    startTime: 0,
+                    endTime: 2,
+                    confidence: 0.8,
+                    providerId: ProviderID.openai.rawValue
+                )
+            ],
+            fullText: "Bonjour",
+            averageConfidence: 0.8,
+            processingTimeMs: 120,
+            metadata: [:]
+        )
+
+        let merged = TranscriptionLanguagePlanner.mergeTranscriptionResults([
+            (
+                LanguageAudioSlice(language: .luxembourgish, startTime: 0, endTime: 30),
+                lbResult
+            ),
+            (
+                LanguageAudioSlice(language: .french, startTime: 30, endTime: 60),
+                frResult
+            )
+        ])
+
+        XCTAssertEqual(merged?.fullText, "Moien Bonjour")
+        XCTAssertEqual(merged?.segments.count, 2)
+        XCTAssertEqual(merged?.segments[1].startTime, 30)
+        XCTAssertEqual(merged?.metadata["multiLanguage"], "true")
+    }
 }
 
 final class ProviderRegistryTests: XCTestCase {
