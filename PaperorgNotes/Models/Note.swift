@@ -94,10 +94,20 @@ final class Note {
     var displayLanguageLabel: String {
         if hasMultipleRecordingLanguages {
             return recordingLanguageSegments
-                .compactMap { AppLanguage(rawValue: $0.languageCode)?.displayName }
+                .compactMap { segmentDisplayName(for: $0) }
                 .joined(separator: " + ")
         }
         return displayLanguage.displayName
+    }
+
+    private func segmentDisplayName(for segment: RecordingLanguageSegment) -> String? {
+        if segment.languageCode == AppLanguage.autoDetect.rawValue,
+           let detectedLanguage,
+           let detected = AppLanguage(rawValue: detectedLanguage),
+           !detected.isAutoDetect {
+            return detected.displayName
+        }
+        return AppLanguage(rawValue: segment.languageCode)?.displayName
     }
 
     var displayLanguageFlags: String {

@@ -51,34 +51,26 @@ enum TranscriptionLanguagePlanner {
         totalDuration: TimeInterval,
         minimumSliceDuration: TimeInterval = minimumSliceDuration
     ) -> [LanguageAudioSlice] {
-        guard !noteLanguage.isAutoDetect else { return [] }
+        let boundaries = normalizedBoundaries(noteLanguage: noteLanguage, segments: segments)
+        guard !boundaries.isEmpty else { return [] }
 
-        let sorted = segments
-            .sorted { $0.startTime < $1.startTime }
-            .compactMap { segment -> (AppLanguage, TimeInterval)? in
-                guard let language = AppLanguage(rawValue: segment.languageCode),
-                      !language.isAutoDetect else {
-                    return nil
-                }
-                return (language, segment.startTime)
-            }
-
-        guard sorted.count > 1 else {
-            let language = sorted.first?.0 ?? noteLanguage
+        if !noteLanguage.isAutoDetect, boundaries.count == 1, boundaries[0].1 == 0 {
             guard totalDuration >= minimumSliceDuration else { return [] }
-            return [LanguageAudioSlice(language: language, startTime: 0, endTime: totalDuration)]
+            return [LanguageAudioSlice(language: boundaries[0].0, startTime: 0, endTime: totalDuration)]
         }
 
+        guard boundaries.count > 1 else { return [] }
+
         var slices: [LanguageAudioSlice] = []
-        for index in sorted.indices {
-            let start = sorted[index].1
-            let end = index + 1 < sorted.count ? sorted[index + 1].1 : totalDuration
+        for index in boundaries.indices {
+            let start = boundaries[index].1
+            let end = index + 1 < boundaries.count ? boundaries[index + 1].1 : totalDuration
             let duration = end - start
-            let isLastSlice = index == sorted.count - 1
+            let isLastSlice = index == boundaries.count - 1
             guard duration >= minimumSliceDuration || (isLastSlice && duration > 0.05) else { continue }
             slices.append(
                 LanguageAudioSlice(
-                    language: sorted[index].0,
+                    language: boundaries[index].0,
                     startTime: start,
                     endTime: end
                 )
@@ -91,7 +83,28 @@ enum TranscriptionLanguagePlanner {
         noteLanguage: AppLanguage,
         segments: [RecordingLanguageSegment]
     ) -> Bool {
-        !noteLanguage.isAutoDetect && segments.count > 1
+        if segments.count > 1 { return true }
+        return noteLanguage.isAutoDetect && !segments.isEmpty
+    }
+
+    /// Merge stored segments with implicit auto-detect boundaries for auto-started notes.
+    static func normalizedBoundaries(
+        noteLanguage: AppLanguage,
+        segments: [RecordingLanguageSegment]
+    ) -> [(AppLanguage, TimeInterval)] {
+        var boundaries = segments
+            .sorted { $0.startTime < $1.startTime }
+            .compactMap { segment -> (AppLanguage, TimeInterval)? in
+                guard let language = AppLanguage(rawValue: segment.languageCode) else { return nil }
+                return (language, segment.startTime)
+            }
+
+        guard noteLanguage.isAutoDetect, let first = boundaries.first else { return boundaries }
+
+        if first.1 > 0.05, first.0 != .autoDetect {
+            boundaries.insert((.autoDetect, 0), at: 0)
+        }
+        return boundaries
     }
 
     static func mergeTranscriptionResults(

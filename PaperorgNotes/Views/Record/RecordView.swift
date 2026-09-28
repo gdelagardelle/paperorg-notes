@@ -27,14 +27,14 @@ struct RecordView: View {
     }
 
     private var recordLanguageOptions: [AppLanguage] {
-        if isRecordingSession, !selectedLanguage.isAutoDetect {
+        if isRecordingSession {
             return AppLanguage.spokenLanguages
         }
         return AppLanguage.recordPickerLanguages
     }
 
     private var languageChipsEnabled: Bool {
-        !isRecordingSession || !selectedLanguage.isAutoDetect
+        true
     }
 
     // Declared out of line because inferring these inside the body pushed the
@@ -685,6 +685,15 @@ struct RecordView: View {
         if let last = recordingLanguageSegments.last,
            boundary - last.startTime < TranscriptionLanguagePlanner.minimumSliceDuration {
             return
+        }
+
+        if selectedLanguage.isAutoDetect, recordingLanguageSegments.isEmpty {
+            recordingLanguageSegments.append(
+                RecordingLanguageSegment(
+                    languageCode: AppLanguage.autoDetect.rawValue,
+                    startTime: 0
+                )
+            )
         }
 
         recordingLanguageSegments.append(

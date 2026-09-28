@@ -224,6 +224,60 @@ final class TranscriptionLanguagePlannerTests: XCTestCase {
         XCTAssertEqual(slices[1].endTime, 60)
     }
 
+    func testShouldTranscribeInSlicesForAutoStartedMidSwitch() {
+        let segments = [
+            RecordingLanguageSegment(languageCode: AppLanguage.french.rawValue, startTime: 16),
+            RecordingLanguageSegment(languageCode: AppLanguage.portuguese.rawValue, startTime: 26)
+        ]
+
+        XCTAssertTrue(
+            TranscriptionLanguagePlanner.shouldTranscribeInSlices(
+                noteLanguage: .autoDetect,
+                segments: segments
+            )
+        )
+    }
+
+    func testRecordingSlicesPrependsAutoForAutoStartedNote() {
+        let segments = [
+            RecordingLanguageSegment(languageCode: AppLanguage.autoDetect.rawValue, startTime: 0),
+            RecordingLanguageSegment(languageCode: AppLanguage.french.rawValue, startTime: 16),
+            RecordingLanguageSegment(languageCode: AppLanguage.portuguese.rawValue, startTime: 26)
+        ]
+
+        let slices = TranscriptionLanguagePlanner.recordingSlices(
+            noteLanguage: .autoDetect,
+            segments: segments,
+            totalDuration: 35
+        )
+
+        XCTAssertEqual(slices.count, 3)
+        XCTAssertEqual(slices[0].language, .autoDetect)
+        XCTAssertEqual(slices[0].startTime, 0)
+        XCTAssertEqual(slices[0].endTime, 16)
+        XCTAssertEqual(slices[1].language, .french)
+        XCTAssertEqual(slices[1].endTime, 26)
+        XCTAssertEqual(slices[2].language, .portuguese)
+        XCTAssertEqual(slices[2].endTime, 35)
+    }
+
+    func testRecordingSlicesInsertsLeadingAutoWhenFirstSwitchIsLate() {
+        let segments = [
+            RecordingLanguageSegment(languageCode: AppLanguage.french.rawValue, startTime: 16),
+            RecordingLanguageSegment(languageCode: AppLanguage.portuguese.rawValue, startTime: 26)
+        ]
+
+        let slices = TranscriptionLanguagePlanner.recordingSlices(
+            noteLanguage: .autoDetect,
+            segments: segments,
+            totalDuration: 35
+        )
+
+        XCTAssertEqual(slices.count, 3)
+        XCTAssertEqual(slices[0].language, .autoDetect)
+        XCTAssertEqual(slices[0].endTime, 16)
+    }
+
     func testMergeTranscriptionResultsOffsetsSegmentTimes() {
         let lbResult = TranscriptionResult(
             providerId: ProviderID.luxasr.rawValue,
