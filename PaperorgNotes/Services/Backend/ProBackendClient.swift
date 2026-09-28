@@ -22,6 +22,17 @@ final class ProBackendClient {
         URL(string: settings.subscriptionBackendBaseURL)!
     }
 
+    func supportsSegmentedTranscription() async throws -> Bool {
+        try await ensureRegistered()
+        var request = URLRequest(url: baseURL.appending(path: "/v1/recording-capabilities"))
+        request.timeoutInterval = 15
+        try authorize(&request)
+        let (data, response) = try await session.data(for: request)
+        if (response as? HTTPURLResponse)?.statusCode == 404 { return false }
+        try validate(response: response, data: data)
+        return try RecordingCapabilities.decode(data).supported
+    }
+
     func ensureRegistered() async throws {
         let expectedIssuer = settings.subscriptionBackendBaseURL
         if keychain.retrieve(for: .proAccessToken) != nil,
@@ -155,6 +166,9 @@ final class ProBackendClient {
             appendField("language", "auto")
         }
         appendField("duration_seconds", String(format: "%.2f", durationSeconds))
+        for (name, value) in try transcriptionRequest.recordingSegment?.multipartFields() ?? [] {
+            appendField(name, value)
+        }
         if let prompt = transcriptionRequest.prompt, !prompt.isEmpty {
             appendField("prompt", String(prompt.prefix(900)))
         }
@@ -202,6 +216,9 @@ final class ProBackendClient {
         }
         appendField("diarize", transcriptionRequest.enableDiarization ? "true" : "false")
         appendField("duration_seconds", String(format: "%.2f", durationSeconds))
+        for (name, value) in try transcriptionRequest.recordingSegment?.multipartFields() ?? [] {
+            appendField(name, value)
+        }
 
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"file\"; filename=\"audio.m4a\"\r\n".data(using: .utf8)!)
@@ -241,6 +258,9 @@ final class ProBackendClient {
 
         appendField("language", "lb")
         appendField("duration_seconds", String(format: "%.2f", durationSeconds))
+        for (name, value) in try transcriptionRequest.recordingSegment?.multipartFields() ?? [] {
+            appendField(name, value)
+        }
         if let prompt = transcriptionRequest.prompt, !prompt.isEmpty {
             appendField("prompt", String(prompt.prefix(900)))
         }

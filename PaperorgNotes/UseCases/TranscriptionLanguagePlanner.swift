@@ -35,7 +35,10 @@ enum TranscriptionLanguagePlanner {
         fallback: AppLanguage,
         hasMultipleRecordingLanguages: Bool = false
     ) -> AppLanguage {
-        if noteLanguage.isAutoDetect || hasMultipleRecordingLanguages {
+        if hasMultipleRecordingLanguages {
+            return .autoDetect
+        }
+        if noteLanguage.isAutoDetect {
             return resolvedLanguage.isAutoDetect ? fallback : resolvedLanguage
         }
         return resolvedLanguage.isAutoDetect ? fallback : resolvedLanguage
@@ -70,7 +73,9 @@ enum TranscriptionLanguagePlanner {
         for index in sorted.indices {
             let start = sorted[index].1
             let end = index + 1 < sorted.count ? sorted[index + 1].1 : totalDuration
-            guard end - start >= minimumSliceDuration else { continue }
+            let duration = end - start
+            let isLastSlice = index == sorted.count - 1
+            guard duration >= minimumSliceDuration || (isLastSlice && duration > 0.05) else { continue }
             slices.append(
                 LanguageAudioSlice(
                     language: sorted[index].0,

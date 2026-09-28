@@ -104,7 +104,8 @@ final class ProcessRecordingUseCase {
                 initialResult: initialResult,
                 audioURL: audioURL,
                 expectedLanguage: resolvedLanguage,
-                prompt: settingsService.transcriptionPrompt()
+                prompt: settingsService.transcriptionPrompt(),
+                skipMixedLanguageDetection: note.hasMultipleRecordingLanguages
             )
             let trimmedTranscript = finalTranscript.fullText.trimmingCharacters(in: .whitespacesAndNewlines)
             guard trimmedTranscript.count >= 3 else {
@@ -183,7 +184,7 @@ final class ProcessRecordingUseCase {
         try save(note)
 
         do {
-            let summary = try await generateSummary(for: note, transcript: transcript, language: note.displayLanguage) { stage in
+            let summary = try await generateSummary(for: note, transcript: transcript, language: note.summaryLanguage) { stage in
                 note.processingStage = stage.rawValue
                 onStageChange(stage)
             }
@@ -228,7 +229,7 @@ final class ProcessRecordingUseCase {
             var sliceResults: [(slice: LanguageAudioSlice, result: TranscriptionResult)] = []
             sliceResults.reserveCapacity(slices.count)
 
-            for slice in slices {
+            for (index, slice) in slices.enumerated() {
                 let sliceURL = try await AudioTrimService.trim(
                     sourceURL: audioURL,
                     start: slice.startTime,
@@ -239,7 +240,12 @@ final class ProcessRecordingUseCase {
                 let result = try await transcribeSingle(
                     noteLanguage: slice.language,
                     audioURL: sliceURL,
-                    explicitLanguage: slice.language
+                    explicitLanguage: slice.language,
+                    recordingSegment: RecordingSegmentIdentity(
+                        sessionID: note.id,
+                        index: index,
+                        startSeconds: slice.startTime
+                    )
                 )
                 sliceResults.append((slice, result))
             }
@@ -254,14 +260,16 @@ final class ProcessRecordingUseCase {
         return try await transcribeSingle(
             noteLanguage: noteLanguage,
             audioURL: audioURL,
-            explicitLanguage: noteLanguage
+            explicitLanguage: noteLanguage,
+            recordingSegment: nil
         )
     }
 
     private func transcribeSingle(
         noteLanguage: AppLanguage,
         audioURL: URL,
-        explicitLanguage: AppLanguage
+        explicitLanguage: AppLanguage,
+        recordingSegment: RecordingSegmentIdentity?
     ) async throws -> TranscriptionResult {
         let requestLanguage = TranscriptionLanguagePlanner.requestLanguage(for: explicitLanguage)
         let request = TranscriptionRequest(
@@ -269,7 +277,8 @@ final class ProcessRecordingUseCase {
             language: requestLanguage,
             enableDiarization: false,
             prompt: settingsService.transcriptionPrompt(),
-            fallbackLanguage: settingsService.defaultLanguage
+            fallbackLanguage: settingsService.defaultLanguage,
+            recordingSegment: recordingSegment
         )
         var result = try await transcriptionService.transcribe(request)
 
@@ -284,7 +293,8 @@ final class ProcessRecordingUseCase {
                 language: .luxembourgish,
                 enableDiarization: false,
                 prompt: settingsService.transcriptionPrompt(),
-                fallbackLanguage: settingsService.defaultLanguage
+                fallbackLanguage: settingsService.defaultLanguage,
+                recordingSegment: recordingSegment
             )
             if let luxResult = try? await transcriptionService.transcribe(luxRequest),
                !luxResult.fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

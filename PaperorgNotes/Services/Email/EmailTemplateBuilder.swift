@@ -25,6 +25,7 @@ struct EmailNoteContent: Sendable {
     let recordedAt: Date
     let durationSeconds: TimeInterval
     let language: AppLanguage
+    let languageDisplayName: String
     let outputType: OutputType
     var audioAttached: Bool
 
@@ -36,6 +37,7 @@ struct EmailNoteContent: Sendable {
         recordedAt: Date,
         durationSeconds: TimeInterval,
         language: AppLanguage,
+        languageDisplayName: String? = nil,
         outputType: OutputType,
         audioAttached: Bool = false
     ) {
@@ -46,6 +48,7 @@ struct EmailNoteContent: Sendable {
         self.recordedAt = recordedAt
         self.durationSeconds = durationSeconds
         self.language = language
+        self.languageDisplayName = languageDisplayName ?? language.displayName
         self.outputType = outputType
         self.audioAttached = audioAttached
     }
@@ -59,7 +62,8 @@ struct EmailNoteContent: Sendable {
             contentMode: .both,
             recordedAt: note.createdAt,
             durationSeconds: note.durationSeconds,
-            language: note.appLanguage,
+            language: note.summaryLanguage,
+            languageDisplayName: note.displayLanguageLabel,
             outputType: note.noteOutputType
         )
     }
@@ -191,7 +195,7 @@ enum EmailTemplateBuilder {
         let chips = [
             date,
             duration,
-            content.language.displayName,
+            content.languageDisplayName,
             content.outputType.displayName
         ]
         let chipHTML = chips.map { chip in

@@ -343,13 +343,16 @@ final class SettingsService {
         defaults.removeObject(forKey: Keys.consentedProviders)
         
         let storedLanguage = AppLanguage(rawValue: defaults.string(forKey: Keys.defaultLanguage) ?? "") ?? .luxembourgish
-        self.defaultLanguage = storedLanguage.isAutoDetect ? .luxembourgish : storedLanguage
+        let resolvedDefaultLanguage = storedLanguage.isAutoDetect ? .luxembourgish : storedLanguage
+        self.defaultLanguage = resolvedDefaultLanguage
         if let storedRecordLanguage = defaults.string(forKey: Keys.preferredRecordLanguage),
            let recordLanguage = AppLanguage(rawValue: storedRecordLanguage) {
             self.preferredRecordLanguage = recordLanguage
         } else {
-            self.preferredRecordLanguage = .autoDetect
-            defaults.set(AppLanguage.autoDetect.rawValue, forKey: Keys.preferredRecordLanguage)
+            let isExistingInstall = defaults.object(forKey: Keys.defaultLanguage) != nil
+            let initialRecordLanguage = isExistingInstall ? resolvedDefaultLanguage : .autoDetect
+            self.preferredRecordLanguage = initialRecordLanguage
+            defaults.set(initialRecordLanguage.rawValue, forKey: Keys.preferredRecordLanguage)
         }
         self.autoDetectLanguage = false
         defaults.set(false, forKey: Keys.autoDetectLanguage)

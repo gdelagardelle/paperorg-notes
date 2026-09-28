@@ -14,7 +14,8 @@ final class QualityPipeline {
         initialResult: TranscriptionResult,
         audioURL: URL,
         expectedLanguage: AppLanguage,
-        prompt: String? = nil
+        prompt: String? = nil,
+        skipMixedLanguageDetection: Bool = false
     ) async throws -> FinalTranscript {
         var segments = initialResult.segments
         let providersUsed = [initialResult.providerId]
@@ -32,8 +33,10 @@ final class QualityPipeline {
         // Step 2: Detect suspicious phrases
         let suspicious = detectSuspiciousPhrases(in: segments)
         
-        // Step 3: Detect mixed language segments
-        let mixedLanguage = detectMixedLanguageSegments(in: segments, expected: expectedLanguage)
+        // Step 3: Detect mixed language segments (skip when user switched languages on purpose)
+        let mixedLanguage = skipMixedLanguageDetection
+            ? []
+            : detectMixedLanguageSegments(in: segments, expected: expectedLanguage)
         
         // Step 4: Re-transcribe weak segments — disabled because providers ignore
         // segmentTimeRange and each attempt re-processes the entire file (very slow for LuxASR).
@@ -41,7 +44,9 @@ final class QualityPipeline {
         _ = weakSegments
         
         // Step 5: Language validation
-        let languagePassed = validateLanguage(segments: segments, expected: expectedLanguage)
+        let languagePassed = skipMixedLanguageDetection
+            ? true
+            : validateLanguage(segments: segments, expected: expectedLanguage)
         
         // Step 6: Build final text — never invent words
         let fullText = segments.map { seg -> String in

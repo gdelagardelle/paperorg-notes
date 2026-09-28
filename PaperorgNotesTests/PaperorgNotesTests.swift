@@ -134,6 +134,48 @@ final class TranscriptionLanguagePlannerTests: XCTestCase {
         )
     }
 
+    func testSummaryLanguageUsesAutoDetectForMultiLanguageNotes() {
+        XCTAssertEqual(
+            TranscriptionLanguagePlanner.summaryLanguage(
+                resolvedLanguage: .luxembourgish,
+                noteLanguage: .luxembourgish,
+                fallback: .english,
+                hasMultipleRecordingLanguages: true
+            ),
+            .autoDetect
+        )
+    }
+
+    func testRecordingSlicesIncludeShortFinalSlice() {
+        let segments = [
+            RecordingLanguageSegment(languageCode: AppLanguage.luxembourgish.rawValue, startTime: 0),
+            RecordingLanguageSegment(languageCode: AppLanguage.french.rawValue, startTime: 59.7)
+        ]
+
+        let slices = TranscriptionLanguagePlanner.recordingSlices(
+            noteLanguage: .luxembourgish,
+            segments: segments,
+            totalDuration: 60
+        )
+
+        XCTAssertEqual(slices.count, 2)
+        XCTAssertEqual(slices.last?.duration ?? 0, 0.3, accuracy: 0.001)
+    }
+
+    func testRecordingSegmentIdentityMultipartFields() throws {
+        let identity = RecordingSegmentIdentity(
+            sessionID: UUID(uuidString: "A1B2C3D4-E5F6-7890-ABCD-EF1234567890")!,
+            index: 1,
+            startSeconds: 30.5
+        )
+        let fields = try identity.multipartFields()
+        XCTAssertEqual(fields.first?.0, "recording_session_id")
+        XCTAssertEqual(fields[1].0, "segment_index")
+        XCTAssertEqual(fields[1].1, "1")
+        XCTAssertEqual(fields[2].0, "segment_start_seconds")
+        XCTAssertEqual(fields[2].1, "30.5")
+    }
+
     func testSummaryLanguageUsesDetectedResultForAutoNotes() {
         XCTAssertEqual(
             TranscriptionLanguagePlanner.summaryLanguage(

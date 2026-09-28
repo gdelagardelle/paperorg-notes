@@ -59,7 +59,7 @@ final class ExportService {
         var parts: [String] = []
         parts.append(note.title)
         parts.append("Date: \(formattedDate(note.createdAt))")
-        parts.append("Language: \(note.appLanguage.displayName)")
+        parts.append("Language: \(note.displayLanguageLabel)")
         parts.append("")
         
         if !note.displaySummaryShort.isEmpty {
@@ -121,7 +121,7 @@ final class ExportService {
     private func buildMarkdown(note: Note) -> String {
         var md = "# \(note.title)\n\n"
         md += "**Date:** \(formattedDate(note.createdAt))  \n"
-        md += "**Language:** \(note.appLanguage.displayName)  \n\n"
+        md += "**Language:** \(note.displayLanguageLabel)  \n\n"
         
         if !note.displaySummaryShort.isEmpty {
             md += "## Summary\n\n\(note.displaySummaryShort)\n\n"
@@ -203,7 +203,7 @@ final class ExportService {
                     )
                     y += 28
                     
-                    let meta = "\(formattedDate(note.createdAt)) · \(note.appLanguage.displayName)"
+                    let meta = "\(formattedDate(note.createdAt)) · \(note.displayLanguageLabel)"
                     meta.draw(
                         at: CGPoint(x: margin, y: y),
                         withAttributes: [.font: metaFont, .foregroundColor: PDFBrandColors.secondary]

@@ -1,5 +1,38 @@
 import Foundation
 
+struct RecordingSegmentIdentity: Codable, Sendable {
+    let sessionID: UUID
+    let index: Int
+    let startSeconds: Double
+
+    func multipartFields() throws -> [(String, String)] {
+        guard index >= 0, startSeconds.isFinite, startSeconds >= 0 else {
+            throw ProBackendError.recordingSegmentConflict
+        }
+        return [
+            ("recording_session_id", sessionID.uuidString.lowercased()),
+            ("segment_index", String(index)),
+            ("segment_start_seconds", String(startSeconds))
+        ]
+    }
+}
+
+struct RecordingCapabilities: Decodable {
+    let segmentedTranscription: Bool?
+    let segmentSeconds: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case segmentedTranscription = "segmented_transcription"
+        case segmentSeconds = "segment_seconds"
+    }
+
+    var supported: Bool { segmentedTranscription == true }
+
+    static func decode(_ data: Data) throws -> Self {
+        try JSONDecoder().decode(Self.self, from: data)
+    }
+}
+
 enum SubscriptionPlan: String, Codable, CaseIterable, Identifiable, Sendable {
     case free
     case pro
@@ -168,6 +201,7 @@ enum ProBackendError: LocalizedError {
     case usageLimitReached
     case deviceIntegrityVerificationFailed
     case audioTooLong
+    case recordingSegmentConflict
     case serverError(String)
 
     var errorDescription: String? {
@@ -182,6 +216,8 @@ enum ProBackendError: LocalizedError {
             return "This device could not be verified securely. Please try again."
         case .audioTooLong:
             return L10n.Import.errorServerTooLong
+        case .recordingSegmentConflict:
+            return "Recording segments conflict. Try transcribing again."
         case .serverError:
             return "Paperorg Pro is temporarily unavailable. Please try again later."
         }
@@ -192,7 +228,7 @@ enum ProBackendError: LocalizedError {
     var stopsProviderFallback: Bool {
         switch self {
         case .audioTooLong, .usageLimitReached, .subscriptionRequired,
-             .deviceIntegrityVerificationFailed:
+             .deviceIntegrityVerificationFailed, .recordingSegmentConflict:
             return true
         case .notAuthenticated, .serverError:
             return false

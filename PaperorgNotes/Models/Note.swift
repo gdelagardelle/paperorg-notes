@@ -108,6 +108,14 @@ final class Note {
         }
         return displayLanguage.flag
     }
+
+    /// Language passed to summary generation — follows transcript for auto/multi notes.
+    var summaryLanguage: AppLanguage {
+        if hasMultipleRecordingLanguages || appLanguage.isAutoDetect {
+            return .autoDetect
+        }
+        return displayLanguage
+    }
     
     var noteStatus: NoteStatus {
         NoteStatus(rawValue: status) ?? .draft
