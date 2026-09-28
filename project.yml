@@ -69,8 +69,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.voicenotes
-        MARKETING_VERSION: "1.0.9"
-        CURRENT_PROJECT_VERSION: "73"
+        MARKETING_VERSION: "1.0.10"
+        CURRENT_PROJECT_VERSION: "74"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -105,8 +105,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.voicenotes.widget
-        MARKETING_VERSION: "1.0.9"
-        CURRENT_PROJECT_VERSION: "73"
+        MARKETING_VERSION: "1.0.10"
+        CURRENT_PROJECT_VERSION: "74"
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_ENTITLEMENTS: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
         SKIP_INSTALL: YES
