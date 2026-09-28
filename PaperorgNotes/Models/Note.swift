@@ -62,6 +62,17 @@ final class Note {
     var appLanguage: AppLanguage {
         AppLanguage(rawValue: language) ?? .english
     }
+
+    /// Language shown in lists and detail — detected result when the note used auto-detect.
+    var displayLanguage: AppLanguage {
+        if appLanguage.isAutoDetect,
+           let detectedLanguage,
+           let detected = AppLanguage(rawValue: detectedLanguage),
+           !detected.isAutoDetect {
+            return detected
+        }
+        return appLanguage
+    }
     
     var noteStatus: NoteStatus {
         NoteStatus(rawValue: status) ?? .draft

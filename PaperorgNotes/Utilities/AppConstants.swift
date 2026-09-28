@@ -1,5 +1,10 @@
 import Foundation
 
+enum LegalLinks {
+    static let termsOfUse = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
+    static let privacyPolicy = URL(string: "https://gdelagardelle.github.io/paperorg-notes/privacy.html")!
+}
+
 enum AppConstants {
     static let appGroupID = "group.com.paperorg.voicenotes"
     static let urlScheme = "paperorgnotes"

@@ -7,7 +7,7 @@ struct RecordView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \Note.createdAt, order: .reverse) private var recentNotes: [Note]
     
-    @State private var selectedLanguage: AppLanguage = .luxembourgish
+    @State private var selectedLanguage: AppLanguage = .autoDetect
     @State private var selectedOutputType: OutputType = .meetingNotes
     @State private var activeNote: Note?
     @State private var showProcessing = false
@@ -26,7 +26,7 @@ struct RecordView: View {
     }
 
     private var recordLanguageOptions: [AppLanguage] {
-        AppLanguage.spokenLanguages
+        AppLanguage.recordPickerLanguages
     }
 
     // Declared out of line because inferring these inside the body pushed the
@@ -137,7 +137,7 @@ struct RecordView: View {
         .background(AppScreenBackground())
         .navigationBarHidden(true)
         .onAppear {
-            selectedLanguage = environment.settingsService.defaultLanguage
+            selectedLanguage = environment.settingsService.preferredRecordLanguage
             selectedOutputType = environment.settingsService.defaultOutputType
             environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
             relinkActiveNoteIfRecording()
@@ -180,11 +180,20 @@ struct RecordView: View {
                             SelectionChip(
                                 title: "\(language.flag) \(language.displayName)",
                                 isSelected: selectedLanguage == language,
-                                action: { selectedLanguage = language }
+                                action: {
+                                    selectedLanguage = language
+                                    environment.settingsService.preferredRecordLanguage = language
+                                }
                             )
                             .disabled(isRecordingSession)
                         }
                     }
+                }
+
+                if selectedLanguage.isAutoDetect {
+                    Text(L10n.Settings.autoDetectLanguageHint)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
                 }
             }
             

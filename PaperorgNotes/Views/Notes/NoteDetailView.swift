@@ -232,7 +232,7 @@ struct NoteDetailView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    MetaPill(text: note.appLanguage.displayName, icon: "globe")
+                    MetaPill(text: note.displayLanguage.displayName, icon: "globe")
                     MetaPill(text: DurationFormatter.format(note.durationSeconds), icon: "clock")
                     MetaPill(text: note.noteOutputType.displayName, icon: note.noteOutputType.icon)
                     if let provider = note.primaryProvider, !provider.isEmpty {

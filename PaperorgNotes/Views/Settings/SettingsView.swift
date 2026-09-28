@@ -349,6 +349,9 @@ struct SettingsView: View {
                         Text(AppInfo.versionDisplay)
                             .foregroundStyle(AppTheme.textSecondary)
                     }
+
+                    Link("Terms of Use", destination: LegalLinks.termsOfUse)
+                    Link("Privacy Policy", destination: LegalLinks.privacyPolicy)
                     
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Transcription Providers")
@@ -410,6 +413,12 @@ struct SettingsView: View {
             } message: {
                 Text("This permanently deletes all notes, audio, transcripts, and local settings.")
             }
+            .onAppear {
+                consumePendingPaywall()
+            }
+            .onChange(of: environment.deepLinkHandler.pendingPaywall) { _, pending in
+                if pending { consumePendingPaywall() }
+            }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
             }
@@ -432,6 +441,12 @@ struct SettingsView: View {
                 Text(gdprExportError ?? "")
             }
         }
+    }
+
+    private func consumePendingPaywall() {
+        guard environment.deepLinkHandler.pendingPaywall else { return }
+        environment.deepLinkHandler.pendingPaywall = false
+        showPaywall = true
     }
     
     private func sendTestEmail() {

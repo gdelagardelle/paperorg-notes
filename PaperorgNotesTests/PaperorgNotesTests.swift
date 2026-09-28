@@ -87,6 +87,81 @@ final class AudioFileReaderTests: XCTestCase {
     }
 }
 
+final class TranscriptionLanguagePlannerTests: XCTestCase {
+    func testRequestLanguagePassesAutoDetectThrough() {
+        XCTAssertEqual(
+            TranscriptionLanguagePlanner.requestLanguage(for: .autoDetect),
+            .autoDetect
+        )
+        XCTAssertEqual(
+            TranscriptionLanguagePlanner.requestLanguage(for: .english),
+            .english
+        )
+    }
+
+    func testLuxASRUpgradeWhenAutoDetectResolvesLuxembourgish() {
+        XCTAssertTrue(
+            TranscriptionLanguagePlanner.shouldUpgradeAutoDetectToLuxASR(
+                wasAutoDetect: true,
+                resolvedLanguage: .luxembourgish,
+                providerId: ProviderID.openai.rawValue,
+                luxasrEnabled: true
+            )
+        )
+        XCTAssertFalse(
+            TranscriptionLanguagePlanner.shouldUpgradeAutoDetectToLuxASR(
+                wasAutoDetect: true,
+                resolvedLanguage: .luxembourgish,
+                providerId: ProviderID.luxasr.rawValue,
+                luxasrEnabled: true
+            )
+        )
+        XCTAssertFalse(
+            TranscriptionLanguagePlanner.shouldUpgradeAutoDetectToLuxASR(
+                wasAutoDetect: false,
+                resolvedLanguage: .luxembourgish,
+                providerId: ProviderID.openai.rawValue,
+                luxasrEnabled: true
+            )
+        )
+        XCTAssertFalse(
+            TranscriptionLanguagePlanner.shouldUpgradeAutoDetectToLuxASR(
+                wasAutoDetect: true,
+                resolvedLanguage: .luxembourgish,
+                providerId: ProviderID.openai.rawValue,
+                luxasrEnabled: false
+            )
+        )
+    }
+
+    func testSummaryLanguageUsesDetectedResultForAutoNotes() {
+        XCTAssertEqual(
+            TranscriptionLanguagePlanner.summaryLanguage(
+                resolvedLanguage: .french,
+                noteLanguage: .autoDetect,
+                fallback: .english
+            ),
+            .french
+        )
+        XCTAssertEqual(
+            TranscriptionLanguagePlanner.summaryLanguage(
+                resolvedLanguage: .autoDetect,
+                noteLanguage: .autoDetect,
+                fallback: .english
+            ),
+            .english
+        )
+        XCTAssertEqual(
+            TranscriptionLanguagePlanner.summaryLanguage(
+                resolvedLanguage: .autoDetect,
+                noteLanguage: .german,
+                fallback: .english
+            ),
+            .english
+        )
+    }
+}
+
 final class ProviderRegistryTests: XCTestCase {
     @MainActor
     func testLuxembourgishProviderOrder() {
@@ -109,6 +184,20 @@ final class ProviderRegistryTests: XCTestCase {
         
         let providers = registry.orderedProviders(for: .english)
         XCTAssertTrue(providers.contains(where: { $0.identifier == ProviderID.apple.rawValue }))
+    }
+
+    @MainActor
+    func testAutoDetectProviderOrder() {
+        let keychain = KeychainService()
+        let settings = SettingsService(keychain: keychain)
+        let proBackend = ProBackendClient(settings: settings, keychain: keychain)
+        let registry = ProviderRegistry(settings: settings, keychain: keychain, proBackend: proBackend)
+
+        let providers = registry.orderedProviders(for: .autoDetect)
+        XCTAssertEqual(providers.map(\.identifier), [
+            ProviderID.openai.rawValue,
+            ProviderID.elevenlabs.rawValue
+        ])
     }
 }
 
@@ -570,6 +659,71 @@ final class SubscriptionEntitlementConfirmationTests: XCTestCase {
         XCTAssertNil(service.lastError)
     }
 
+    func testVerifiedLifetimeUnlockGrantsPro() async {
+        let suiteName = "SubscriptionEntitlementConfirmationLifetime"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let usage = ProUsageInfo(
+            isPro: true,
+            minutesLimit: 600,
+            minutesUsed: 0,
+            minutesRemaining: 600,
+            periodKey: "2026-08",
+            proExpiresAt: nil
+        )
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: TestSubscriptionVerifier(outcome: .success(usage)),
+            loadStoreKitEntitlementsOnLaunch: false
+        )
+
+        let confirmed = await service.confirmSubscription(
+            productID: SubscriptionProduct.proLifetime,
+            transactionID: "lifetime-1"
+        )
+
+        XCTAssertTrue(confirmed)
+        XCTAssertEqual(settings.selectedPlan, .pro)
+        XCTAssertTrue(service.isProActive)
+        XCTAssertNil(service.usageInfo?.proExpiresAt)
+    }
+
+    func testUnknownProductDoesNotGrantPro() async {
+        let suiteName = "SubscriptionEntitlementConfirmationUnknown"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let usage = ProUsageInfo(
+            isPro: true,
+            minutesLimit: 600,
+            minutesUsed: 0,
+            minutesRemaining: 600,
+            periodKey: "2026-08",
+            proExpiresAt: nil
+        )
+        let verifier = TestSubscriptionVerifier(outcome: .success(usage))
+        let settings = SettingsService(keychain: KeychainService(), defaults: defaults)
+        let service = SubscriptionService(
+            settings: settings,
+            proBackend: verifier,
+            loadStoreKitEntitlementsOnLaunch: false
+        )
+
+        let confirmed = await service.confirmSubscription(
+            productID: "com.paperorg.voicenotes.pro.other",
+            transactionID: "999"
+        )
+
+        XCTAssertFalse(confirmed)
+        XCTAssertEqual(verifier.verifyCallCount, 0)
+        XCTAssertEqual(settings.selectedPlan, .free)
+        XCTAssertFalse(service.isProActive)
+    }
+
     func testUnentitledVerificationDoesNotGrantPro() async {
         let suiteName = "SubscriptionEntitlementConfirmationUnentitled"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -660,6 +814,7 @@ private final class TestSubscriptionVerifier: SubscriptionVerifying {
     }
 
     private let outcome: Outcome
+    private(set) var verifyCallCount = 0
 
     init(outcome: Outcome) {
         self.outcome = outcome
@@ -674,7 +829,8 @@ private final class TestSubscriptionVerifier: SubscriptionVerifying {
         transactionID: String?,
         signedTransactionInfo: String?
     ) async throws -> ProUsageInfo {
-        try result()
+        verifyCallCount += 1
+        return try result()
     }
 
     func devActivatePro() async throws -> ProUsageInfo {
@@ -1040,6 +1196,44 @@ final class ImportPickerCancelTests: XCTestCase {
             userInfo: [NSLocalizedDescriptionKey: "missing"]
         )
         XCTAssertEqual(ImportPickerResult.userFacingError(from: failed), "missing")
+    }
+}
+
+final class EmailLetterTests: XCTestCase {
+    func testHTMLEmailIncludesSummaryTranscriptAndAudio() {
+        let content = EmailNoteContent(
+            title: "Board",
+            summary: "Hire a designer.\n\nKey ideas\n• Headcount",
+            transcript: "We agreed to hire.",
+            contentMode: .both,
+            recordedAt: Date(timeIntervalSince1970: 0),
+            durationSeconds: 120,
+            language: .english,
+            outputType: .meetingNotes,
+            audioAttached: true
+        )
+        let html = EmailTemplateBuilder.buildHTML(content: content)
+        XCTAssertTrue(content.plainText.contains("SUMMARY\nHire a designer."))
+        XCTAssertTrue(content.plainText.contains("Key ideas\n• Headcount"))
+        XCTAssertTrue(content.plainText.contains("TRANSCRIPT\nWe agreed to hire."))
+        XCTAssertTrue(content.plainText.contains("AUDIO\nThe recording is attached."))
+        XCTAssertTrue(html.contains(">Summary<"))
+        XCTAssertTrue(html.contains(">Transcript<"))
+        XCTAssertTrue(html.contains(">Audio<"))
+        XCTAssertTrue(html.contains("The recording is attached."))
+    }
+}
+
+final class LegalLinksTests: XCTestCase {
+    func testPaywallLegalLinksAreAppleEULAAndTheHostedPrivacyPage() {
+        XCTAssertEqual(
+            LegalLinks.termsOfUse.absoluteString,
+            "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+        )
+        XCTAssertEqual(
+            LegalLinks.privacyPolicy.absoluteString,
+            "https://gdelagardelle.github.io/paperorg-notes/privacy.html"
+        )
     }
 }
 #endif

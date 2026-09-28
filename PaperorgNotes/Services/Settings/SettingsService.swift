@@ -9,6 +9,7 @@ final class SettingsService {
     
     private enum Keys {
         static let defaultLanguage = "defaultLanguage"
+        static let preferredRecordLanguage = "preferredRecordLanguage"
         static let autoDetectLanguage = "autoDetectLanguage"
         static let luxasrEnabled = "luxasrEnabled"
         static let providerPreferences = "providerPreferences"
@@ -51,6 +52,11 @@ final class SettingsService {
     
     var defaultLanguage: AppLanguage {
         didSet { defaults.set(defaultLanguage.rawValue, forKey: Keys.defaultLanguage) }
+    }
+
+    /// Last language chip selected on the Record screen (defaults to auto-detect for new installs).
+    var preferredRecordLanguage: AppLanguage {
+        didSet { defaults.set(preferredRecordLanguage.rawValue, forKey: Keys.preferredRecordLanguage) }
     }
     
     var autoDetectLanguage: Bool {
@@ -338,6 +344,13 @@ final class SettingsService {
         
         let storedLanguage = AppLanguage(rawValue: defaults.string(forKey: Keys.defaultLanguage) ?? "") ?? .luxembourgish
         self.defaultLanguage = storedLanguage.isAutoDetect ? .luxembourgish : storedLanguage
+        if let storedRecordLanguage = defaults.string(forKey: Keys.preferredRecordLanguage),
+           let recordLanguage = AppLanguage(rawValue: storedRecordLanguage) {
+            self.preferredRecordLanguage = recordLanguage
+        } else {
+            self.preferredRecordLanguage = .autoDetect
+            defaults.set(AppLanguage.autoDetect.rawValue, forKey: Keys.preferredRecordLanguage)
+        }
         self.autoDetectLanguage = false
         defaults.set(false, forKey: Keys.autoDetectLanguage)
         self.luxasrEnabled = defaults.object(forKey: Keys.luxasrEnabled) as? Bool ?? true
@@ -477,6 +490,7 @@ final class SettingsService {
         keychain.deleteAll()
         
         defaultLanguage = .luxembourgish
+        preferredRecordLanguage = .autoDetect
         autoDetectLanguage = false
         defaultOutputType = .meetingNotes
         summaryLength = .detailed

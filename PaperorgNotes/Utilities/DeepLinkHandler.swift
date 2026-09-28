@@ -10,6 +10,7 @@ final class DeepLinkHandler {
     private static let quickRecordAutoStartLifetime: TimeInterval = 15
 
     var pendingQuickRecord = false
+    var pendingPaywall = false
     var selectedTab = 0
 
     func handle(_ url: URL) {
@@ -18,6 +19,9 @@ final class DeepLinkHandler {
         switch url.host {
         case "record":
             markQuickRecordPending(clearingPreferences: true)
+        case "paywall":
+            pendingPaywall = true
+            selectedTab = 3
         default:
             break
         }

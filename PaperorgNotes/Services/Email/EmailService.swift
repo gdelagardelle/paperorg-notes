@@ -31,21 +31,23 @@ final class EmailService {
     func buildPayload(for note: Note, exportService: ExportService) throws -> EmailPayload {
         guard !settings.emailRecipients.isEmpty else { throw EmailError.noRecipients }
 
-        let content = EmailNoteContent.from(note: note, settings: settings)
-        let body = content.plainText
-
-        guard !body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw EmailError.emptyContent
-        }
+        var content = EmailNoteContent.from(note: note, settings: settings)
 
         var audioURL: URL?
         var pdfURL: URL?
         var markdownURL: URL?
 
-        if settings.emailAttachAudio && note.audioDeletedAt == nil,
+        if note.audioDeletedAt == nil,
            let candidate = exportService.audioURL(for: note),
            FileManager.default.fileExists(atPath: candidate.path) {
             audioURL = candidate
+            content.audioAttached = true
+        }
+
+        let body = content.plainText
+
+        guard !body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw EmailError.emptyContent
         }
 
         if settings.emailAttachPDF {

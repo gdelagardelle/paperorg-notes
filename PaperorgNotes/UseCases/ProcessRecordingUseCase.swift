@@ -80,22 +80,11 @@ final class ProcessRecordingUseCase {
                 )
             }
 
-            let transcriptionLanguage = note.appLanguage.isAutoDetect
-                ? settingsService.defaultLanguage
-                : note.appLanguage
-
-            let request = TranscriptionRequest(
-                audioURL: audioURL,
-                language: transcriptionLanguage,
-                enableDiarization: false,
-                prompt: settingsService.transcriptionPrompt(),
-                fallbackLanguage: settingsService.defaultLanguage
+            let initialResult = try await transcribeRecording(
+                noteLanguage: note.appLanguage,
+                audioURL: audioURL
             )
-            let initialResult = try await transcriptionService.transcribe(request)
             let resolvedLanguage = initialResult.language
-            if note.appLanguage.isAutoDetect {
-                note.language = resolvedLanguage.rawValue
-            }
             note.detectedLanguage = resolvedLanguage.rawValue
             debugEvents.append("Detected language: \(resolvedLanguage.displayName)")
             debugEvents.append("Transcription provider: \(initialResult.providerId)")
@@ -194,7 +183,7 @@ final class ProcessRecordingUseCase {
         try save(note)
 
         do {
-            let summary = try await generateSummary(for: note, transcript: transcript, language: note.appLanguage) { stage in
+            let summary = try await generateSummary(for: note, transcript: transcript, language: note.displayLanguage) { stage in
                 note.processingStage = stage.rawValue
                 onStageChange(stage)
             }
@@ -214,6 +203,42 @@ final class ProcessRecordingUseCase {
         }
     }
     
+    private func transcribeRecording(
+        noteLanguage: AppLanguage,
+        audioURL: URL
+    ) async throws -> TranscriptionResult {
+        let requestLanguage = TranscriptionLanguagePlanner.requestLanguage(for: noteLanguage)
+        let request = TranscriptionRequest(
+            audioURL: audioURL,
+            language: requestLanguage,
+            enableDiarization: false,
+            prompt: settingsService.transcriptionPrompt(),
+            fallbackLanguage: settingsService.defaultLanguage
+        )
+        var result = try await transcriptionService.transcribe(request)
+
+        if TranscriptionLanguagePlanner.shouldUpgradeAutoDetectToLuxASR(
+            wasAutoDetect: noteLanguage.isAutoDetect,
+            resolvedLanguage: result.language,
+            providerId: result.providerId,
+            luxasrEnabled: settingsService.luxasrEnabled
+        ) {
+            let luxRequest = TranscriptionRequest(
+                audioURL: audioURL,
+                language: .luxembourgish,
+                enableDiarization: false,
+                prompt: settingsService.transcriptionPrompt(),
+                fallbackLanguage: settingsService.defaultLanguage
+            )
+            if let luxResult = try? await transcriptionService.transcribe(luxRequest),
+               !luxResult.fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                result = luxResult
+            }
+        }
+
+        return result
+    }
+
     private func replaceResults(on note: Note, transcript: FinalTranscript, summary: SummaryGeneration, language: AppLanguage) {
         clearTranscriptionResults(note)
         applyTranscript(transcript, to: note, language: language)
@@ -239,7 +264,11 @@ final class ProcessRecordingUseCase {
         }
         
         onStageChange(.summarizing)
-        let summaryLanguage = language.isAutoDetect ? settingsService.defaultLanguage : language
+        let summaryLanguage = TranscriptionLanguagePlanner.summaryLanguage(
+            resolvedLanguage: language,
+            noteLanguage: note.appLanguage,
+            fallback: settingsService.defaultLanguage
+        )
         return try await summaryService.generate(
             transcript: transcript,
             outputType: note.noteOutputType,

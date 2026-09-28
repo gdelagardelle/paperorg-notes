@@ -201,7 +201,8 @@ struct ReviewBeforeSendView: View {
                     recordedAt: Date(),
                     durationSeconds: 0,
                     language: .english,
-                    outputType: .meetingNotes
+                    outputType: .meetingNotes,
+                    audioAttached: payload.audioURL != nil
                 )
             ),
             audioURL: payload.audioURL.flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil },

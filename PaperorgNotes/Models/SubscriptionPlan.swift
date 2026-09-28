@@ -202,6 +202,12 @@ enum ProBackendError: LocalizedError {
 
 enum SubscriptionProduct {
     static let proMonthly = "com.paperorg.voicenotes.pro.monthly"
+    /// One-time unlock. A redeemed offer code owns this permanently; it does not renew.
+    static let proLifetime = "com.paperorg.voicenotes.pro.lifetime"
+
+    static func isPro(_ productID: String) -> Bool {
+        productID == proMonthly || productID == proLifetime
+    }
 }
 
 enum ProBackendHTTPMapping {

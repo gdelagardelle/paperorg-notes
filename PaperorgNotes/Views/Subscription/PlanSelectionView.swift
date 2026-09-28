@@ -70,7 +70,7 @@ struct PlanSelectionView: View {
     }
 
     private var proPriceLabel: String {
-        if let product = environment.subscriptionService.products.first {
+        if let product = environment.subscriptionService.monthlyProduct {
             return "\(product.displayPrice)/month"
         }
         return L10n.Plan.proFallbackPrice
@@ -205,6 +205,27 @@ struct PaywallView: View {
                     .buttonStyle(AccentButtonStyle())
                     .disabled(environment.subscriptionService.purchaseInProgress)
 
+                    Text(String(localized: "paywall.renewal"))
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+
+                    if let lifetime = environment.subscriptionService.lifetimeProduct {
+                        Button {
+                            Task {
+                                let success = await environment.subscriptionService.purchaseLifetime()
+                                if success {
+                                    onCompleted?()
+                                    dismiss()
+                                }
+                            }
+                        } label: {
+                            Text(String(localized: "paywall.lifetime \(lifetime.displayPrice)"))
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+                        .disabled(environment.subscriptionService.purchaseInProgress)
+                    }
+
                     Button(String(localized: "paywall.restore")) {
                         Task { await environment.subscriptionService.restorePurchases() }
                     }
@@ -220,9 +241,13 @@ struct PaywallView: View {
                         .buttonStyle(SecondaryButtonStyle())
                     }
 
-                    Text(String(localized: "paywall.renewal"))
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.textSecondary)
+                    HStack(spacing: 8) {
+                        Link("Terms of Use", destination: LegalLinks.termsOfUse)
+                        Text("·")
+                            .foregroundStyle(AppTheme.textSecondary)
+                        Link("Privacy Policy", destination: LegalLinks.privacyPolicy)
+                    }
+                    .font(.caption)
                 }
                 .padding(24)
             }
@@ -254,7 +279,7 @@ struct PaywallView: View {
            !environment.subscriptionService.isProActive {
             return String(localized: "paywall.retry_activation")
         }
-        if let product = environment.subscriptionService.products.first {
+        if let product = environment.subscriptionService.monthlyProduct {
             return String(localized: "paywall.subscribe \(product.displayPrice)")
         }
         return String(localized: "settings.pro.subscribe")

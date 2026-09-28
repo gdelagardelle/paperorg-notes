@@ -41,6 +41,7 @@
 		5AF12EEBB8AC0DC80C04A015 /* StoreRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2EF76ECA8152BE338CF0F /* StoreRecoveryView.swift */; };
 		5D9B4272A0E335AADB6CDDFB /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10F451B9CE45F448ED5357EA /* AppConstants.swift */; };
 		637F0D5C270BCB45F2A4A377 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 902B6D6A36F9BC9D7688A140 /* Assets.xcassets */; };
+		63976A585FFAF328209C0D8E /* TranscriptionLanguagePlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18AC1623C8D167812846F09B /* TranscriptionLanguagePlanner.swift */; };
 		6AB75FB35487E4D282E4BDEA /* NoteAudioPlayerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 411E38DDB48629A61AEDDAA8 /* NoteAudioPlayerSection.swift */; };
 		6AE3CD48C33A80509A37F80C /* ProUsageCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23130EAFD410A3FED41D40AC /* ProUsageCard.swift */; };
 		6E65F038184080AE97869E98 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A2776891AC1FF283C722736 /* MainTabView.swift */; };
@@ -77,6 +78,7 @@
 		DDBF21C5849F15F8E4C299FA /* EmailDeliveryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5D7F7BD7638111E1911DF05 /* EmailDeliveryService.swift */; };
 		E06CE75A5D7421590AF23B8A /* ProBackendClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5D04D3AEBE5A039C1C1BBD /* ProBackendClient.swift */; };
 		E61A76AD8C686F34465285DB /* EmailTemplateBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6460253FE260C8E78B6A1A3 /* EmailTemplateBuilder.swift */; };
+		E8579C99220E91894C652D03 /* AppReviewDemoUITest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F27F15EB4DA34D05AE9EF71 /* AppReviewDemoUITest.swift */; };
 		EACCB259CA28F2C218B9F54C /* NoteOrganizerSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38212408D78D6D74FA32DCC5 /* NoteOrganizerSection.swift */; };
 		EF878AEA143C2BF8B9DF64BB /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 897A6FE5BA6DB41BBC606478 /* AppInfo.swift */; };
 		F254C58B2F118C4532B9B7F4 /* ExportBrandingSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5129B0C96608861776DCB9EC /* ExportBrandingSettingsSection.swift */; };
@@ -135,9 +137,11 @@
 		15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionPlan.swift; sourceTree = "<group>"; };
 		1720A754F02F5E075400BFF0 /* SummaryJSONParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryJSONParser.swift; sourceTree = "<group>"; };
 		182D6B55EA0E2F9367A4E711 /* OpenAITranscriptionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAITranscriptionProvider.swift; sourceTree = "<group>"; };
+		18AC1623C8D167812846F09B /* TranscriptionLanguagePlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionLanguagePlanner.swift; sourceTree = "<group>"; };
 		1AD992980EEB462DBEF81EC0 /* PaperorgNotesUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PaperorgNotesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E96C7CBD0EF7A5A63DF8FC5 /* QuickRecordSharedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecordSharedStore.swift; sourceTree = "<group>"; };
 		1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteNoteUseCase.swift; sourceTree = "<group>"; };
+		1F27F15EB4DA34D05AE9EF71 /* AppReviewDemoUITest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppReviewDemoUITest.swift; sourceTree = "<group>"; };
 		23130EAFD410A3FED41D40AC /* ProUsageCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProUsageCard.swift; sourceTree = "<group>"; };
 		24322FCDCE16EADF87C65B7F /* PlanSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanSelectionView.swift; sourceTree = "<group>"; };
 		26A44276A0E661C5F8BAD71E /* PaperorgPro.storekit */ = {isa = PBXFileReference; path = PaperorgPro.storekit; sourceTree = "<group>"; };
@@ -380,6 +384,7 @@
 			children = (
 				1EA016A705DA5E42E3EFBEA4 /* DeleteNoteUseCase.swift */,
 				5A5243CB5415532B47C9904D /* ProcessRecordingUseCase.swift */,
+				18AC1623C8D167812846F09B /* TranscriptionLanguagePlanner.swift */,
 			);
 			path = UseCases;
 			sourceTree = "<group>";
@@ -476,6 +481,7 @@
 		B50D4E5836492E323718129E /* PaperorgNotesUITests */ = {
 			isa = PBXGroup;
 			children = (
+				1F27F15EB4DA34D05AE9EF71 /* AppReviewDemoUITest.swift */,
 				4B57873956B55ED42E219D87 /* PaperorgNotesUITests.swift */,
 			);
 			path = PaperorgNotesUITests;
@@ -786,6 +792,7 @@
 				184523BFC4362034B7A83B56 /* SummaryService.swift in Sources */,
 				3AB2E53851565A8E0772D71F /* Transcript.swift in Sources */,
 				84629E42036542CD62B474F2 /* TranscriptTextFormatter.swift in Sources */,
+				63976A585FFAF328209C0D8E /* TranscriptionLanguagePlanner.swift in Sources */,
 				02ECA3A767DDA35414C2E876 /* TranscriptionProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -794,6 +801,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E8579C99220E91894C652D03 /* AppReviewDemoUITest.swift in Sources */,
 				AF9BE5C6D33E9B4AA140EFE8 /* PaperorgNotesUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -843,7 +851,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 73;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -851,7 +859,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -999,7 +1007,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 73;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1007,7 +1015,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes.widget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1022,7 +1030,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 73;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -1030,7 +1038,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1109,7 +1117,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 73;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1117,7 +1125,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes.widget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;

@@ -92,7 +92,10 @@ final class SubscriptionService {
     /// that transient state, so its initial load can be silent.
     func loadProducts(reportError: Bool = true) async {
         do {
-            products = try await Product.products(for: [SubscriptionProduct.proMonthly])
+            products = try await Product.products(for: [
+                SubscriptionProduct.proMonthly,
+                SubscriptionProduct.proLifetime,
+            ])
         } catch {
             if reportError {
                 lastError = error.localizedDescription
@@ -130,15 +133,33 @@ final class SubscriptionService {
         }
     }
 
+    var monthlyProduct: Product? {
+        products.first { $0.id == SubscriptionProduct.proMonthly }
+    }
+
+    var lifetimeProduct: Product? {
+        products.first { $0.id == SubscriptionProduct.proLifetime }
+    }
+
     func purchasePro() async -> Bool {
+        await purchaseListedProduct(SubscriptionProduct.proMonthly)
+    }
+
+    func purchaseLifetime() async -> Bool {
+        await purchaseListedProduct(SubscriptionProduct.proLifetime)
+    }
+
+    private func purchaseListedProduct(_ productID: String) async -> Bool {
         await refreshStoreKitProStatus()
-        if isProActive {
+        // Monthly Pro must not count as owning Lifetime. Only the product
+        // being bought can skip the StoreKit sheet.
+        if await hasActiveStoreKitEntitlement(productID) {
             lastError = nil
             scheduleBackgroundServerConfirmation()
             return true
         }
 
-        guard let product = products.first else {
+        guard let product = products.first(where: { $0.id == productID }) else {
             lastError = L10n.Subscription.productUnavailable
             return false
         }
@@ -263,7 +284,7 @@ final class SubscriptionService {
     @discardableResult
     private func processEntitlement(_ result: VerificationResult<Transaction>) async -> Bool {
         guard let transaction = try? checkVerified(result),
-              transaction.productID == SubscriptionProduct.proMonthly else {
+              SubscriptionProduct.isPro(transaction.productID) else {
             return false
         }
         applyStoreKitProTrust()
@@ -338,9 +359,27 @@ final class SubscriptionService {
         return false
     }
 
+    private func hasActiveStoreKitEntitlement(_ productID: String) async -> Bool {
+        for await result in Transaction.unfinished {
+            if isEntitlement(result, productID: productID) { return true }
+        }
+        for await result in Transaction.currentEntitlements {
+            if isEntitlement(result, productID: productID) { return true }
+        }
+        return false
+    }
+
     private func isProEntitlement(_ result: VerificationResult<Transaction>) -> Bool {
         guard let transaction = try? checkVerified(result) else { return false }
-        return transaction.productID == SubscriptionProduct.proMonthly
+        return SubscriptionProduct.isPro(transaction.productID)
+    }
+
+    private func isEntitlement(
+        _ result: VerificationResult<Transaction>,
+        productID: String
+    ) -> Bool {
+        guard let transaction = try? checkVerified(result) else { return false }
+        return transaction.productID == productID
     }
 
     /// Pro stays locked until the backend has independently confirmed the
@@ -352,7 +391,7 @@ final class SubscriptionService {
         transactionID: String?,
         signedTransactionInfo: String? = nil
     ) async -> Bool {
-        guard productID == SubscriptionProduct.proMonthly else { return false }
+        guard SubscriptionProduct.isPro(productID) else { return false }
         do {
             let usage = try await proBackend.verifySubscription(
                 productID: productID,

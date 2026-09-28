@@ -245,7 +245,7 @@ struct NoteCardRow: View {
                 }
 
                 HStack(spacing: 8) {
-                    Text(note.appLanguage.flag)
+                    Text(note.displayLanguage.flag)
                     Text("·")
                     Text(formattedDate)
                     Text("·")

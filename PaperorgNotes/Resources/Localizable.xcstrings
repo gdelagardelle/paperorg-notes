@@ -4852,6 +4852,41 @@
         }
       }
     },
+    "paywall.lifetime %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einmalig für %@ — für immer"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lifetime for %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "À vie pour %@"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liewenslaang fir %@"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vitalício por %@"
+          }
+        }
+      }
+    },
     "paywall.subscribe %@": {
       "extractionState": "stale",
       "localizations": {

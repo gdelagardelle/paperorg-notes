@@ -216,6 +216,10 @@ struct MainTabView: View {
             // Defer consuming the request until the record tab exists so a
             // cold-launch deep link cannot be lost behind privacy or Face ID.
             environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
+            if ProcessInfo.processInfo.arguments.contains("-showPaywall") {
+                environment.deepLinkHandler.pendingPaywall = true
+                environment.deepLinkHandler.selectedTab = 3
+            }
         }
     }
 }

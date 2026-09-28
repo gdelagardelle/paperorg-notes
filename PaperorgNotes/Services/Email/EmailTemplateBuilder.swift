@@ -26,19 +26,80 @@ struct EmailNoteContent: Sendable {
     let durationSeconds: TimeInterval
     let language: AppLanguage
     let outputType: OutputType
+    var audioAttached: Bool
+
+    init(
+        title: String,
+        summary: String,
+        transcript: String,
+        contentMode: EmailContentMode,
+        recordedAt: Date,
+        durationSeconds: TimeInterval,
+        language: AppLanguage,
+        outputType: OutputType,
+        audioAttached: Bool = false
+    ) {
+        self.title = title
+        self.summary = summary
+        self.transcript = transcript
+        self.contentMode = contentMode
+        self.recordedAt = recordedAt
+        self.durationSeconds = durationSeconds
+        self.language = language
+        self.outputType = outputType
+        self.audioAttached = audioAttached
+    }
 
     @MainActor
     static func from(note: Note, settings: SettingsService) -> EmailNoteContent {
         EmailNoteContent(
             title: note.title,
-            summary: note.displaySummaryShort,
+            summary: richSummary(for: note),
             transcript: note.displayTranscript,
-            contentMode: EmailContentMode(content: settings.emailContent),
+            contentMode: .both,
             recordedAt: note.createdAt,
             durationSeconds: note.durationSeconds,
             language: note.appLanguage,
             outputType: note.noteOutputType
         )
+    }
+
+    @MainActor
+    static func richSummary(for note: Note) -> String {
+        var lines: [String] = []
+        if let short = note.summaryShort,
+           !short.isEmpty,
+           !TranscriptTextFormatter.isRawJSON(short) {
+            lines.append(short)
+        }
+        if let detailed = note.summaryDetailed,
+           !detailed.isEmpty,
+           detailed != note.summaryShort,
+           !TranscriptTextFormatter.isRawJSON(detailed) {
+            if !lines.isEmpty { lines.append("") }
+            lines.append(detailed)
+        }
+        if let output = note.structuredOutput {
+            func bullets(_ title: String, _ items: [String]) {
+                guard !items.isEmpty else { return }
+                if !lines.isEmpty { lines.append("") }
+                lines.append(title)
+                items.forEach { lines.append("• \($0)") }
+            }
+            bullets("Key ideas", output.keyIdeas)
+            bullets("Decisions", output.decisions)
+            bullets("Action items", output.actionItems.map(actionLine))
+            bullets("Open questions", output.openQuestions)
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    private static func actionLine(_ item: ActionItem) -> String {
+        var extras: [String] = []
+        if let assignee = item.assignee, !assignee.isEmpty { extras.append(assignee) }
+        if let dueDate = item.dueDate, !dueDate.isEmpty { extras.append(dueDate) }
+        guard !extras.isEmpty else { return item.text }
+        return "\(item.text) (\(extras.joined(separator: ", ")))"
     }
 
     var plainText: String {
@@ -48,15 +109,15 @@ struct EmailNoteContent: Sendable {
         case .fullTranscript:
             return transcript
         case .both:
-            return """
-            SUMMARY
-            \(summary)
-
-            ---
-
-            TRANSCRIPT
-            \(transcript)
-            """
+            var text = ""
+            if !summary.isEmpty {
+                text += "SUMMARY\n\(summary)\n\n"
+            }
+            text += "TRANSCRIPT\n\(transcript)"
+            if audioAttached {
+                text += "\n\nAUDIO\nThe recording is attached."
+            }
+            return text
         }
     }
 }
@@ -111,8 +172,7 @@ enum EmailTemplateBuilder {
                   <tr>
                     <td style="padding:20px 28px 28px 28px;border-top:1px solid \(border);background:#FAFBFD;">
                       <div style="font-size:12px;line-height:1.5;color:\(textSecondary);">
-                        Sent automatically by <strong style="color:\(primary);">Paperorg Notes</strong>.
-                        Attachments may include audio, PDF, or markdown exports when enabled.
+                        Sent by <strong style="color:\(primary);">Paperorg Notes</strong>.\(content.audioAttached ? " The recording is attached." : "")
                       </div>
                     </td>
                   </tr>
@@ -141,15 +201,19 @@ enum EmailTemplateBuilder {
     }
 
     private static func bodySections(content: EmailNoteContent) -> String {
-        switch content.contentMode {
-        case .summaryOnly:
-            return section(title: "Summary", body: content.summary)
-        case .fullTranscript:
-            return section(title: "Transcript", body: content.transcript)
-        case .both:
-            return section(title: "Summary", body: content.summary)
-                + section(title: "Transcript", body: content.transcript, topPadding: 8)
+        var html = ""
+        let includeSummary = content.contentMode != .fullTranscript && !content.summary.isEmpty
+        let includeTranscript = content.contentMode != .summaryOnly && !content.transcript.isEmpty
+        if includeSummary {
+            html += section(title: "Summary", body: content.summary)
         }
+        if includeTranscript {
+            html += section(title: "Transcript", body: content.transcript, topPadding: html.isEmpty ? 16 : 8)
+        }
+        if content.audioAttached {
+            html += section(title: "Audio", body: "The recording is attached.", topPadding: html.isEmpty ? 16 : 8)
+        }
+        return html
     }
 
     private static func section(title: String, body: String, topPadding: Int = 16) -> String {
