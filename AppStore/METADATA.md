@@ -142,4 +142,4 @@ Aufnahmen bleiben auf Ihrem iPhone. DSGVO-konform. Keine Werbung. Kein Tracking.
 
 **Meeting Closure** — Free tier: *3 Meetings Included* · Pro tier: *Professional Meeting Closure*
 
-Web landing: `docs/offer.html` (host at `https://paperorg.com/notes` or similar).
+Web landing: live at **https://www.paperorg.com/notes/offer.html** (source: `docs/offer.html`; also in `paperorg-notes-web/public/offer.html` pending Sites redeploy for `notes.paperorg.com/offer`).
