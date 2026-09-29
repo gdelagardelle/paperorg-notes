@@ -26,13 +26,13 @@ Copy full EN / FR / DE description sections from METADATA.md.
 - **FR:** `compte rendu,transcription,luxembourgeois,dictée,résumé IA,réunion,notes vocales`
 - **DE:** `meeting notes,transkription,lëtzebuergesch,diktat,ki zusammenfassung,mehrsprachig`
 
-## What's New (build 76)
+## What's New (build 78)
 
-**EN:** Mid-recording language switch now works when you start on Auto — LB, FR, and PT slices transcribe separately. Meeting Closure offer: clearer summaries, auto-email, and Lëtzebuergesch-first pipeline.
+**EN:** Dark-mode chip contrast fix on Record (language/style selectors). Meeting Closure copy in all locales. Mid-recording language switch on Auto — LB, FR, and PT slices transcribe separately.
 
 ## TestFlight
 
-Build **1.0.10 (77)** uploaded 2026-09-29 — assign to internal group after processing (~5–15 min). Swap onto version 1.0.10 if still in review (remove → attach 77 → resubmit).
+Build **1.0.10 (78)** uploaded 2026-09-29 — assign to internal group after processing. If 1.0.10 still in review on an older build: remove from review → attach **78** → resubmit.
 
 ## Web offer
 
