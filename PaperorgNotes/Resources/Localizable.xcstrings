@@ -2001,13 +2001,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 Minuten pro Monat inklusive"
+            "value": "3 Meetings pro Monat inklusive"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutes included each month"
+            "value": "3 meetings included each month"
           }
         },
         "fr": {
@@ -4521,19 +4521,19 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatische E-Mail nach der Transkription"
+            "value": "Auto-E-Mail mit Zusammenfassung, PDF und Audio"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatic email after transcription"
+            "value": "Auto-email with summary, PDF, and audio"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "E-mail automatique après la transcription"
+            "value": "E-mail auto avec résumé, PDF et audio"
           }
         },
         "lb": {
@@ -4556,19 +4556,19 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Alle Notizstile und Sprachen"
+            "value": "Sprache während der Aufnahme wechseln (LB, FR, DE, EN, PT)"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All note styles and languages"
+            "value": "Switch language mid-recording (LB, FR, DE, EN, PT)"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tous les styles de notes et toutes les langues"
+            "value": "Changement de langue en direct (lb, fr, de, en, pt)"
           }
         },
         "lb": {
@@ -4928,31 +4928,66 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transkription und KI-Zusammenfassungen inklusive — keine OpenAI- oder ElevenLabs-Einrichtung."
+            "value": "Schließen Sie jedes Meeting ab — Zusammenfassung, Aufgaben und PDF in ~90 Sekunden. Keine API-Schlüssel."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transcription and AI summaries included — no OpenAI or ElevenLabs setup."
+            "value": "Close every meeting — summary, action items, and PDF in ~90 seconds. No API keys."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transcription et résumés IA inclus — aucune configuration OpenAI ou ElevenLabs."
+            "value": "Clôturez chaque réunion — résumé, actions et PDF en ~90 secondes. Aucune clé API."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transkriptioun an AI Zesummefaassungen abegraff - keng OpenAI oder ElevenLabs Setup."
+            "value": "Schléisst all Meeting of — Resumé, Aktiounen a PDF a ~90 Sekonnen. Keng API-Schlësselen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transcrição e resumos de IA incluídos — sem configuração da OpenAI ou ElevenLabs."
+            "value": "Encerre cada reunião — resumo, ações e PDF em ~90 segundos. Sem chaves API."
+          }
+        }
+      }
+    },
+    "paywall.guarantee": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action-Item-Garantie: Fehlt eine klare Aufgabe in der Zusammenfassung, melden Sie sich — 60 Minuten Gutschrift und Prioritäts-Neuverarbeitung."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action Item Guarantee: If a clear action item is missing from your summary, contact us — we credit 60 minutes and reprocess with priority."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garantie actions : une action claire manquante dans le résumé ? Contactez-nous — 60 minutes créditées et retraitement prioritaire."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action-Item-Garantie: Feelt eng kloer Aktioun am Resumé? Kontaktéiert eis — 60 Minutte Guthaben a Prioritéits-Noveraarbechtung."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garantia de ações: falta uma ação clara no resumo? Contacte-nos — creditamos 60 minutos e reprocessamos com prioridade."
           }
         }
       }
@@ -4963,13 +4998,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         },
         "fr": {
@@ -4998,13 +5033,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starten Sie gratis mit 30 Minuten Transkription und KI-Zusammenfassungen pro Monat. Ohne API-Schlüssel und ohne Anmeldung."
+            "value": "Schließen Sie Meetings ab, statt sie zu tippen. 3 Meetings/Monat gratis — ohne API-Schlüssel."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start free with 30 minutes of transcription and AI summaries each month. No API keys or sign-in required."
+            "value": "Close meetings instead of typing them. 3 meetings/month free — no API keys."
           }
         },
         "fr": {
@@ -5033,13 +5068,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Plan wählen"
+            "value": "Meetings abschließen, nicht tippen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose your plan"
+            "value": "Close meetings, don't type them"
           }
         },
         "fr": {
@@ -5058,6 +5093,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "Escolha o seu plano"
+          }
+        }
+      }
+    },
+    "plan.free.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 Meetings/Monat — transkribiert & zusammengefasst"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 meetings/month — transcribed & summarized"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 réunions/mois — transcrites et résumées"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 Reuniounen/Mount — transkriptéiert & resuméiert"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 reuniões/mês — transcritas e resumidas"
+          }
+        }
+      }
+    },
+    "plan.pro.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Professionelle Meeting-Abschlüsse — ohne Einrichtung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Professional meeting closure — zero setup"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clôture pro de réunion — zéro configuration"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Professionell Meeting-Ofschloss — null Setup"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encerramento profissional — zero configuração"
           }
         }
       }
@@ -5103,13 +5208,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 Minuten/Monat, ohne Anmeldung"
+            "value": "3 Meetings/Monat (~30 Min.), ohne Anmeldung"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutes/month, no sign-in needed"
+            "value": "3 meetings/month (~30 min), no sign-in"
           }
         },
         "fr": {
@@ -5173,13 +5278,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aufnehmen, transkribieren und zusammenfassen"
+            "value": "Aufnehmen → Zusammenfassung → E-Mail"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Record, transcribe, and summarize"
+            "value": "Record → summary → email"
           }
         },
         "fr": {
@@ -5453,13 +5558,13 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro holen"
+            "value": "Meetings abschließen (Pro)"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Get Paperorg Pro"
+            "value": "Start closing meetings (Pro)"
           }
         },
         "fr": {

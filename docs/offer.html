@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paperorg Notes — Meeting Closure</title>
+  <meta name="description" content="Stop writing meeting notes. Record in Lëtzebuergesch, French, German, English, or Portuguese — get a send-ready summary in ~90 seconds.">
+  <style>
+    :root {
+      --teal: #145454;
+      --teal-light: #1a6b6b;
+      --accent: #c4520a;
+      --paper: #faf8f5;
+      --text: #1c1c1e;
+      --muted: #4d4d52;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--paper);
+      margin: 0;
+    }
+    header {
+      background: var(--teal);
+      color: #fff;
+      padding: 2.5rem 1.25rem 3rem;
+      text-align: center;
+    }
+    header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); margin: 0 0 0.5rem; line-height: 1.15; }
+    header .tagline { font-size: 1.15rem; color: #e8f4f4; max-width: 36rem; margin: 0 auto 1.5rem; }
+    .lang-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 0.5rem;
+    }
+    .lang-bar button {
+      background: transparent;
+      border: 1px solid #8cb8b8;
+      color: #fff;
+      padding: 0.35rem 0.85rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .lang-bar button.active { background: #fff; color: var(--teal); font-weight: 600; border-color: #fff; }
+    .cta {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.85rem 1.75rem;
+      border-radius: 8px;
+      margin-top: 0.5rem;
+    }
+    main { max-width: 720px; margin: -1.5rem auto 4rem; padding: 0 1rem; }
+    .card {
+      background: #fff;
+      border: 1px solid #e0e5ec;
+      border-radius: 12px;
+      padding: 2rem 1.75rem;
+      margin-bottom: 1.25rem;
+    }
+    h2 { color: var(--teal-light); font-size: 1.25rem; margin: 0 0 1rem; }
+    .hero-stat {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .hero-stat div {
+      background: var(--paper);
+      border: 1px solid #e0e5ec;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .hero-stat strong { display: block; font-size: 1.5rem; color: var(--teal); }
+    .hero-stat span { font-size: 0.85rem; color: var(--muted); }
+    ul { padding-left: 1.2rem; margin: 0.5rem 0; }
+    li { margin: 0.35rem 0; }
+    .stack {
+      background: var(--paper);
+      border: 1px solid #e0e5ec;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+    }
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e0e5ec;
+    }
+    .price-row:last-child { border-bottom: none; }
+    .price-row .name { font-weight: 600; }
+    .price-row .price { color: var(--teal); font-weight: 700; white-space: nowrap; }
+    .guarantee {
+      background: var(--paper);
+      border: 1px solid #e0e5ec;
+      border-radius: 8px;
+      padding: 1rem 1.15rem;
+      font-size: 0.95rem;
+    }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+    footer { text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: 0.85rem; }
+    footer a { color: var(--teal-light); }
+    [data-lang] { display: none; }
+    [data-lang].visible { display: block; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="lang-bar" role="tablist" aria-label="Language">
+      <button type="button" class="active" data-select="en">English</button>
+      <button type="button" data-select="fr">Français</button>
+      <button type="button" data-select="de">Deutsch</button>
+      <button type="button" data-select="lb">Lëtzebuergesch</button>
+    </div>
+    <h1 data-lang="en" class="visible headline">Stop writing meeting notes.<br>Start sending them.</h1>
+    <h1 data-lang="fr">Arrêtez de rédiger vos comptes rendus.<br>Envoyez-les.</h1>
+    <h1 data-lang="de">Hören Sie auf, Meeting-Notizen zu tippen.<br>Schicken Sie sie.</h1>
+    <h1 data-lang="lb">Hält op, Meeting-Notizen ze tippen.<br>Schéckt se.</h1>
+    <p class="tagline visible" data-lang="en">Record in the language you speak. Get a send-ready summary, action items, and PDF in ~90 seconds. Built in Luxembourg — Lëtzebuergesch first.</p>
+    <p class="tagline" data-lang="fr">Enregistrez dans votre langue. Résumé, actions et PDF prêts à envoyer en ~90 secondes. Conçu au Luxembourg — le lëtzebuergesch d'abord.</p>
+    <p class="tagline" data-lang="de">In Ihrer Sprache aufnehmen. Zusammenfassung, Aufgaben und PDF in ~90 Sekunden. In Luxemburg gebaut — Lëtzebuergesch zuerst.</p>
+    <p class="tagline" data-lang="lb">Rekordéiert an der Sprooch, déi Dir schwätzt. Resumé, Aktiounen a PDF a ~90 Sekonnen. An Lëtzebuerg gebaut — Lëtzebuergesch als éischt.</p>
+    <a class="cta visible" href="https://apps.apple.com/app/id6807097485" data-lang="en">Download free on the App Store</a>
+    <a class="cta" href="https://apps.apple.com/app/id6807097485" data-lang="fr">Télécharger gratuitement</a>
+    <a class="cta" href="https://apps.apple.com/app/id6807097485" data-lang="de">Kostenlos im App Store</a>
+    <a class="cta" href="https://apps.apple.com/app/id6807097485" data-lang="lb">Gratis am App Store</a>
+  </header>
+
+  <main>
+    <section class="card">
+      <div data-lang="en" class="visible">
+        <h2>The dream outcome</h2>
+        <p>Leave every meeting <strong>already done</strong> — nothing important lost, nothing left to type. Your team gets the summary before you reach the car park.</p>
+        <div class="hero-stat">
+          <div><strong>~90s</strong><span>Record → summary</span></div>
+          <div><strong>5</strong><span>Languages + mid-switch</span></div>
+          <div><strong>0</strong><span>API keys to configure</span></div>
+        </div>
+      </div>
+      <div data-lang="fr">
+        <h2>Le résultat que vous voulez</h2>
+        <p>Quittez chaque réunion <strong>déjà prêt</strong> — rien d'oublié, rien à retaper. Votre équipe reçoit le résumé avant que vous quittiez le parking.</p>
+        <div class="hero-stat">
+          <div><strong>~90 s</strong><span>Enregistrer → résumé</span></div>
+          <div><strong>5</strong><span>Langues + changement en direct</span></div>
+          <div><strong>0</strong><span>Clé API à configurer</span></div>
+        </div>
+      </div>
+      <div data-lang="de">
+        <h2>Das gewünschte Ergebnis</h2>
+        <p>Verlassen Sie jedes Meeting <strong>sofort erledigt</strong> — nichts vergessen, nichts nachzutippen. Ihr Team hat die Zusammenfassung, bevor Sie das Parkhaus verlassen.</p>
+        <div class="hero-stat">
+          <div><strong>~90 s</strong><span>Aufnahme → Zusammenfassung</span></div>
+          <div><strong>5</strong><span>Sprachen + Wechsel live</span></div>
+          <div><strong>0</strong><span>API-Schlüssel nötig</span></div>
+        </div>
+      </div>
+      <div data-lang="lb">
+        <h2>De Dram, deen Dir wëllt</h2>
+        <p>Verloosst all Meeting <strong>scho fäerdeg</strong> — näicht vergiess, näicht no ze tippen. Äert Team huet de Resumé, ier Dir de Parking verloosst.</p>
+        <div class="hero-stat">
+          <div><strong>~90 s</strong><span>Rekord → Resumé</span></div>
+          <div><strong>5</strong><span>Sproochen + wiesselen live</span></div>
+          <div><strong>0</strong><span>API-Schlësselen</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div data-lang="en" class="visible">
+        <h2>Free — 3 Meetings Included</h2>
+        <p class="muted">~30 minutes/month · no sign-in · no API keys · device-local library</p>
+        <ul>
+          <li>Record, transcribe, and summarize</li>
+          <li>Lëtzebuergesch via LuxASR (University of Luxembourg)</li>
+          <li>Meeting notes, client calls, brainstorms</li>
+          <li>Export PDF or email with audio attached</li>
+        </ul>
+      </div>
+      <div data-lang="fr">
+        <h2>Gratuit — 3 réunions incluses</h2>
+        <p class="muted">~30 minutes/mois · sans inscription · sans clé API</p>
+        <ul>
+          <li>Enregistrer, transcrire, résumer</li>
+          <li>Lëtzebuergesch via LuxASR (Université du Luxembourg)</li>
+          <li>Comptes rendus, appels clients, brainstorms</li>
+          <li>Export PDF ou e-mail avec audio</li>
+        </ul>
+      </div>
+      <div data-lang="de">
+        <h2>Kostenlos — 3 Meetings inklusive</h2>
+        <p class="muted">~30 Minuten/Monat · ohne Anmeldung · ohne API-Schlüssel</p>
+        <ul>
+          <li>Aufnehmen, transkribieren, zusammenfassen</li>
+          <li>Lëtzebuergesch via LuxASR (Universität Luxemburg)</li>
+          <li>Meeting-Notizen, Kundengespräche, Brainstorms</li>
+          <li>PDF-Export oder E-Mail mit Audio</li>
+        </ul>
+      </div>
+      <div data-lang="lb">
+        <h2>Gratis — 3 Reuniounen abegraff</h2>
+        <p class="muted">~30 Minutte/Mount · ouni Umeldung · ouni API-Schlësselen</p>
+        <ul>
+          <li>Rekordéieren, transkriptéieren, resuméieren</li>
+          <li>Lëtzebuergesch iwwer LuxASR (Universitéit Lëtzebuerg)</li>
+          <li>Meeting-Notizen, Client-Calls, Brainstorms</li>
+          <li>PDF oder E-Mail mat Audio</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card">
+      <div data-lang="en" class="visible">
+        <h2>Paperorg Pro — Meeting Closure</h2>
+        <p>For professionals who close meetings for a living.</p>
+        <div class="stack">
+          <div class="price-row"><span class="name">600 minutes/month</span><span class="price">Included</span></div>
+          <div class="price-row"><span class="name">Auto-email summary + PDF</span><span class="price">Included</span></div>
+          <div class="price-row"><span class="name">Unlimited custom vocabulary</span><span class="price">Included</span></div>
+          <div class="price-row"><span class="name">90-day audio retention</span><span class="price">Included</span></div>
+          <div class="price-row"><span class="name">Priority Lëtzebuergesch pipeline</span><span class="price">Included</span></div>
+          <div class="price-row"><span class="name">Switch language mid-recording</span><span class="price">Included</span></div>
+        </div>
+        <p class="guarantee"><strong>Action Item Guarantee (Pro):</strong> If a clear action item in your recording is missing from the summary, contact us — we credit 60 minutes and reprocess with priority.</p>
+      </div>
+      <div data-lang="fr">
+        <h2>Paperorg Pro — Clôture de réunion</h2>
+        <p>Pour les professionnels qui clôturent des réunions chaque jour.</p>
+        <div class="stack">
+          <div class="price-row"><span class="name">600 minutes/mois</span><span class="price">Inclus</span></div>
+          <div class="price-row"><span class="name">E-mail auto + PDF</span><span class="price">Inclus</span></div>
+          <div class="price-row"><span class="name">Vocabulaire illimité</span><span class="price">Inclus</span></div>
+          <div class="price-row"><span class="name">Conservation audio 90 jours</span><span class="price">Inclus</span></div>
+          <div class="price-row"><span class="name">Pipeline luxembourgeois prioritaire</span><span class="price">Inclus</span></div>
+          <div class="price-row"><span class="name">Changement de langue en direct</span><span class="price">Inclus</span></div>
+        </div>
+        <p class="guarantee"><strong>Garantie actions (Pro) :</strong> Une action claire manquante dans le résumé ? Contactez-nous — 60 minutes créditées et retraitement prioritaire.</p>
+      </div>
+      <div data-lang="de">
+        <h2>Paperorg Pro — Meeting abschließen</h2>
+        <p>Für Profis, die Meetings täglich abschließen.</p>
+        <div class="stack">
+          <div class="price-row"><span class="name">600 Minuten/Monat</span><span class="price">Inklusive</span></div>
+          <div class="price-row"><span class="name">Auto-E-Mail + PDF</span><span class="price">Inklusive</span></div>
+          <div class="price-row"><span class="name">Unbegrenztes Vokabular</span><span class="price">Inklusive</span></div>
+          <div class="price-row"><span class="name">90 Tage Audio-Aufbewahrung</span><span class="price">Inklusive</span></div>
+          <div class="price-row"><span class="name">Priorisierte LB-Pipeline</span><span class="price">Inklusive</span></div>
+          <div class="price-row"><span class="name">Sprachwechsel während Aufnahme</span><span class="price">Inklusive</span></div>
+        </div>
+        <p class="guarantee"><strong>Action-Item-Garantie (Pro):</strong> Fehlt eine klare Aufgabe im Protokoll? Melden Sie sich — 60 Minuten Gutschrift und Prioritäts-Neuverarbeitung.</p>
+      </div>
+      <div data-lang="lb">
+        <h2>Paperorg Pro — Meeting ofschléissen</h2>
+        <p>Fir Professioneller, déi all Dag Reuniounen ofschléissen.</p>
+        <div class="stack">
+          <div class="price-row"><span class="name">600 Minutte/Mount</span><span class="price">Abegraff</span></div>
+          <div class="price-row"><span class="name">Auto-E-Mail + PDF</span><span class="price">Abegraff</span></div>
+          <div class="price-row"><span class="name">Onlimitéiert Vokabulär</span><span class="price">Abegraff</span></div>
+          <div class="price-row"><span class="name">90 Deeg Audio</span><span class="price">Abegraff</span></div>
+          <div class="price-row"><span class="name">Prioritéit LB-Pipeline</span><span class="price">Abegraff</span></div>
+          <div class="price-row"><span class="name">Sprooch wiesselen beim Rekord</span><span class="price">Abegraff</span></div>
+        </div>
+        <p class="guarantee"><strong>Action-Item-Garantie (Pro):</strong> Eng kloer Aktioun feelt am Resumé? Kontaktéiert eis — 60 Minutte Guthaben a Prioritéits-Noveraarbechtung.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div data-lang="en" class="visible">
+        <h2>Why professionals trust it</h2>
+        <ul>
+          <li><strong>Likelihood:</strong> LuxASR + quality pipeline — weak segments re-transcribed, not invented</li>
+          <li><strong>Speed:</strong> ~90 seconds for a typical meeting, not tomorrow</li>
+          <li><strong>Effort:</strong> One tap to record. No ChatGPT paste. No Otter account.</li>
+          <li><strong>Privacy:</strong> Recordings on your iPhone. GDPR. Luxembourg controller (Luxxow S.à r.l.)</li>
+        </ul>
+      </div>
+      <div data-lang="fr">
+        <h2>Pourquoi les pros font confiance</h2>
+        <ul>
+          <li><strong>Fiabilité :</strong> LuxASR + contrôle qualité — pas de texte inventé</li>
+          <li><strong>Rapidité :</strong> ~90 secondes, pas demain</li>
+          <li><strong>Simplicité :</strong> Un tap. Pas de copier-coller ChatGPT.</li>
+          <li><strong>Confidentialité :</strong> Sur votre iPhone. RGPD. Luxxow S.à r.l., Luxembourg</li>
+        </ul>
+      </div>
+      <div data-lang="de">
+        <h2>Warum Profis vertrauen</h2>
+        <ul>
+          <li><strong>Wahrscheinlichkeit:</strong> LuxASR + Qualitäts-Pipeline — nichts erfunden</li>
+          <li><strong>Geschwindigkeit:</strong> ~90 Sekunden, nicht morgen</li>
+          <li><strong>Aufwand:</strong> Ein Tippen. Kein ChatGPT-Kopieren.</li>
+          <li><strong>Datenschutz:</strong> Auf Ihrem iPhone. DSGVO. Luxxow S.à r.l., Luxemburg</li>
+        </ul>
+      </div>
+      <div data-lang="lb">
+        <h2>Firwat Professioneller vertrauen</h2>
+        <ul>
+          <li><strong>Zouverlässegkeet:</strong> LuxASR + Qualitéit — näicht erfunden</li>
+          <li><strong>Vitesse:</strong> ~90 Sekonnen, net muer</li>
+          <li><strong>Aufwand:</strong> Een Tap. Keen ChatGPT-Kopéieren.</li>
+          <li><strong>Privatsphär:</strong> Op Ärem iPhone. DSGVO. Luxxow S.à r.l.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Paperorg Notes · <a href="privacy.html">Privacy</a> · <a href="mailto:hello@paperorg.com">hello@paperorg.com</a></p>
+    <p class="muted">Luxxow S.à r.l. · Luxembourg</p>
+  </footer>
+
+  <script>
+    const buttons = document.querySelectorAll('[data-select]');
+    const blocks = document.querySelectorAll('[data-lang]');
+    function show(lang) {
+      buttons.forEach(b => b.classList.toggle('active', b.dataset.select === lang));
+      blocks.forEach(el => el.classList.toggle('visible', el.dataset.lang === lang));
+      document.documentElement.lang = lang === 'lb' ? 'lb' : lang;
+    }
+    buttons.forEach(b => b.addEventListener('click', () => show(b.dataset.select)));
+    const nav = navigator.language.slice(0, 2);
+    if (['en', 'fr', 'de', 'lb'].includes(nav)) show(nav);
+  </script>
+</body>
+</html>

@@ -12,7 +12,7 @@
 | Field | Value |
 |-------|-------|
 | App name | Paperorg Notes |
-| Subtitle | Voice notes & transcription |
+| Subtitle | Meetings done. Notes sent. |
 | Primary category | Productivity |
 | Secondary category | Business |
 | Privacy Policy URL | *(required — host before external TestFlight)* |
@@ -65,16 +65,4 @@ voice notes, transcription, meeting notes, luxembourgish, dictation, AI summary,
 
 ## Description (draft)
 
-```
-Paperorg Notes turns your voice into structured notes.
-
-Record meetings, brainstorms, and voice memos — then get an accurate transcript, summary, action items, and decisions. Built for multilingual professionals with first-class support for Lëtzebuergesch, German, French, English, and Portuguese.
-
-• One-tap recording with background support
-• AI-structured meeting notes and brainstorms
-• Search your entire transcript library
-• Export PDF, Markdown, or email
-• GDPR-aware: you control your data and providers
-
-Transcription uses providers you configure (OpenAI, ElevenLabs, LuxASR). Audio is stored on your device unless you choose otherwise.
-```
+See **`AppStore/METADATA.md`** for full EN/FR/DE descriptions, promotional text, keywords, and screenshot captions (Grand Slam / Meeting Closure offer).

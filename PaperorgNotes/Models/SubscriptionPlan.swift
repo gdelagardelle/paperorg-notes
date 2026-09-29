@@ -49,9 +49,9 @@ enum SubscriptionPlan: String, Codable, CaseIterable, Identifiable, Sendable {
     var subtitle: String {
         switch self {
         case .free:
-            return "Included cloud transcription and summaries"
+            return String(localized: "plan.free.subtitle")
         case .pro:
-            return "Transcription & summaries included — no keys needed"
+            return String(localized: "plan.pro.subtitle")
         }
     }
 }

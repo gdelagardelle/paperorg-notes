@@ -155,6 +155,14 @@ struct PaywallView: View {
                     }
                     .surfaceCard()
 
+                    Text(String(localized: "paywall.guarantee"))
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(AppTheme.surfaceElevated.opacity(0.6))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
                     if let usage = environment.subscriptionService.usageInfo, usage.isPro {
                         Label(
                             L10n.Included.remaining(Int(usage.minutesRemaining.rounded(.down))),
