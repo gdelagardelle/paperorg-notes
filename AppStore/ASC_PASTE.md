@@ -32,7 +32,7 @@ Copy full EN / FR / DE description sections from METADATA.md.
 
 ## TestFlight
 
-Build **1.0.10 (76)** uploaded 2026-09-29 — assign to internal group after processing (~5–15 min).
+Build **1.0.10 (77)** uploaded 2026-09-29 — assign to internal group after processing (~5–15 min). Swap onto version 1.0.10 if still in review (remove → attach 77 → resubmit).
 
 ## Web offer
 
