@@ -42,7 +42,7 @@ enum SubscriptionPlan: String, Codable, CaseIterable, Identifiable, Sendable {
     var displayName: String {
         switch self {
         case .free: return "Free"
-        case .pro: return "Paperorg Pro"
+        case .pro: return String(localized: "paywall.title")
         }
     }
 
@@ -207,9 +207,9 @@ enum ProBackendError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .notAuthenticated:
-            return "Could not connect to Paperorg Pro. Try again in Settings."
+            return String(localized: "pro.error.not_authenticated")
         case .subscriptionRequired:
-            return "Paperorg Pro subscription required."
+            return String(localized: "pro.error.subscription_required")
         case .usageLimitReached:
             return "You've used all included Pro minutes this month."
         case .deviceIntegrityVerificationFailed:
@@ -219,7 +219,7 @@ enum ProBackendError: LocalizedError {
         case .recordingSegmentConflict:
             return "Recording segments conflict. Try transcribing again."
         case .serverError:
-            return "Paperorg Pro is temporarily unavailable. Please try again later."
+            return String(localized: "pro.error.unavailable")
         }
     }
 

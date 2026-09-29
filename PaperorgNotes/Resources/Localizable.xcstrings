@@ -1896,31 +1896,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 Minuten Transkription pro Monat, in Aufnahmen von höchstens 3 Minuten. Ohne Anmeldung oder API-Schlüssel. Das Guthaben ist an dieses Gerät gebunden."
+            "value": "3 Meetings pro Monat inklusive (~30 Min. gesamt), in Aufnahmen bis 3 Minuten. Ohne Anmeldung oder API-Schlüssel. Das Guthaben ist an dieses Gerät gebunden."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutes of transcription a month, in recordings of at most 3 minutes. No sign-in or API keys. The allowance is tied to this device."
+            "value": "3 meetings included each month (~30 minutes total), in recordings up to 3 minutes each. No sign-in or API keys. The allowance is tied to this device."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutes de transcription par mois, en enregistrements de 3 minutes maximum. Sans connexion ni clé API. Le quota est lié à cet appareil."
+            "value": "3 réunions incluses par mois (~30 min au total), en enregistrements de 3 minutes maximum. Sans connexion ni clé API. Le quota est lié à cet appareil."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 Minutte Transkriptioun de Mount, an Opnamen vu héchstens 3 Minutten. Ouni Umeldung oder API-Schlësselen. Äert Guthaben ass un dësen Apparat gebonnen."
+            "value": "3 Reuniounen de Mount abegraff (~30 Min. am Ganzen), an Opname bis 3 Minutten. Ouni Umeldung oder API-Schlësselen. Äert Guthaben ass un dësen Apparat gebonnen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutos de transcrição por mês, em gravações de no máximo 3 minutos. Sem sessão nem chaves API. A franquia está associada a este dispositivo."
+            "value": "3 reuniões incluídas por mês (~30 min no total), em gravações até 3 minutos. Sem sessão nem chaves API. A franquia está associada a este dispositivo."
           }
         }
       }
@@ -2013,19 +2013,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutes incluses chaque mois"
+            "value": "3 réunions incluses chaque mois"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 Minutten all Mount abegraff"
+            "value": "3 Reuniounen all Mount abegraff"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutos incluídos por mês"
+            "value": "3 reuniões incluídas por mês"
           }
         }
       }
@@ -2036,31 +2036,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inklusive Minuten sind noch nicht verfügbar. Sie können stattdessen Paperorg Pro ausprobieren."
+            "value": "Inklusive Minuten sind noch nicht verfügbar. Sie können stattdessen Meeting Closure Pro ausprobieren."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Included minutes are not available yet. You can try Paperorg Pro instead."
+            "value": "Included minutes are not available yet. You can try Meeting Closure Pro instead."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les minutes incluses ne sont pas encore disponibles. Vous pouvez essayer Paperorg Pro à la place."
+            "value": "Les minutes incluses ne sont pas encore disponibles. Vous pouvez essayer Clôture de réunion Pro à la place."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inklusiv Minutte sinn nach net verfügbar. Dir kënnt amplaz Paperorg Pro probéieren."
+            "value": "Inklusiv Minutte sinn nach net verfügbar. Dir kënnt amplaz Meeting Closure Pro probéieren."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os minutos incluídos ainda não estão disponíveis. Pode experimentar o Paperorg Pro em alternativa."
+            "value": "Os minutos incluídos ainda não estão disponíveis. Pode experimentar o Meeting Closure Pro em alternativa."
           }
         }
       }
@@ -4451,31 +4451,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Clôture de réunion Pro"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         }
       }
@@ -4539,13 +4539,13 @@
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Automatesch E-Mail no Transkriptioun"
+            "value": "Auto-E-Mail mat Resumé, PDF an Audio"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "E-mail automático após a transcrição"
+            "value": "E-mail automático com resumo, PDF e áudio"
           }
         }
       }
@@ -4574,13 +4574,13 @@
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "All Notizstiler a Sproochen"
+            "value": "Sprooch wiesselen wärend der Opnam (LB, FR, DE, EN, PT)"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Todos os estilos de nota e idiomas"
+            "value": "Mudar de idioma durante a gravação (LB, FR, DE, EN, PT)"
           }
         }
       }
@@ -4696,31 +4696,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upgrade"
+            "value": "Meeting Closure Pro"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upgrade"
+            "value": "Meeting Closure Pro"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Passer à Pro"
+            "value": "Clôture de réunion Pro"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upgrade"
+            "value": "Meeting Closure Pro"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mudar para Pro"
+            "value": "Meeting Closure Pro"
           }
         }
       }
@@ -5010,19 +5010,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Clôture de réunion Pro"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         }
       }
@@ -5045,19 +5045,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Commencez gratuitement avec 30 minutes de transcription et de résumés IA par mois. Sans clé API ni inscription."
+            "value": "Clôturez les réunions au lieu de les taper. 3 réunions/mois gratuites — sans clé API."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fänkt gratis un mat 30 Minutte Transkriptioun an AI-Zesummefaassungen pro Mount. Ouni API-Schlësselen an ouni Umeldung."
+            "value": "Schléisst Reuniounen of, amplaz se ze tippen. 3 Reuniounen/Mount gratis — keng API-Schlësselen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Comece gratuitamente com 30 minutos de transcrição e resumos de IA por mês. Sem chaves API nem registo."
+            "value": "Encerre reuniões em vez de as digitar. 3 reuniões/mês grátis — sem chaves API."
           }
         }
       }
@@ -5080,19 +5080,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choisissez votre offre"
+            "value": "Clôturez les réunions, ne les tapez pas"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wielt Äre Plang"
+            "value": "Schléisst Reuniounen of, tippt se net"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Escolha o seu plano"
+            "value": "Encerre reuniões, não as digite"
           }
         }
       }
@@ -5220,19 +5220,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutes/mois, sans inscription"
+            "value": "3 réunions/mois (~30 min), sans inscription"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 Minutte/Mount, ouni Umeldung"
+            "value": "3 Reuniounen/Mount (~30 Min.), ouni Umeldung"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "30 minutos/mês, sem registo"
+            "value": "3 reuniões/mês (~30 min), sem registo"
           }
         }
       }
@@ -5290,19 +5290,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enregistrer, transcrire et résumer"
+            "value": "Enregistrer → résumé → e-mail"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rekord, transkriptéieren a resuméieren"
+            "value": "Rekord → Resumé → E-Mail"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gravar, transcrever e resumir"
+            "value": "Gravar → resumo → e-mail"
           }
         }
       }
@@ -5570,19 +5570,19 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Obtenir Paperorg Pro"
+            "value": "Clôturez vos réunions (Pro)"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kritt Paperorg Pro"
+            "value": "Fänkt un Reuniounen ze schléissen (Pro)"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Obter Paperorg Pro"
+            "value": "Comece a encerrar reuniões (Pro)"
           }
         }
       }
@@ -5663,31 +5663,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes zeichnet Audio auf Ihrem Gerät auf. Free umfasst 30 Minuten Cloud-Transkription und KI-Zusammenfassungen pro Monat, ohne API-Schlüssel und ohne Anmeldung."
+            "value": "Paperorg Notes zeichnet Audio auf Ihrem Gerät auf. Free umfasst 3 Meetings pro Monat (~30 Minuten Cloud-Transkription und KI-Zusammenfassungen), ohne API-Schlüssel und ohne Anmeldung."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes records audio on your device. Free includes 30 minutes of cloud transcription and AI summaries each month, with no API keys or sign-in required."
+            "value": "Paperorg Notes records audio on your device. Free includes 3 meetings per month (~30 minutes of cloud transcription and AI summaries), with no API keys or sign-in required."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes enregistre l’audio sur votre appareil. L’offre gratuite comprend 30 minutes mensuelles de transcription cloud et de résumés IA, sans clé API ni inscription."
+            "value": "Paperorg Notes enregistre l’audio sur votre appareil. L’offre gratuite comprend 3 réunions par mois (~30 minutes de transcription cloud et de résumés IA), sans clé API ni inscription."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Notes registréiert Audio op Ärem Apparat. Free enthält all Mount 30 Minutte Cloud-Transkriptioun an AI-Zesummefaassungen, ouni API-Schlësselen an ouni Umeldung."
+            "value": "Paperorg Notes registréiert Audio op Ärem Apparat. Free enthält 3 Reuniounen de Mount (~30 Minutte Cloud-Transkriptioun an AI-Zesummefaassungen), ouni API-Schlësselen an ouni Umeldung."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Paperorg Notes grava áudio no seu dispositivo. O plano gratuito inclui 30 minutos mensais de transcrição na cloud e resumos de IA, sem chaves API nem registo."
+            "value": "O Paperorg Notes grava áudio no seu dispositivo. O plano gratuito inclui 3 reuniões por mês (~30 minutos de transcrição na cloud e resumos de IA), sem chaves API nem registo."
           }
         }
       }
@@ -6258,31 +6258,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sie haben über 85 % Ihres monatlichen Kontingents verbraucht."
+            "value": "Sie haben über 85 % Ihrer 3 inklusiven Meetings diesen Monat verbraucht."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You've used over 85% of your monthly included minutes."
+            "value": "You've used over 85% of your 3 included meetings this month."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vous avez utilisé plus de 85 % de vos minutes mensuelles incluses."
+            "value": "Vous avez utilisé plus de 85 % de vos 3 réunions incluses ce mois-ci."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dir hutt iwwer 85% vun Äre monatlecht abegraff Minutte benotzt."
+            "value": "Dir hutt iwwer 85% vun Ären 3 abegraff Reuniounen dëse Mount benotzt."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Já utilizou mais de 85% dos minutos mensais incluídos."
+            "value": "Já utilizou mais de 85% das 3 reuniões incluídas este mês."
           }
         }
       }
@@ -7236,31 +7236,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free umfasst 30 Minuten Cloud-Transkription pro Monat. Eine Aufnahme darf höchstens 3 Minuten lang sein. Ohne API-Schlüssel und ohne Anmeldung."
+            "value": "Free umfasst 3 Meetings pro Monat (~30 Minuten Cloud-Transkription). Eine Aufnahme darf höchstens 3 Minuten lang sein. Ohne API-Schlüssel und ohne Anmeldung."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free includes 30 minutes of cloud transcription a month. Each recording can be at most 3 minutes. No API keys or sign-in."
+            "value": "Free includes 3 meetings per month (~30 minutes of cloud transcription). Each recording can be at most 3 minutes. No API keys or sign-in."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’offre gratuite comprend 30 minutes de transcription cloud par mois. Chaque enregistrement dure au plus 3 minutes. Sans clé API ni inscription."
+            "value": "L’offre gratuite comprend 3 réunions par mois (~30 minutes de transcription cloud). Chaque enregistrement dure au plus 3 minutes. Sans clé API ni inscription."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free enthält all Mount 30 Minutte Cloud-Transkriptioun. Eng Opnam däerf héchstens 3 Minutte laang sinn. Ouni API-Schlësselen an ouni Umeldung."
+            "value": "Free enthält 3 Reuniounen de Mount (~30 Minutte Cloud-Transkriptioun). Eng Opnam däerf héchstens 3 Minutte laang sinn. Ouni API-Schlësselen an ouni Umeldung."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O plano gratuito inclui 30 minutos mensais de transcrição na cloud. Cada gravação pode ter no máximo 3 minutos. Sem chaves API nem registo."
+            "value": "O plano gratuito inclui 3 reuniões por mês (~30 minutos de transcrição na cloud). Cada gravação pode ter no máximo 3 minutos. Sem chaves API nem registo."
           }
         }
       }
@@ -7875,31 +7875,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Clôture de réunion Pro"
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro"
+            "value": "Meeting Closure Pro"
           }
         }
       }
@@ -8227,31 +8227,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Kauf wurde empfangen, aber Paperorg Pro konnte noch nicht aktiviert werden. Tippen Sie gleich auf „Käufe wiederherstellen“."
+            "value": "Ihr Kauf wurde empfangen, aber Meeting Closure Pro konnte noch nicht aktiviert werden. Tippen Sie gleich auf „Käufe wiederherstellen“."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your purchase was received, but Paperorg Pro could not be activated yet. Tap Restore Purchases in a moment."
+            "value": "Your purchase was received, but Meeting Closure Pro could not be activated yet. Tap Restore Purchases in a moment."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre achat a bien été reçu, mais Paperorg Pro n’a pas encore pu être activé. Touchez bientôt « Restaurer les achats »."
+            "value": "Votre achat a bien été reçu, mais Clôture de réunion Pro n’a pas encore pu être activé. Touchez bientôt « Restaurer les achats »."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Äre Kaf gouf empfaangen, mee Paperorg Pro konnt nach net aktivéiert ginn. Tippt geschwënn op „Kaf restauréieren“."
+            "value": "Äre Kaf gouf empfaangen, mee Meeting Closure Pro konnt nach net aktivéiert ginn. Tippt geschwënn op „Kaf restauréieren“."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "A sua compra foi recebida, mas o Paperorg Pro ainda não pôde ser ativado. Toque em « Restaurar compras » dentro de instantes."
+            "value": "A sua compra foi recebida, mas o Meeting Closure Pro ainda não pôde ser ativado. Toque em « Restaurar compras » dentro de instantes."
           }
         }
       }
@@ -8262,31 +8262,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro ist noch nicht zum Kauf verfügbar. Bitte versuchen Sie es später erneut."
+            "value": "Meeting Closure Pro ist noch nicht zum Kauf verfügbar. Bitte versuchen Sie es später erneut."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro is not available for purchase yet. Please try again later."
+            "value": "Meeting Closure Pro is not available for purchase yet. Please try again later."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro n’est pas encore disponible à l’achat. Veuillez réessayer plus tard."
+            "value": "Clôture de réunion Pro n’est pas encore disponible à l’achat. Veuillez réessayer plus tard."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paperorg Pro ass nach net fir de Kaf verfügbar. Probéiert et w.e.g. méi spéit nach eng Kéier."
+            "value": "Meeting Closure Pro ass nach net fir de Kaf verfügbar. Probéiert et w.e.g. méi spéit nach eng Kéier."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Paperorg Pro ainda não está disponível para compra. Tente novamente mais tarde."
+            "value": "O Meeting Closure Pro ainda não está disponível para compra. Tente novamente mais tarde."
           }
         }
       }
@@ -8332,31 +8332,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihr Kauf ist abgeschlossen, aber Paperorg Pro wird noch bestätigt. Tippen Sie gleich auf „Käufe wiederherstellen“."
+            "value": "Ihr Kauf ist abgeschlossen, aber Meeting Closure Pro wird noch bestätigt. Tippen Sie gleich auf „Käufe wiederherstellen“."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your purchase is complete, but Paperorg Pro is still being confirmed. Tap Restore Purchases in a moment."
+            "value": "Your purchase is complete, but Meeting Closure Pro is still being confirmed. Tap Restore Purchases in a moment."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre achat est terminé, mais Paperorg Pro est encore en cours de confirmation. Touchez bientôt « Restaurer les achats »."
+            "value": "Votre achat est terminé, mais Clôture de réunion Pro est encore en cours de confirmation. Touchez bientôt « Restaurer les achats »."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Äre Kaf ass ofgeschloss, mee Paperorg Pro gëtt nach confirméiert. Tippt geschwënn op „Kaf restauréieren“."
+            "value": "Äre Kaf ass ofgeschloss, mee Meeting Closure Pro gëtt nach confirméiert. Tippt geschwënn op „Kaf restauréieren“."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "A sua compra está concluída, mas o Paperorg Pro ainda está a ser confirmado. Toque em « Restaurar compras » dentro de instantes."
+            "value": "A sua compra está concluída, mas o Meeting Closure Pro ainda está a ser confirmado. Toque em « Restaurar compras » dentro de instantes."
           }
         }
       }
@@ -8724,31 +8724,31 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transkription und KI-Zusammenfassungen inklusive — keine Einrichtung von OpenAI oder ElevenLabs nötig."
+            "value": "Schließen Sie jedes Meeting ab — Zusammenfassung, Aufgaben und PDF in ~90 Sekunden. Keine API-Schlüssel."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transcription and AI summaries included — no OpenAI or ElevenLabs setup."
+            "value": "Close every meeting — summary, action items, and PDF in ~90 seconds. No API keys."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transcription et résumés IA inclus — aucune configuration OpenAI ou ElevenLabs nécessaire."
+            "value": "Clôturez chaque réunion — résumé, actions et PDF en ~90 secondes. Aucune clé API."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transkriptioun an KI-Zesummefaassunge sinn abegraff — keng Konfiguratioun vun OpenAI oder ElevenLabs néideg."
+            "value": "Schléisst all Meeting of — Resumé, Aktiounen a PDF a ~90 Sekonnen. Keng API-Schlësselen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transcrição e resumos de IA incluídos — sem configuração da OpenAI ou ElevenLabs."
+            "value": "Encerre cada reunião — resumo, ações e PDF em ~90 segundos. Sem chaves API."
           }
         }
       }
@@ -9108,31 +9108,31 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free is 30 minutes a month, in recordings of at most 3 minutes — a voice memo, not a meeting."
+            "value": "Free includes 3 meetings per month (~30 minutes total), in recordings up to 3 minutes — enough for typical meetings."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free sind 30 Minuten im Monat, in Aufnahmen von höchstens 3 Minuten — eine Sprachnotiz, kein Meeting."
+            "value": "Free umfasst 3 Meetings pro Monat (~30 Minuten gesamt), in Aufnahmen bis 3 Minuten — genug für typische Besprechungen."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’offre gratuite, c’est 30 minutes par mois, en enregistrements de 3 minutes maximum — un mémo vocal, pas une réunion."
+            "value": "L’offre gratuite comprend 3 réunions par mois (~30 minutes au total), en enregistrements de 3 minutes maximum — assez pour des réunions typiques."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Free sinn 30 Minutte de Mount, an Opnamen vu héchstens 3 Minutten — eng Sproochnotiz, keng Reunioun."
+            "value": "Free enthält 3 Reuniounen de Mount (~30 Minutte am Ganzen), an Opname bis 3 Minutten — genuch fir typesch Reuniounen."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O plano gratuito são 30 minutos por mês, em gravações de no máximo 3 minutos — um memo de voz, não uma reunião."
+            "value": "O plano gratuito inclui 3 reuniões por mês (~30 minutos no total), em gravações até 3 minutos — suficiente para reuniões típicas."
           }
         }
       }
@@ -9143,31 +9143,136 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pro is 10 hours a month and up to 3 hours in one recording, for meetings."
+            "value": "Meeting Closure Pro: 600 minutes/month, auto-email summary + PDF, up to 3 hours per recording."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pro sind 10 Stunden im Monat und bis zu 3 Stunden in einer Aufnahme, für Meetings."
+            "value": "Meeting Closure Pro: 600 Minuten/Monat, Auto-E-Mail mit Zusammenfassung + PDF, bis 3 Stunden pro Aufnahme."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pro, c’est 10 heures par mois et jusqu’à 3 heures en un enregistrement, pour les réunions."
+            "value": "Clôture de réunion Pro : 600 minutes/mois, e-mail auto avec résumé + PDF, jusqu’à 3 h par enregistrement."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pro sinn 10 Stonnen de Mount an bis zu 3 Stonnen an enger Opnam, fir Reuniounen."
+            "value": "Meeting Closure Pro: 600 Minutten/Mount, Auto-E-Mail mat Resumé + PDF, bis zu 3 Stonnen pro Opnam."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Pro são 10 horas por mês e até 3 horas numa gravação, para reuniões."
+            "value": "Meeting Closure Pro: 600 minutos/mês, e-mail automático com resumo + PDF, até 3 horas por gravação."
+          }
+        }
+      }
+    },
+    "pro.error.not_authenticated": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung zu Meeting Closure Pro fehlgeschlagen. Versuchen Sie es in Einstellungen erneut."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not connect to Meeting Closure Pro. Try again in Settings."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de se connecter à Clôture de réunion Pro. Réessayez dans Réglages."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung zu Meeting Closure Pro feelgeschloen. Probéiert et an den Astellungen nach eng Kéier."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível ligar ao Meeting Closure Pro. Tente novamente em Definições."
+          }
+        }
+      }
+    },
+    "pro.error.subscription_required": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting Closure Pro-Abonnement erforderlich."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting Closure Pro subscription required."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abonnement Clôture de réunion Pro requis."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting Closure Pro-Abonnement erfuerderlech."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscrição Meeting Closure Pro necessária."
+          }
+        }
+      }
+    },
+    "pro.error.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting Closure Pro ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting Closure Pro is temporarily unavailable. Please try again later."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clôture de réunion Pro est temporairement indisponible. Veuillez réessayer plus tard."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting Closure Pro ass temporär net verfügbar. Probéiert et w.e.g. méi spéit nach eng Kéier."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Meeting Closure Pro está temporariamente indisponível. Tente novamente mais tarde."
           }
         }
       }
