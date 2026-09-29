@@ -147,14 +147,19 @@ fun SettingsScreen(model: AppViewModel, notes: List<Note>, usage: UsageInfo?) {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.settings_pro_period, plan.period), color = Primary, fontSize = 13.sp)
-                            Text(stringResource(R.string.settings_pro_price, plan.price, plan.period), color = TextSecondary, fontSize = 12.sp)
+                            if (plan.lifetime) {
+                                Text(stringResource(R.string.settings_pro_lifetime), color = Primary, fontSize = 13.sp)
+                                Text(stringResource(R.string.settings_pro_lifetime_price, plan.price), color = TextSecondary, fontSize = 12.sp)
+                            } else {
+                                Text(stringResource(R.string.settings_pro_period, plan.period), color = Primary, fontSize = 13.sp)
+                                Text(stringResource(R.string.settings_pro_price, plan.price, plan.period), color = TextSecondary, fontSize = 12.sp)
+                            }
                         }
                         TextButton(
                             onClick = { activity?.let { model.buyPro(it, plan) } },
                             enabled = activity != null,
                             colors = textButtonColors(),
-                        ) { Text(stringResource(R.string.settings_subscribe)) }
+                        ) { Text(stringResource(if (plan.lifetime) R.string.settings_buy_lifetime else R.string.settings_subscribe)) }
                     }
                 }
                 if (plans.isEmpty()) {

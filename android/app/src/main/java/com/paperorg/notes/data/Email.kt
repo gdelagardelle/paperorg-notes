@@ -3,7 +3,6 @@ package com.paperorg.notes.data
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
-import com.paperorg.notes.domain.EmailContent
 import com.paperorg.notes.domain.Note
 import com.paperorg.notes.domain.NoteExport
 import java.io.File
@@ -39,13 +38,8 @@ object EmailComposer {
         cacheDir: File,
         pdf: File? = null,
     ): EmailDraft {
-        val transcript = note.displayTranscript
-        val summary = note.displaySummaryShort
-        val body = when (EmailContent.fromCode(settings.emailContent)) {
-            EmailContent.SummaryOnly -> summary
-            EmailContent.FullTranscript -> transcript
-            EmailContent.Both -> "SUMMARY\n$summary\n\n---\n\nTRANSCRIPT\n$transcript"
-        }
+        val audioFile = audio?.takeIf { it.exists() }
+        val letter = NoteExport.emailLetter(note, audioAttached = audioFile != null)
         val markdown = if (settings.emailAttachMarkdown) {
             File(cacheDir, "${note.id}.md").also { it.writeText(NoteExport.markdown(note)) }
         } else {
@@ -54,10 +48,10 @@ object EmailComposer {
         return EmailDraft(
             recipients = settings.emailRecipients,
             subject = note.title.ifBlank { "Paperorg note" },
-            body = body,
-            htmlBody = html(note.title, body),
+            body = letter.plain,
+            htmlBody = letter.html,
             attachments = EmailAttachments.of(
-                audio = if (settings.emailAttachAudio) audio else null,
+                audio = audioFile,
                 markdown = markdown,
                 pdf = if (settings.emailAttachPDF) pdf else null,
             ),

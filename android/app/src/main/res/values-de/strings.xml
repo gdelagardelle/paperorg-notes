@@ -123,6 +123,9 @@
     <string name="settings_pro_period">Pro, abgerechnet pro %1$s</string>
     <string name="settings_pro_price">%1$s / %2$s</string>
     <string name="settings_subscribe">Abonnieren</string>
+    <string name="settings_pro_lifetime">Einmalig</string>
+    <string name="settings_pro_lifetime_price">%1$s, für immer</string>
+    <string name="settings_buy_lifetime">Freischalten</string>
     <string name="settings_plans_missing">Google Play bietet Paperorg Pro auf diesem Gerät noch nicht an. Es erscheint, sobald die App aus Play mit aktivem Abo installiert ist.</string>
     <string name="settings_restore">Kauf wiederherstellen</string>
     <string name="settings_connected">Verbunden · Gerät %1$s</string>

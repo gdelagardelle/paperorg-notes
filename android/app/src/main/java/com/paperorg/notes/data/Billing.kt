@@ -22,12 +22,14 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 
-/** One buyable Paperorg Pro billing period, priced by Google Play. */
+/** One buyable Paperorg Pro offer, priced by Google Play. */
 data class ProPlan(
+    val productId: String,
     val basePlanId: String,
     val offerToken: String,
     val price: String,
     val period: String,
+    val lifetime: Boolean = false,
 )
 
 /**
@@ -44,7 +46,7 @@ class BillingRepository(
     private val api: () -> NotesApi,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var productDetails: ProductDetails? = null
+    private val catalog = mutableMapOf<String, ProductDetails>()
 
     /** Publishes the server-verified allowance directly to the UI. */
     var onEntitlementChanged: ((UsageInfo) -> Unit)? = null
@@ -84,45 +86,22 @@ class BillingRepository(
         })
     }
 
-    /** The base plans this user may buy, priced and localised by Play. */
+    /** The offers this user may buy, priced and localised by Play. */
     suspend fun plans(): List<ProPlan> {
         if (!connect()) {
             onMessage?.invoke("Google Play Billing could not connect on this device.")
             return emptyList()
         }
-        val params = QueryProductDetailsParams.newBuilder()
-            .setProductList(
-                listOf(
-                    QueryProductDetailsParams.Product.newBuilder()
-                        .setProductId(PRO_PRODUCT_ID)
-                        .setProductType(BillingClient.ProductType.SUBS)
-                        .build(),
-                ),
-            )
-            .build()
-        val details = suspendCancellableCoroutine { continuation ->
-            client.queryProductDetailsAsync(params) { result, queryResult ->
-                if (!continuation.isActive) return@queryProductDetailsAsync
-                if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                    val fetched = queryResult.productDetailsList
-                    val unfetched = queryResult.unfetchedProductList
-                    if (fetched.isEmpty() && unfetched.isNotEmpty()) {
-                        val status = unfetched.joinToString { "${it.productId}:${it.statusCode}" }
-                        onMessage?.invoke("Play has not published Pro to this install yet ($status).")
-                    }
-                    continuation.resume(fetched)
-                } else {
-                    onMessage?.invoke(billingMessage(result))
-                    continuation.resume(emptyList())
-                }
-            }
-        }
-        productDetails = details.firstOrNull { it.productId == PRO_PRODUCT_ID }
-        val offers = productDetails?.subscriptionOfferDetails.orEmpty()
-        if (productDetails != null && offers.isEmpty()) {
+        val subscriptions = queryProducts(BillingClient.ProductType.SUBS, PRO_PRODUCT_ID)
+        val lifetime = queryProducts(BillingClient.ProductType.INAPP, LIFETIME_PRODUCT_ID)
+        catalog.clear()
+        (subscriptions + lifetime).forEach { catalog[it.productId] = it }
+        val subscription = catalog[PRO_PRODUCT_ID]
+        val offers = subscription?.subscriptionOfferDetails.orEmpty()
+        if (subscription != null && offers.isEmpty()) {
             onMessage?.invoke("Play returned Pro but no active offers yet. Wait and reopen Settings.")
         }
-        return offers
+        val periods = offers
             // One entry per billing period. Where Play reports an intro offer
             // the user is eligible for, its token is the one that gives them
             // the discount, so the first offer per base plan is the right one.
@@ -132,6 +111,7 @@ class BillingRepository(
                 val phase = offer.pricingPhases.pricingPhaseList.lastOrNull()
                     ?: return@mapNotNull null
                 ProPlan(
+                    productId = PRO_PRODUCT_ID,
                     basePlanId = basePlanId,
                     offerToken = offer.offerToken,
                     price = phase.formattedPrice,
@@ -139,10 +119,52 @@ class BillingRepository(
                 )
             }
             .sortedBy { it.basePlanId }
+        val once = catalog[LIFETIME_PRODUCT_ID]?.oneTimePurchaseOfferDetailsList.orEmpty()
+            .map { offer ->
+                ProPlan(
+                    productId = LIFETIME_PRODUCT_ID,
+                    basePlanId = "lifetime",
+                    offerToken = offer.offerToken.orEmpty(),
+                    price = offer.formattedPrice,
+                    period = "once",
+                    lifetime = true,
+                )
+            }
+        return periods + once
+    }
+
+    private suspend fun queryProducts(type: String, productId: String): List<ProductDetails> {
+        val params = QueryProductDetailsParams.newBuilder()
+            .setProductList(
+                listOf(
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(productId)
+                        .setProductType(type)
+                        .build(),
+                ),
+            )
+            .build()
+        return suspendCancellableCoroutine { continuation ->
+            client.queryProductDetailsAsync(params) { result, queryResult ->
+                if (!continuation.isActive) return@queryProductDetailsAsync
+                if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                    val fetched = queryResult.productDetailsList
+                    val unfetched = queryResult.unfetchedProductList
+                    if (fetched.isEmpty() && unfetched.isNotEmpty() && productId == PRO_PRODUCT_ID) {
+                        val status = unfetched.joinToString { "${it.productId}:${it.statusCode}" }
+                        onMessage?.invoke("Play has not published Pro to this install yet ($status).")
+                    }
+                    continuation.resume(fetched)
+                } else {
+                    if (productId == PRO_PRODUCT_ID) onMessage?.invoke(billingMessage(result))
+                    continuation.resume(emptyList())
+                }
+            }
+        }
     }
 
     fun purchase(activity: Activity, plan: ProPlan) {
-        val details = productDetails
+        val details = catalog[plan.productId]
         if (details == null) {
             onMessage?.invoke("Paperorg Pro is not available from Google Play right now.")
             return
@@ -170,14 +192,9 @@ class BillingRepository(
      */
     suspend fun syncPurchases(): PurchaseSyncOutcome {
         if (!connect()) return PurchaseSyncOutcome.NoneFound
-        val params = QueryPurchasesParams.newBuilder()
-            .setProductType(BillingClient.ProductType.SUBS)
-            .build()
-        val purchases = suspendCancellableCoroutine { continuation ->
-            client.queryPurchasesAsync(params) { _, purchases ->
-                if (continuation.isActive) continuation.resume(purchases)
-            }
-        }
+        val subscriptions = queryOwned(BillingClient.ProductType.SUBS)
+        val ownedOnce = queryOwned(BillingClient.ProductType.INAPP)
+        val purchases = subscriptions + ownedOnce
         var restored = false
         var verifyFailed = false
         purchases.forEach { purchase ->
@@ -194,14 +211,24 @@ class BillingRepository(
         return PurchaseSyncOutcome.NoneFound
     }
 
+    private suspend fun queryOwned(type: String): List<Purchase> {
+        val params = QueryPurchasesParams.newBuilder().setProductType(type).build()
+        return suspendCancellableCoroutine { continuation ->
+            client.queryPurchasesAsync(params) { _, purchases ->
+                if (continuation.isActive) continuation.resume(purchases)
+            }
+        }
+    }
+
     private suspend fun redeem(purchase: Purchase, announce: Boolean): RedeemOutcome {
         if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) {
             return RedeemOutcome.Skipped
         }
-        if (!purchase.products.contains(PRO_PRODUCT_ID)) return RedeemOutcome.Skipped
+        val productId = purchase.products.firstOrNull { it == PRO_PRODUCT_ID || it == LIFETIME_PRODUCT_ID }
+            ?: return RedeemOutcome.Skipped
 
         val verified = withContext(Dispatchers.IO) {
-            runCatching { api().verifyPlayPurchase(purchase.purchaseToken, PRO_PRODUCT_ID) }
+            runCatching { api().verifyPlayPurchase(purchase.purchaseToken, productId) }
         }
         verified.onFailure { error ->
             if (announce) {
@@ -254,6 +281,7 @@ class BillingRepository(
 
     companion object {
         const val PRO_PRODUCT_ID = "pro"
+        const val LIFETIME_PRODUCT_ID = "pro_lifetime"
 
         fun manageSubscriptionsUrl(packageName: String): String =
             "https://play.google.com/store/account/subscriptions" +

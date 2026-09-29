@@ -113,13 +113,16 @@ class RecordingForegroundService : Service() {
 
     private fun createChannel() {
         val manager = getSystemService(NotificationManager::class.java)
+        manager.deleteNotificationChannel("recording")
         val channel = NotificationChannel(
             RecordingNotice.CHANNEL_ID,
             getString(R.string.notification_recording),
-            NotificationManager.IMPORTANCE_LOW,
+            NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
             setSound(null, null)
             description = getString(R.string.notification_recording_channel)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            setShowBadge(false)
         }
         manager.createNotificationChannel(channel)
     }
@@ -147,6 +150,11 @@ class RecordingForegroundService : Service() {
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.notification_recording_text, durationLabel))
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setShowWhen(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(open)
             .addAction(0, getString(R.string.notification_stop), stop)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)

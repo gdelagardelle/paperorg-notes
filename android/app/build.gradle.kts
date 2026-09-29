@@ -41,8 +41,8 @@ android {
         applicationId = "com.paperorg.notes"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.0.5"
+        versionCode = 11
+        versionName = "1.0.10"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "NOTES_API_URL", "\"$notesApiUrl\"")
         buildConfigField("long", "PLAY_CLOUD_PROJECT_NUMBER", "${playCloudProjectNumber}L")

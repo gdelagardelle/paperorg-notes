@@ -48,6 +48,28 @@ class ExportTest {
     }
 
     @Test
+    fun emailCarriesTheFullSummaryTranscriptAndAudio() {
+        val richer = note.copy(
+            summaryDetailed = "The board wants a designer on the site.",
+            structuredJson = """{"actionItems":["Hire a designer"],"decisions":["Go ahead"],"keyIdeas":["Headcount"],"openQuestions":["By when?"]}""",
+        )
+        val letter = NoteExport.emailLetter(richer, audioAttached = true)
+        assertTrue(letter.plain.contains("SUMMARY\nHire a designer."))
+        assertTrue(letter.plain.contains("The board wants a designer on the site."))
+        assertTrue(letter.plain.contains("Key ideas\n• Headcount"))
+        assertTrue(letter.plain.contains("Decisions\n• Go ahead"))
+        assertTrue(letter.plain.contains("Action items\n• Hire a designer"))
+        assertTrue(letter.plain.contains("Open questions\n• By when?"))
+        assertTrue(letter.plain.contains("TRANSCRIPT\nWe agreed to hire."))
+        assertTrue(letter.plain.contains("AUDIO\nThe recording is attached."))
+        assertTrue(letter.html.contains(">Summary<"))
+        assertTrue(letter.html.contains(">Transcript<"))
+        assertTrue(letter.html.contains(">Audio<"))
+        assertTrue(letter.html.contains("The board wants a designer on the site."))
+        assertTrue(letter.html.contains("02:00"))
+    }
+
+    @Test
     fun documentMetaNamesTheSpokenLanguage() {
         val document = NoteExport.document(note)
         assertEquals("Board meeting", document.title)

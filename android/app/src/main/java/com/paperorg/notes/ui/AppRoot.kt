@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -252,8 +253,9 @@ private fun RecordScreen(
     val context = LocalContext.current
     val view = LocalView.current
     val recording = state.recordingState != RecordingState.Idle
-    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
-        if (grants[Manifest.permission.RECORD_AUDIO] == true) model.startRecording()
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
+        val mic = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        if (mic) model.startRecording()
     }
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let(model::importAudio)
@@ -267,12 +269,15 @@ private fun RecordScreen(
         if (recording) {
             model.stopAndProcess()
         } else {
-            val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-            if (granted) {
+            val mic = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+            val notifications = Build.VERSION.SDK_INT < 33 ||
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            if (mic && notifications) {
                 model.startRecording()
             } else {
-                val needed = mutableListOf(Manifest.permission.RECORD_AUDIO)
-                if (Build.VERSION.SDK_INT >= 33) needed += Manifest.permission.POST_NOTIFICATIONS
+                val needed = mutableListOf<String>()
+                if (!mic) needed += Manifest.permission.RECORD_AUDIO
+                if (!notifications) needed += Manifest.permission.POST_NOTIFICATIONS
                 permission.launch(needed.toTypedArray())
             }
         }
@@ -283,7 +288,9 @@ private fun RecordScreen(
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(Background, HeroGradientBottom)))
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

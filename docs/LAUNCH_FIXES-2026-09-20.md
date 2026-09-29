@@ -4,7 +4,7 @@
 
 - iOS 1.0.0 (70): readable error and Pro status text in light/dark appearance; included-minute connection failures translated into all five app languages.
 - Android 1.0.5 (6): readable dark primary buttons, light status/error text, and explicit microphone permission handling. Android unit tests, release lint and debug assembly now run in CI.
-- iOS: 79 tests passed, one expected simulator Keychain skip; five-language UI coverage included. Signed archive and App Store export succeeded. Upload currently blocked by Xcode Apple-account authentication.
+- iOS: 79 tests passed, one expected simulator Keychain skip; five-language UI coverage included. Signed archive and App Store export succeeded. Xcode upload retry succeeded at 12:40 CEST; App Store Connect confirms build 70 processing is complete and its TestFlight status is Ready to Submit, with the existing Beta group assigned (four invites).
 - Android: 49 unit tests passed, release lint and assembly passed; signed release AAB built with the existing Notes upload certificate. Signing credential supplied only to Gradle through the protected Keychain launcher.
 
 ## Services
@@ -26,7 +26,7 @@ Public release remains manual and has not been triggered. Store processing, revi
 - Android build 6 (1.0.5) is available to the existing internal testers; release notes cover all four store languages. Google accepted the bundle with no errors and two diagnostic-file warnings. No production release was started.
 - Mobile CI run 35503575807 passed all three jobs: iOS build/tests/release analysis, Android tests/lint/assembly, and contract guards.
 - Website PRs #2 and #3 merged; Sites version 25 deployed successfully from 2fec88316bb5afb1fa2c360cc13d75fd41d154a1. Five-language pricing and limits, coming-soon availability, privacy page and support links published while preserving newer live translations.
-- iOS build 70 is signed and exported but still requires Xcode account authentication before upload; the store version still has old build 59 selected. Website sign-in does not refresh Xcode upload credentials.
+- iOS build 70 was uploaded successfully through Xcode on 20 September at 12:40 CEST. Apple completed processing; build 70 replaced build 59 and was submitted for App Review at 13:12 CEST. Manual release remains selected; installed-device acceptance remains outstanding before public release.
 - Google foreground microphone declaration requires a real demonstration video. Background audio input is the applicable purpose; no placeholder video was submitted.
 - Owner-only Google bank-deposit verification remains pending. Google displays an account removal deadline of 18 October 2026 until verification is resolved.
 - Installed-device recording, purchase, reinstall/restore, and final store review remain outstanding acceptance gates.
@@ -49,3 +49,13 @@ An emulator was started and the current debug build installed, but detached Andr
 - Android production release 1 is saved as a draft using build 6 (1.0.5), named "6 (1.0.5) — Launch candidate", with all four release-note languages. It has not been submitted for review or rollout.
 
 - Production preview confirms exactly one blocking error: the foreground service declaration. The two remaining messages are diagnostic-file warnings.
+
+## Apple submission — 20 September, 13:12 CEST
+
+- App Store Connect confirmed **3 Items Submitted** and the app status **Waiting for Review**.
+- Submission `81c5d2cc-24f7-44d0-babd-19c37b3fa566` includes iOS App 1.0 / build 1.0.0 (70), Paperorg Pro Monthly, and its Paperorg Pro subscription group.
+- Six fresh build-70 screenshots captured through Xcode Device Hub and accepted by Apple: four iPhone 6.9-inch images (1320 × 2868) and two iPad 13-inch images (2064 × 2752), covering light and dark appearance. New recording images lead their sets. Existing 6.5-inch and older iPad images remain in their existing slots; they were not deleted.
+- Full descriptions verified in English, French, German and Portuguese (Portugal); they describe 30 free cloud minutes, 600 monthly Pro minutes, per-recording limits, cloud processing, renewal/cancellation and privacy/terms links.
+- Public privacy, marketing and support URLs returned HTTP 200. Reviewer contact details remain private in App Store Connect.
+- Public release is manual. Submission is not approval or physical-device recording, purchase and restore acceptance.
+- Screenshot originals are saved locally under `Exports/build70/store-screenshots/`.
