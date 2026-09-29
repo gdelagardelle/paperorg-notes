@@ -142,6 +142,7 @@ struct RecordView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .safeAreaPadding(.bottom, 12)
         .background(AppScreenBackground())
         .navigationBarHidden(true)
         .onAppear {

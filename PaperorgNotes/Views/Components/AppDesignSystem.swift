@@ -140,12 +140,12 @@ struct SelectionChip: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(isSelected ? AppTheme.primary : AppTheme.surfaceElevated)
-            .foregroundStyle(isSelected ? .white : AppTheme.textPrimary)
+            .background(isSelected ? AppTheme.filledPrimary : AppTheme.surfaceElevated)
+            .foregroundStyle(isSelected ? AppTheme.onFilled : AppTheme.textPrimary)
             .clipShape(Capsule())
             .overlay {
                 Capsule()
-                    .stroke(isSelected ? AppTheme.primary : AppTheme.border, lineWidth: 1)
+                    .stroke(isSelected ? AppTheme.filledPrimary : AppTheme.border, lineWidth: 1)
             }
         }
         .buttonStyle(.plain)
@@ -258,6 +258,8 @@ struct NoteCardRow: View {
                 }
                 .font(.caption)
                 .foregroundStyle(AppTheme.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
 
                 if style == .standard, !note.tags.isEmpty {
                     HStack(spacing: 6) {
