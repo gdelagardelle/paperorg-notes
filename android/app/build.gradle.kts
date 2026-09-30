@@ -41,7 +41,7 @@ android {
         applicationId = "com.paperorg.notes"
         minSdk = 26
         targetSdk = 36
-        versionCode = 11
+        versionCode = 12
         versionName = "1.0.10"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "NOTES_API_URL", "\"$notesApiUrl\"")
@@ -118,6 +118,8 @@ dependencies {
     implementation("com.google.android.play:integrity:1.4.0")
     implementation("com.android.billingclient:billing:9.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.car.app:app:1.4.0")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")

@@ -12,6 +12,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.paperorg.notes.quickrecord.QuickRecordStore
 import com.paperorg.notes.ui.AppRoot
 import com.paperorg.notes.ui.AppViewModel
 import com.paperorg.notes.ui.theme.PaperorgNotesTheme
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleQuickRecordIntent(intent)
         requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
@@ -48,6 +50,18 @@ class MainActivity : ComponentActivity() {
                 AppRoot(model)
             }
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleQuickRecordIntent(intent)
+    }
+
+    private fun handleQuickRecordIntent(intent: android.content.Intent?) {
+        if (!QuickRecordStore.isQuickRecordIntent(intent)) return
+        QuickRecordStore.markPending(this)
+        model.triggerQuickRecordAutoStart()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

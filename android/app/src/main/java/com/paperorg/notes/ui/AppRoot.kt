@@ -68,6 +68,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -93,6 +94,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.paperorg.notes.R
 import com.paperorg.notes.data.RecordingState
+import com.paperorg.notes.quickrecord.QuickRecordStore
 import com.paperorg.notes.domain.AppLanguage
 import com.paperorg.notes.domain.AudioFormat
 import com.paperorg.notes.domain.DurationFormat
@@ -128,8 +130,15 @@ fun AppRoot(model: AppViewModel) {
     val notes by model.notes.collectAsStateWithLifecycle()
     val query by model.search.collectAsStateWithLifecycle()
     val playingId by model.playingNoteId.collectAsStateWithLifecycle()
+    val quickRecordAutoStart by model.quickRecordAutoStart.collectAsStateWithLifecycle()
     var tab by remember { mutableIntStateOf(0) }
     var selected by remember { mutableStateOf<Note?>(null) }
+    LaunchedEffect(quickRecordAutoStart) {
+        if (quickRecordAutoStart) {
+            tab = 0
+            selected = null
+        }
+    }
     if (selected != null) {
         val live = notes.find { it.id == selected!!.id } ?: selected!!
         NoteDetailScreen(
@@ -253,6 +262,7 @@ private fun RecordScreen(
     val context = LocalContext.current
     val view = LocalView.current
     val recording = state.recordingState != RecordingState.Idle
+    val quickRecordAutoStart by model.quickRecordAutoStart.collectAsStateWithLifecycle()
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
         val mic = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
         if (mic) model.startRecording()
@@ -264,6 +274,30 @@ private fun RecordScreen(
         val window = (view.context as? Activity)?.window
         if (recording) window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         onDispose { window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+    }
+    LaunchedEffect(quickRecordAutoStart) {
+        if (!quickRecordAutoStart) return@LaunchedEffect
+        if (!QuickRecordStore.consumeFreshRequest(context)) {
+            model.clearQuickRecordAutoStart()
+            return@LaunchedEffect
+        }
+        delay(350)
+        if (state.recordingState != RecordingState.Idle || state.processing) {
+            model.clearQuickRecordAutoStart()
+            return@LaunchedEffect
+        }
+        val mic = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        val notifications = Build.VERSION.SDK_INT < 33 ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        if (mic && notifications) {
+            model.startRecording()
+        } else {
+            val needed = mutableListOf<String>()
+            if (!mic) needed += Manifest.permission.RECORD_AUDIO
+            if (!notifications) needed += Manifest.permission.POST_NOTIFICATIONS
+            permission.launch(needed.toTypedArray())
+        }
+        model.clearQuickRecordAutoStart()
     }
     fun startOrStop() {
         if (recording) {

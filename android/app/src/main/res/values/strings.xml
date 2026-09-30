@@ -194,4 +194,7 @@
     <string name="notification_recording_channel">Shown while Paperorg Notes is recording</string>
     <string name="notification_stop">Stop</string>
     <string name="notification_recording_text">Recording · %1$s</string>
+    <string name="widget_quick_record_label">Record note</string>
+    <string name="widget_quick_record_description">Start a voice note in Paperorg Notes</string>
+    <string name="car_quick_record_title">Start voice note</string>
 </resources>

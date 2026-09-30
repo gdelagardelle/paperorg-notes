@@ -194,4 +194,7 @@
     <string name="notification_recording_channel">Affichée pendant l’enregistrement</string>
     <string name="notification_stop">Arrêter</string>
     <string name="notification_recording_text">Enregistrement · %1$s</string>
+    <string name="widget_quick_record_label">Enregistrer</string>
+    <string name="widget_quick_record_description">Démarrer une note vocale dans Paperorg Notes</string>
+    <string name="car_quick_record_title">Démarrer une note vocale</string>
 </resources>

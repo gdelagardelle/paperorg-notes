@@ -194,4 +194,7 @@
     <string name="notification_recording_channel">Wird während der Aufnahme angezeigt</string>
     <string name="notification_stop">Stopp</string>
     <string name="notification_recording_text">Aufnahme · %1$s</string>
+    <string name="widget_quick_record_label">Notiz aufnehmen</string>
+    <string name="widget_quick_record_description">Sprachnotiz in Paperorg Notes starten</string>
+    <string name="car_quick_record_title">Sprachnotiz starten</string>
 </resources>

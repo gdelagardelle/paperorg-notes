@@ -75,6 +75,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _billingMessage = MutableStateFlow<String?>(null)
     val billingMessage: StateFlow<String?> = _billingMessage.asStateFlow()
 
+    private val _quickRecordAutoStart = MutableStateFlow(false)
+    val quickRecordAutoStart: StateFlow<Boolean> = _quickRecordAutoStart.asStateFlow()
+
     val settings get() = app.settings
     val gdpr get() = app.gdpr
     val recording get() = app.recording
@@ -145,6 +148,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun acceptPrivacy() {
         app.settings.hasAcceptedPrivacy = true
         _privacy.value = true
+    }
+
+    fun triggerQuickRecordAutoStart() {
+        _quickRecordAutoStart.value = true
+    }
+
+    fun clearQuickRecordAutoStart() {
+        _quickRecordAutoStart.value = false
     }
 
     fun startRecording() {
