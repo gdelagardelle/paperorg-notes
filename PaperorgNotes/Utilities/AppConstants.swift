@@ -7,6 +7,8 @@ enum LegalLinks {
 
 enum AppConstants {
     static let appGroupID = "group.com.paperorg.voicenotes"
+    /// Shared by iOS + Mac for SwiftData CloudKit sync and audio files in iCloud Drive.
+    static let cloudKitContainerID = "iCloud.com.paperorg.voicenotes"
     static let urlScheme = "paperorgnotes"
     
     enum UserDefaultsKeys {

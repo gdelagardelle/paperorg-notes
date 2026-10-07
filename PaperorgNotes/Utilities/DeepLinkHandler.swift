@@ -12,6 +12,8 @@ final class DeepLinkHandler {
     var pendingQuickRecord = false
     var pendingPaywall = false
     var selectedTab = 0
+    /// Mac sidebar target ("tasks") that is not one of the iOS tab indexes.
+    var requestedMacSection: String?
 
     func handle(_ url: URL) {
         guard url.scheme == AppConstants.urlScheme else { return }

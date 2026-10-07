@@ -260,14 +260,56 @@ enum EmailContent: String, Codable, CaseIterable, Identifiable, Sendable {
 enum SummaryLength: String, Codable, CaseIterable, Identifiable, Sendable {
     case short = "short"
     case detailed = "detailed"
+    case exhaustive = "exhaustive"
     
     var id: String { rawValue }
     var displayName: String {
         switch self {
         case .short: return "Short"
         case .detailed: return "Detailed"
+        case .exhaustive: return "Exhaustive"
         }
     }
+}
+
+/// Language the written note should use. `same` keeps the spoken language.
+enum SummaryWriteLanguage: String, CaseIterable, Identifiable, Sendable {
+    case same
+    case french = "fr"
+    case german = "de"
+    case luxembourgish = "lb"
+    case english = "en"
+    case portuguese = "pt"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .same: return "Same as spoken"
+        case .french: return "Français"
+        case .german: return "Deutsch"
+        case .luxembourgish: return "Lëtzebuergesch"
+        case .english: return "English"
+        case .portuguese: return "Português"
+        }
+    }
+
+    var appLanguage: AppLanguage? {
+        AppLanguage(rawValue: rawValue)
+    }
+
+    /// Label sent to the summary service. A different write language includes a
+    /// translate instruction, because the service treats that field as mandatory.
+    static func requestLanguageName(output: AppLanguage, spoken: AppLanguage) -> String {
+        let name = output.isAutoDetect ? spoken.displayName : output.displayName
+        if output == spoken || output.isAutoDetect || spoken.isAutoDetect {
+            return name
+        }
+        let spokenName = spoken.displayName
+        return "\(name). The transcript may be in \(spokenName). Translate every generated natural-language value into \(name). Do not leave the summary in the transcript language. Keep personal names and company names unchanged."
+    }
+
+    static let exhaustiveDepth = "SUMMARY DEPTH: Write an exhaustive summary. detailedSummary must cover every topic, decision, number, name, date, and commitment in the transcript. Do not compress specifics away. shortSummary stays a brief overview."
 }
 
 // MARK: - Provider IDs

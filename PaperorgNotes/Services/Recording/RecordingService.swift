@@ -1,7 +1,9 @@
 import AVFoundation
 import Foundation
 import Observation
+#if canImport(UIKit)
 import UIKit
+#endif
 
 enum RecordingState: Sendable, Equatable {
     case idle
@@ -289,31 +291,26 @@ final class RecordingService: NSObject {
     }
 
     private func configureAudioSession() throws {
+        #if os(iOS)
         let session = AVAudioSession.sharedInstance()
-        // This view never plays while it records. Using the record-only
-        // category avoids retaining the VoIP-style speaker/Bluetooth route
-        // that .playAndRecord configures for calls.
         try session.setCategory(
             .record,
             mode: .measurement,
             options: []
         )
         try session.setActive(true)
+        #endif
     }
 
-    /// AVAudioRecorder can retain the input route until it is released. Clear
-    /// it before deactivation, otherwise iOS may reject deactivation as busy
-    /// and leave the system microphone unavailable to other apps.
     private func releaseRecorderAndDeactivateAudioSession() {
         recorder?.delegate = nil
         recorder = nil
 
+        #if os(iOS)
         let session = AVAudioSession.sharedInstance()
         do {
             try session.setActive(false, options: .notifyOthersOnDeactivation)
         } catch {
-            // The route can still be unwinding immediately after stop(). Retry
-            // once, but cancel that retry when a new recording is started.
             pendingAudioSessionDeactivation?.cancel()
             pendingAudioSessionDeactivation = Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 250_000_000)
@@ -321,6 +318,7 @@ final class RecordingService: NSObject {
                 try? session.setActive(false, options: .notifyOthersOnDeactivation)
             }
         }
+        #endif
     }
 
     private func startTimer() {
@@ -395,6 +393,7 @@ final class RecordingService: NSObject {
     }
 
     private func observeAppLifecycle() {
+        #if os(iOS)
         let center = NotificationCenter.default
         center.addObserver(
             forName: UIApplication.willResignActiveNotification,
@@ -441,6 +440,7 @@ final class RecordingService: NSObject {
                 self?.handleAudioInterruption(notification)
             }
         }
+        #endif
     }
 
     private func handleAppBackgrounding() {
@@ -497,6 +497,7 @@ final class RecordingService: NSObject {
         persistCheckpoint()
     }
 
+    #if os(iOS)
     private func handleAudioInterruption(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
@@ -527,6 +528,7 @@ final class RecordingService: NSObject {
             break
         }
     }
+    #endif
 
     private static let activeSessionKey = "com.paperorg.voicenotes.activeRecordingSession"
 

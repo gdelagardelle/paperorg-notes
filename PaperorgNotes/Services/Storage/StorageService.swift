@@ -1,6 +1,8 @@
 import Foundation
 import SwiftData
+#if canImport(UIKit)
 import UIKit
+#endif
 
 @MainActor
 final class StorageService {
@@ -8,43 +10,54 @@ final class StorageService {
     private let encryption = EncryptionService()
     
     var recordingsDirectory: URL {
-        appSupportDirectory.appendingPathComponent("Recordings", isDirectory: true)
+        storageRoot.appendingPathComponent("Recordings", isDirectory: true)
     }
-    
+
     var checkpointsDirectory: URL {
-        appSupportDirectory.appendingPathComponent("Checkpoints", isDirectory: true)
+        storageRoot.appendingPathComponent("Checkpoints", isDirectory: true)
     }
-    
+
     var exportsDirectory: URL {
-        appSupportDirectory.appendingPathComponent("Exports", isDirectory: true)
+        storageRoot.appendingPathComponent("Exports", isDirectory: true)
     }
-    
+
     var gdprDirectory: URL {
-        appSupportDirectory.appendingPathComponent("GDPR", isDirectory: true)
+        storageRoot.appendingPathComponent("GDPR", isDirectory: true)
     }
 
     var brandingDirectory: URL {
-        appSupportDirectory.appendingPathComponent("Branding", isDirectory: true)
+        storageRoot.appendingPathComponent("Branding", isDirectory: true)
+    }
+
+    var usesICloudStorage: Bool {
+        ICloudStorageRoot.isAvailable
     }
 
     var customExportLogoURL: URL {
         brandingDirectory.appendingPathComponent("export-logo.png")
     }
     
-    private var appSupportDirectory: URL {
+    private var localAppSupportDirectory: URL {
         let url = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("PaperorgNotes", isDirectory: true)
         try? fileManager.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
-    
+
+    private var storageRoot: URL {
+        ICloudStorageRoot.paperorgDirectory() ?? localAppSupportDirectory
+    }
+
     init() {
+        ICloudStorageRoot.migrateLocalFilesToICloudIfNeeded(from: localAppSupportDirectory)
         for dir in [recordingsDirectory, checkpointsDirectory, exportsDirectory, gdprDirectory, brandingDirectory] {
             try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
+            #if os(iOS)
             try? fileManager.setAttributes(
                 [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
                 ofItemAtPath: dir.path
             )
+            #endif
         }
     }
     
@@ -100,10 +113,12 @@ final class StorageService {
             try fileManager.removeItem(at: destination)
         }
         try fileManager.moveItem(at: tempURL, to: destination)
+        #if os(iOS)
         try fileManager.setAttributes(
             [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
             ofItemAtPath: destination.path
         )
+        #endif
         return destination
     }
     
@@ -196,25 +211,26 @@ final class StorageService {
         fileManager.fileExists(atPath: customExportLogoURL.path)
     }
 
-    func saveCustomExportLogo(_ image: UIImage) throws {
-        let resized = image.resizedForExportLogo(maxDimension: 512)
-        guard let png = resized.pngData() else {
+    func saveCustomExportLogo(_ image: PlatformImage) throws {
+        let resized = PlatformImageFactory.resizedForExportLogo(image, maxDimension: 512)
+        guard let png = PlatformImageFactory.pngData(from: resized) else {
             throw CocoaError(.fileWriteUnknown)
         }
         try png.write(to: customExportLogoURL, options: .atomic)
+        #if os(iOS)
         try fileManager.setAttributes(
             [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
             ofItemAtPath: customExportLogoURL.path
         )
+        #endif
     }
 
-    func loadCustomExportLogo() -> UIImage? {
+    func loadCustomExportLogo() -> PlatformImage? {
         guard hasCustomExportLogo,
-              let data = try? Data(contentsOf: customExportLogoURL),
-              let image = UIImage(data: data) else {
+              let data = try? Data(contentsOf: customExportLogoURL) else {
             return nil
         }
-        return image
+        return PlatformImageFactory.from(data: data)
     }
 
     func deleteCustomExportLogo() throws {
@@ -353,19 +369,6 @@ enum ZipUtility {
         archive.appendLE(centralOffset)
         archive.appendLE(UInt16(0))
         try archive.write(to: destination, options: .atomic)
-    }
-}
-
-private extension UIImage {
-    func resizedForExportLogo(maxDimension: CGFloat) -> UIImage {
-        let maxSide = max(size.width, size.height)
-        guard maxSide > maxDimension else { return self }
-        let scale = maxDimension / maxSide
-        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
-        let renderer = UIGraphicsImageRenderer(size: newSize)
-        return renderer.image { _ in
-            draw(in: CGRect(origin: .zero, size: newSize))
-        }
     }
 }
 

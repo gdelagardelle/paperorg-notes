@@ -56,7 +56,7 @@ struct ReviewBeforeSendView: View {
                         TextEditor(text: $editedBody)
                             .frame(minHeight: 180)
                             .padding(10)
-                            .scrollContentBackground(.hidden)
+                            .platformHiddenScrollContentBackground()
                             .foregroundStyle(AppTheme.textPrimary)
                             .background(AppTheme.surface)
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -76,7 +76,7 @@ struct ReviewBeforeSendView: View {
             }
             .background(AppTheme.background)
             .navigationTitle(L10n.Email.reviewTitle)
-            .navigationBarTitleDisplayMode(.inline)
+            .platformInlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(L10n.Common.cancel) { dismiss() }

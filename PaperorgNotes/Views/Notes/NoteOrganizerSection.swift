@@ -2,9 +2,11 @@ import SwiftUI
 
 struct NoteOrganizerSection: View {
     @Bindable var note: Note
+    @Environment(AppEnvironment.self) private var environment
     @Environment(\.modelContext) private var modelContext
     @State private var newTag = ""
     @State private var projectName: String = ""
+    @State private var handoffMessage: String?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -74,6 +76,28 @@ struct NoteOrganizerSection: View {
                         .disabled(newTag.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
+
+            if !teammates.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Hand off")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .textCase(.uppercase)
+                    Text("Assign the open tasks on this note and send them to the office app.")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                    Menu("Hand to…") {
+                        ForEach(teammates) { person in
+                            Button(person.trimmedName) { handOff(to: person) }
+                        }
+                    }
+                    if let handoffMessage {
+                        Text(handoffMessage)
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
+                }
+            }
         }
         .surfaceCard()
         .onAppear {
@@ -101,6 +125,27 @@ struct NoteOrganizerSection: View {
     private func save() {
         note.updatedAt = .now
         try? modelContext.save()
+    }
+
+    private var teammates: [Teammate] {
+        environment.settingsService.teammates.filter { !$0.trimmedName.isEmpty }
+    }
+
+    private func handOff(to person: Teammate) {
+        ActionItemPersistence.assignOpenItems(to: person.trimmedName, on: note)
+        save()
+        Task {
+            do {
+                let reference = try await OfficeInbox.send(
+                    note: note,
+                    assignee: person.trimmedName,
+                    keychain: environment.keychainService
+                )
+                handoffMessage = "Assigned to \(person.trimmedName). Office task \(reference)."
+            } catch {
+                handoffMessage = "Assigned to \(person.trimmedName). \(error.localizedDescription)"
+            }
+        }
     }
 }
 

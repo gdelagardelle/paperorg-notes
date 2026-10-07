@@ -261,12 +261,12 @@ struct PaywallView: View {
             }
             .background(AppScreenBackground())
             .navigationTitle(String(localized: "paywall.navigation_title"))
-            .navigationBarTitleDisplayMode(.inline)
+            .platformInlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(L10n.Common.cancel) { dismiss() }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: PlatformToolbar.trailing) {
                     AppBuildBadge()
                         .allowsHitTesting(false)
                 }

@@ -35,7 +35,9 @@ final class AudioPlaybackService: ObservableObject {
         stop()
         do {
             AudioFileReader.prepareForReading(url)
+            #if os(iOS)
             try AVAudioSession.sharedInstance().setCategory(.playback)
+            #endif
             player = try AVAudioPlayer(contentsOf: url)
             playbackDuration = player?.duration ?? 0
             player?.play()
@@ -72,7 +74,9 @@ final class AudioPlaybackService: ObservableObject {
         stopFullPlayback()
         do {
             AudioFileReader.prepareForReading(url)
+            #if os(iOS)
             try AVAudioSession.sharedInstance().setCategory(.playback)
+            #endif
             player = try AVAudioPlayer(contentsOf: url)
             player?.currentTime = segment.startTime
             player?.play()

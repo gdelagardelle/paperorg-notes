@@ -1,7 +1,12 @@
 import Foundation
 import PDFKit
-import UIKit
 import CoreText
+#if canImport(UIKit)
+import UIKit
+#endif
+#if canImport(AppKit)
+import AppKit
+#endif
 
 @MainActor
 final class ExportService {
@@ -22,18 +27,28 @@ final class ExportService {
     }
     
     func exportPDF(note: Note, branding: ExportBranding?) throws -> URL {
+        #if os(iOS)
         let content = buildPDFBody(note: note)
         let pdfData = renderPDF(title: note.title, body: content, note: note, branding: branding)
         let url = storage.exportsDirectory.appendingPathComponent("\(note.id.uuidString)-\(timestamp()).pdf")
         try pdfData.write(to: url)
         return url
+        #else
+        throw CocoaError(.featureUnsupported)
+        #endif
     }
-    
+
     func exportRTF(note: Note) throws -> URL {
         let content = buildTextContent(note: note)
+        #if os(iOS)
         let attributed = NSAttributedString(string: content, attributes: [
             .font: UIFont.systemFont(ofSize: 12)
         ])
+        #else
+        let attributed = NSAttributedString(string: content, attributes: [
+            .font: NSFont.systemFont(ofSize: 12)
+        ])
+        #endif
         let range = NSRange(location: 0, length: attributed.length)
         let data = try attributed.data(from: range, documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])
         let url = storage.exportsDirectory.appendingPathComponent("\(note.id.uuidString)-\(timestamp()).rtf")
@@ -146,6 +161,7 @@ final class ExportService {
         return md
     }
     
+    #if os(iOS)
     private func renderPDF(title: String, body: String, note: Note, branding: ExportBranding?) -> Data {
         let pageRect = CGRect(x: 0, y: 0, width: 612, height: 792)
         let renderer = UIGraphicsPDFRenderer(bounds: pageRect)
@@ -283,7 +299,7 @@ final class ExportService {
         branding.brandName.draw(at: CGPoint(x: margin, y: 4), withAttributes: attrs)
     }
     
-    private func drawLogo(_ logo: UIImage, in rect: CGRect) {
+    private func drawLogo(_ logo: PlatformImage, in rect: CGRect) {
         let aspect = logo.size.width / max(logo.size.height, 1)
         var drawRect = rect
         if aspect > 1 {
@@ -313,7 +329,8 @@ final class ExportService {
         let visible = CTFrameGetVisibleStringRange(frame)
         return location + visible.length
     }
-    
+    #endif
+
     private func writeExport(content: String, noteId: UUID, extension ext: String) throws -> URL {
         let url = storage.exportsDirectory.appendingPathComponent("\(noteId.uuidString)-\(timestamp()).\(ext)")
         try content.write(to: url, atomically: true, encoding: .utf8)
@@ -332,8 +349,10 @@ final class ExportService {
     }
 }
 
+#if os(iOS)
 private enum PDFBrandColors {
     static let navy = UIColor(red: 0.078, green: 0.137, blue: 0.239, alpha: 1)
     static let orange = UIColor(red: 0.961, green: 0.416, blue: 0.039, alpha: 1)
     static let secondary = UIColor(red: 0.302, green: 0.376, blue: 0.482, alpha: 1)
 }
+#endif

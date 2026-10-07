@@ -1,7 +1,39 @@
 import SwiftUI
+#if canImport(MessageUI)
 import MessageUI
+#endif
+#if canImport(UIKit)
 import UIKit
+#endif
+#if canImport(AppKit)
+import AppKit
+#endif
 
+extension EmailPayload {
+    var shareTextBody: String {
+        guard !recipients.isEmpty else { return body }
+        return "To: \(recipients.joined(separator: ", "))\n\n\(body)"
+    }
+
+    #if os(iOS)
+    func shareItems() -> [Any] {
+        var items: [Any] = [EmailActivityItem(subject: subject, body: shareTextBody)]
+        if let audioURL,
+           FileManager.default.fileExists(atPath: audioURL.path) {
+            items.append(audioURL)
+        }
+        if let pdfURL {
+            items.append(pdfURL)
+        }
+        if let markdownURL {
+            items.append(markdownURL)
+        }
+        return items
+    }
+    #endif
+}
+
+#if os(iOS)
 final class EmailActivityItem: NSObject, UIActivityItemSource {
     let subject: String
     let body: String
@@ -30,55 +62,33 @@ final class EmailActivityItem: NSObject, UIActivityItemSource {
     }
 }
 
-extension EmailPayload {
-    var shareTextBody: String {
-        guard !recipients.isEmpty else { return body }
-        return "To: \(recipients.joined(separator: ", "))\n\n\(body)"
-    }
-
-    func shareItems() -> [Any] {
-        var items: [Any] = [EmailActivityItem(subject: subject, body: shareTextBody)]
-        if let audioURL,
-           FileManager.default.fileExists(atPath: audioURL.path) {
-            items.append(audioURL)
-        }
-        if let pdfURL {
-            items.append(pdfURL)
-        }
-        if let markdownURL {
-            items.append(markdownURL)
-        }
-        return items
-    }
-}
-
 struct MailComposeView: UIViewControllerRepresentable {
     let payload: EmailPayload
     @Environment(\.dismiss) private var dismiss
-    
+
     class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
         let parent: MailComposeView
-        
+
         init(_ parent: MailComposeView) {
             self.parent = parent
         }
-        
+
         func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
             parent.dismiss()
         }
     }
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-    
+
     func makeUIViewController(context: Context) -> MFMailComposeViewController {
         let vc = MFMailComposeViewController()
         vc.mailComposeDelegate = context.coordinator
         vc.setToRecipients(payload.recipients)
         vc.setSubject(payload.subject)
         vc.setMessageBody(payload.htmlBody, isHTML: true)
-        
+
         if let audioURL = payload.audioURL,
            FileManager.default.fileExists(atPath: audioURL.path),
            let data = try? Data(contentsOf: audioURL) {
@@ -92,39 +102,66 @@ struct MailComposeView: UIViewControllerRepresentable {
            let data = try? Data(contentsOf: mdURL) {
             vc.addAttachmentData(data, mimeType: "text/markdown", fileName: mdURL.lastPathComponent)
         }
-        
+
         return vc
     }
-    
+
     func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {}
 }
 
-struct ActivityShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-    @Environment(\.dismiss) private var dismiss
-    
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
-        controller.completionWithItemsHandler = { _, _, _, _ in
-            dismiss()
-        }
-        return controller
-    }
-    
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
-}
+#endif
 
 struct EmailComposeSheet: View {
     let payload: EmailPayload
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        #if os(iOS)
         if MFMailComposeViewController.canSendMail() {
             MailComposeView(payload: payload)
         } else {
             ActivityShareSheet(items: payload.shareItems())
         }
+        #else
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Send Email")
+                .font(.title2.bold())
+            Text("Opens your default mail app with the note content.")
+                .foregroundStyle(AppTheme.textSecondary)
+            Button("Open in Mail") {
+                MacEmailComposer.open(payload: payload)
+                dismiss()
+            }
+            .buttonStyle(.borderedProminent)
+            Button("Cancel") {
+                dismiss()
+            }
+        }
+        .padding(24)
+        .frame(minWidth: 360)
+        #endif
     }
 }
+
+#if os(macOS)
+enum MacEmailComposer {
+    static func open(payload: EmailPayload) {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        if !payload.recipients.isEmpty {
+            components.path = payload.recipients.joined(separator: ",")
+        }
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "subject", value: payload.subject),
+            URLQueryItem(name: "body", value: payload.body)
+        ]
+        components.queryItems = queryItems
+        if let url = components.url {
+            NSWorkspace.shared.open(url)
+        }
+    }
+}
+#endif
 
 struct EmailButton: View {
     let note: Note
@@ -132,12 +169,12 @@ struct EmailButton: View {
     @State private var presentation: EmailPresentation?
     @State private var emailErrorMessage: String?
     @State private var emailErrorShowsSettings = false
-    
+
     private var shouldReviewFirst: Bool {
         environment.settingsService.reviewBeforeEmail
             || note.segments.contains { $0.isUnclear || $0.confidence < 0.6 }
     }
-    
+
     var body: some View {
         Button(L10n.Email.button) {
             sendEmail()
@@ -168,18 +205,26 @@ struct EmailButton: View {
             Text(emailErrorMessage ?? "")
         }
     }
-    
+
     func sendEmail() {
         do {
             let payload = try environment.emailService.buildPayload(
                 for: note,
                 exportService: environment.exportService
             )
+            #if os(macOS)
+            if shouldReviewFirst {
+                presentation = .review(payload, UUID())
+            } else {
+                MacEmailComposer.open(payload: payload)
+            }
+            #else
             if shouldReviewFirst {
                 presentation = .review(payload, UUID())
             } else {
                 presentation = .compose(payload, UUID())
             }
+            #endif
         } catch let error as EmailError {
             emailErrorMessage = error.localizedDescription
             emailErrorShowsSettings = error == .noRecipients

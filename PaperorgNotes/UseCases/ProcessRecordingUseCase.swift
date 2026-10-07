@@ -171,6 +171,7 @@ final class ProcessRecordingUseCase {
     
     func resummarize(
         note: Note,
+        length: SummaryLength? = nil,
         onStageChange: @escaping (ProcessingStage) -> Void
     ) async throws {
         let transcript = note.displayTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -184,7 +185,7 @@ final class ProcessRecordingUseCase {
         try save(note)
 
         do {
-            let summary = try await generateSummary(for: note, transcript: transcript, language: note.summaryLanguage) { stage in
+            let summary = try await generateSummary(for: note, transcript: transcript, language: note.summaryLanguage, length: length) { stage in
                 note.processingStage = stage.rawValue
                 onStageChange(stage)
             }
@@ -323,6 +324,7 @@ final class ProcessRecordingUseCase {
         for note: Note,
         transcript: String,
         language: AppLanguage,
+        length: SummaryLength? = nil,
         onStageChange: @escaping (ProcessingStage) -> Void
     ) async throws -> SummaryGeneration {
         if note.noteOutputType == .rawTranscript {
@@ -330,30 +332,51 @@ final class ProcessRecordingUseCase {
         }
         
         onStageChange(.summarizing)
-        let summaryLanguage = TranscriptionLanguagePlanner.summaryLanguage(
+        let spokenLanguage = TranscriptionLanguagePlanner.summaryLanguage(
             resolvedLanguage: language,
             noteLanguage: note.appLanguage,
             fallback: settingsService.defaultLanguage,
             hasMultipleRecordingLanguages: note.hasMultipleRecordingLanguages
         )
-        return try await summaryService.generate(
-            transcript: transcript,
-            outputType: note.noteOutputType,
-            language: summaryLanguage
-        )
+        let writeLanguage = settingsService.summaryWriteLanguage(for: note.id).appLanguage ?? spokenLanguage
+        let languageName = SummaryWriteLanguage.requestLanguageName(output: writeLanguage, spoken: spokenLanguage)
+        do {
+            return try await summaryService.generate(
+                transcript: transcript,
+                outputType: note.noteOutputType,
+                language: writeLanguage,
+                languageName: languageName,
+                length: length
+            )
+        } catch {
+            #if os(macOS)
+            // The transcript already exists. A refused summary must not throw
+            // that text away on a Mac that cannot pass the iPhone device check.
+            return summaryService.keepingTranscript(transcript, outputType: note.noteOutputType)
+            #else
+            throw error
+            #endif
+        }
     }
 
     private func replaceSummary(on note: Note, summary: SummaryGeneration) {
         clearSummaryResults(note)
         guard let structured = summary.output else { return }
-        note.summaryShort = structured.shortSummary
-        note.summaryDetailed = structured.detailedSummary
-        note.structuredOutputJSON = try? JSONEncoder().encode(structured)
+        let enriched = OfficeWorkflow.enrich(
+            structured,
+            transcript: note.displayTranscript,
+            segments: note.segments,
+            teammates: settingsService.teammates,
+            defaultOwner: settingsService.owner(forProject: note.projectName)
+        )
+        note.summaryShort = enriched.shortSummary
+        note.summaryDetailed = enriched.detailedSummary
+        note.structuredOutputJSON = try? JSONEncoder().encode(enriched)
         
-        if note.title == "Untitled Recording", let title = structured.title, !title.isEmpty {
+        if note.title == "Untitled Recording", let title = enriched.title, !title.isEmpty {
             note.title = title
         }
-        note.structuredSections = buildSections(from: structured, note: note)
+        note.structuredSections = buildSections(from: enriched, note: note)
     }
     
     private func clearTranscriptionResults(_ note: Note) {

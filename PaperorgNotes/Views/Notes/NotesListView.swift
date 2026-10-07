@@ -7,10 +7,15 @@ struct NotesListView: View {
     @Query(sort: \Note.createdAt, order: .reverse) private var notes: [Note]
     @State private var filterLanguage: AppLanguage?
     @State private var filterProject: String?
+    @State private var filterTag: String?
     @State private var showFavoritesOnly = false
     
     private var projectNames: [String] {
         Array(Set(notes.compactMap(\.projectName).filter { !$0.isEmpty })).sorted()
+    }
+
+    private var tagNames: [String] {
+        Array(Set(notes.flatMap(\.tags))).sorted()
     }
     
     var filteredNotes: [Note] {
@@ -18,6 +23,7 @@ struct NotesListView: View {
             if showFavoritesOnly && !note.isFavorite { return false }
             if let lang = filterLanguage, note.language != lang.rawValue { return false }
             if let project = filterProject, note.projectName != project { return false }
+            if let tag = filterTag, !note.tags.contains(tag) { return false }
             return true
         }
     }
@@ -38,7 +44,7 @@ struct NotesListView: View {
                     }
                 } else {
                     List {
-                        if showFavoritesOnly || filterLanguage != nil || filterProject != nil {
+                        if showFavoritesOnly || filterLanguage != nil || filterProject != nil || filterTag != nil {
                             Section {
                                 filterBar
                             }
@@ -69,19 +75,24 @@ struct NotesListView: View {
                         }
                     }
                     .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
+                    .platformHiddenScrollContentBackground()
                 }
             }
             .background(AppScreenBackground())
             .navigationTitle(L10n.Notes.title)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: PlatformToolbar.trailing) {
                     Menu {
                         Toggle("Favorites Only", isOn: $showFavoritesOnly)
                         Divider()
                         Button("All Projects") { filterProject = nil }
                         ForEach(projectNames, id: \.self) { project in
                             Button(project) { filterProject = project }
+                        }
+                        Divider()
+                        Button("All Tags") { filterTag = nil }
+                        ForEach(tagNames, id: \.self) { tag in
+                            Button(tag) { filterTag = tag }
                         }
                         Divider()
                         Button("All Languages") { filterLanguage = nil }

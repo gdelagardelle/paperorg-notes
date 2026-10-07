@@ -13,7 +13,9 @@ final class SummaryService {
     func generate(
         transcript: String,
         outputType: OutputType,
-        language: AppLanguage
+        language: AppLanguage,
+        languageName: String? = nil,
+        length: SummaryLength? = nil
     ) async throws -> SummaryGeneration {
         if outputType == .rawTranscript {
             return .notRequested
@@ -25,20 +27,25 @@ final class SummaryService {
         return try await generateViaProBackend(
             transcript: transcript,
             outputType: outputType,
-            language: language
+            language: language,
+            languageName: languageName,
+            length: length ?? settings.summaryLength
         )
     }
 
     private func generateViaProBackend(
         transcript: String,
         outputType: OutputType,
-        language: AppLanguage
+        language: AppLanguage,
+        languageName: String?,
+        length: SummaryLength
     ) async throws -> SummaryGeneration {
         let data = try await proBackend.summarize(
             transcript: transcript,
             outputType: outputType,
             language: language,
-            summaryLength: settings.summaryLength
+            languageName: languageName,
+            summaryLength: length
         )
         var output = try SummaryJSONParser.decode(data).normalized()
         output = sanitize(output, transcript: transcript)
@@ -83,12 +90,21 @@ final class SummaryService {
             ? "Keep summaries concise (2-3 sentences for short summary)."
             : "Provide a thorough detailed summary."
         let outputLanguageInstruction = languageOutputInstruction(for: language)
+        let knownNames = settings.teammates.map(\.trimmedName).filter { !$0.isEmpty }
+        let nameInstruction = knownNames.isEmpty
+            ? ""
+            : "Known people — when one of these is responsible, set assignee to the exact spelling: \(knownNames.joined(separator: ", "))."
+        let clientInstruction = outputType == .clientCall
+            ? "For this client call, shortSummary must say who called, what they asked, what was promised, and who will do it."
+            : ""
 
         return """
         Output type: \(outputType.displayName)
         Required output language: \(language.displayName)
         \(outputLanguageInstruction)
         \(lengthInstruction)
+        \(nameInstruction)
+        \(clientInstruction)
 
         Transcript:
         \(transcript)
@@ -140,6 +156,10 @@ final class SummaryService {
         }
 
         return sanitized
+    }
+
+    func keepingTranscript(_ transcript: String, outputType: OutputType) -> SummaryGeneration {
+        .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
     }
 
     private func fallbackSummary(transcript: String, outputType: OutputType) -> StructuredOutput {

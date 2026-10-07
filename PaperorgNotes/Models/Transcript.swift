@@ -78,19 +78,143 @@ struct TranscriptionResult: Codable, Sendable {
     }
 }
 
+enum TaskWorkflowStatus: String, Codable, CaseIterable, Sendable {
+    case open
+    case handedOff
+    case waiting
+    case done
+
+    var title: String {
+        switch self {
+        case .open: "Open"
+        case .handedOff: "Handed off"
+        case .waiting: "Waiting"
+        case .done: "Done"
+        }
+    }
+}
+
+enum TaskHandoffMail: String, Codable, Sendable {
+    case none
+    case mailOpened
+}
+
 struct ActionItem: Codable, Identifiable, Sendable, Hashable {
     let id: UUID
-    let text: String
-    let assignee: String?
-    let dueDate: String?
+    var text: String
+    var assignee: String?
+    var dueDate: String?
+    var dueAt: Date?
     var isCompleted: Bool
-    
-    init(id: UUID = UUID(), text: String, assignee: String? = nil, dueDate: String? = nil, isCompleted: Bool = false) {
+    var status: TaskWorkflowStatus
+    var handoffMail: TaskHandoffMail
+    var returnNote: String?
+    var heardExcerpt: String?
+    var splitFrom: UUID?
+
+    init(
+        id: UUID = UUID(),
+        text: String,
+        assignee: String? = nil,
+        dueDate: String? = nil,
+        dueAt: Date? = nil,
+        isCompleted: Bool = false,
+        status: TaskWorkflowStatus = .open,
+        handoffMail: TaskHandoffMail = .none,
+        returnNote: String? = nil,
+        heardExcerpt: String? = nil,
+        splitFrom: UUID? = nil
+    ) {
         self.id = id
         self.text = text
         self.assignee = assignee
         self.dueDate = dueDate
-        self.isCompleted = isCompleted
+        self.dueAt = dueAt ?? TaskDueDate.parse(dueDate)
+        self.isCompleted = isCompleted || status == .done
+        self.status = self.isCompleted ? .done : status
+        self.handoffMail = handoffMail
+        self.returnNote = returnNote
+        self.heardExcerpt = heardExcerpt
+        self.splitFrom = splitFrom
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        text = try container.decode(String.self, forKey: .text)
+        assignee = try container.decodeIfPresent(String.self, forKey: .assignee)
+        dueDate = try container.decodeIfPresent(String.self, forKey: .dueDate)
+        dueAt = try container.decodeIfPresent(Date.self, forKey: .dueAt) ?? TaskDueDate.parse(dueDate)
+        isCompleted = try container.decodeIfPresent(Bool.self, forKey: .isCompleted) ?? false
+        let decodedStatus = try container.decodeIfPresent(TaskWorkflowStatus.self, forKey: .status)
+        status = isCompleted ? .done : (decodedStatus ?? .open)
+        handoffMail = try container.decodeIfPresent(TaskHandoffMail.self, forKey: .handoffMail) ?? .none
+        returnNote = try container.decodeIfPresent(String.self, forKey: .returnNote)
+        heardExcerpt = try container.decodeIfPresent(String.self, forKey: .heardExcerpt)
+        splitFrom = try container.decodeIfPresent(UUID.self, forKey: .splitFrom)
+        if status == .done {
+            isCompleted = true
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(text, forKey: .text)
+        try container.encodeIfPresent(assignee, forKey: .assignee)
+        try container.encodeIfPresent(dueDate, forKey: .dueDate)
+        try container.encodeIfPresent(dueAt, forKey: .dueAt)
+        try container.encode(isCompleted, forKey: .isCompleted)
+        try container.encode(status, forKey: .status)
+        try container.encode(handoffMail, forKey: .handoffMail)
+        try container.encodeIfPresent(returnNote, forKey: .returnNote)
+        try container.encodeIfPresent(heardExcerpt, forKey: .heardExcerpt)
+        try container.encodeIfPresent(splitFrom, forKey: .splitFrom)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, text, assignee, dueDate, dueAt, isCompleted, status, handoffMail, returnNote, heardExcerpt, splitFrom
+    }
+}
+
+enum TaskDueDate {
+    static func parse(_ raw: String?) -> Date? {
+        guard let raw else { return nil }
+        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, text.lowercased() != "[not mentioned]" else { return nil }
+
+        let lowered = text.lowercased()
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: .now)
+        if lowered == "today" || lowered == "aujourd'hui" || lowered == "haut" || lowered == "heute" {
+            return start
+        }
+        if lowered == "tomorrow" || lowered == "demain" || lowered == "muer" || lowered == "morgen" {
+            return calendar.date(byAdding: .day, value: 1, to: start)
+        }
+        let weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+        if let index = weekdays.firstIndex(of: lowered) {
+            let weekday = index + 1
+            var components = DateComponents()
+            components.weekday = weekday
+            return calendar.nextDate(after: start, matching: components, matchingPolicy: .nextTime)
+        }
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        for format in ["yyyy-MM-dd", "dd/MM/yyyy", "dd.MM.yyyy", "d MMM yyyy", "MMM d"] {
+            formatter.dateFormat = format
+            if let date = formatter.date(from: text) {
+                return date
+            }
+        }
+        return nil
+    }
+
+    static func isTodayOrOverdue(_ date: Date?) -> Bool {
+        guard let date else { return false }
+        let calendar = Calendar.current
+        return calendar.startOfDay(for: date) <= calendar.startOfDay(for: .now)
     }
 }
 

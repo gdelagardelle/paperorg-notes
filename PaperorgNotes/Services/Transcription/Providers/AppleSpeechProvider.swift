@@ -21,9 +21,10 @@ final class AppleSpeechProvider: TranscriptionProvider, @unchecked Sendable {
             throw TranscriptionError.providerError("Speech recognition permission denied")
         }
         
-        guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US")),
+        let recognition = recognitionLocale(for: request.language)
+        guard let recognizer = SFSpeechRecognizer(locale: recognition.locale),
               recognizer.isAvailable else {
-            throw TranscriptionError.providerError("Apple Speech not available for English")
+            throw TranscriptionError.providerError("Apple Speech not available for \(recognition.language.displayName)")
         }
         
         let url = request.audioURL
@@ -49,13 +50,26 @@ final class AppleSpeechProvider: TranscriptionProvider, @unchecked Sendable {
         
         return TranscriptionResult(
             providerId: identifier,
-            language: .english,
+            language: recognition.language,
             segments: groupedSegments,
             fullText: text,
             averageConfidence: avg,
             processingTimeMs: Int(Date().timeIntervalSince(start) * 1000),
             metadata: ["on_device": "true"]
         )
+    }
+
+    private func recognitionLocale(for language: AppLanguage) -> (locale: Locale, language: AppLanguage) {
+        switch language {
+        case .french:
+            return (Locale(identifier: "fr-FR"), .french)
+        case .german:
+            return (Locale(identifier: "de-DE"), .german)
+        case .portuguese:
+            return (Locale(identifier: "pt-PT"), .portuguese)
+        case .english, .luxembourgish, .autoDetect:
+            return (Locale(identifier: "en-US"), .english)
+        }
     }
 
     private func recognize(

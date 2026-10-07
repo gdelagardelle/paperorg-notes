@@ -290,6 +290,7 @@ final class ProBackendClient {
         transcript: String,
         outputType: OutputType,
         language: AppLanguage,
+        languageName: String? = nil,
         summaryLength: SummaryLength
     ) async throws -> Data {
         try await ensureRegistered()
@@ -298,10 +299,14 @@ final class ProBackendClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         try authorize(&request)
 
+        var outputTypeName = outputType.displayName
+        if summaryLength == .exhaustive {
+            outputTypeName += "\n\n" + SummaryWriteLanguage.exhaustiveDepth
+        }
         let body: [String: String] = [
             "transcript": transcript,
-            "output_type": outputType.displayName,
-            "language": language.displayName,
+            "output_type": outputTypeName,
+            "language": languageName ?? language.displayName,
             "summary_length": summaryLength.rawValue
         ]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)

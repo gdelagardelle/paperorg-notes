@@ -10,6 +10,7 @@ struct NoteDetailView: View {
     @State private var selectedTab = 0
     @State private var selectedOutputType: OutputType = .meetingNotes
     @State private var selectedLanguage: AppLanguage = .luxembourgish
+    @State private var selectedWriteLanguage: SummaryWriteLanguage = .same
     @State private var isProcessing = false
     @State private var processingStage: ProcessingStage = .transcribing
     @State private var processingError: String?
@@ -88,14 +89,15 @@ struct NoteDetailView: View {
         }
         .background(AppScreenBackground())
         .navigationTitle(note.title)
-        .navigationBarTitleDisplayMode(.inline)
+        .platformInlineNavigationTitle()
         .onAppear {
             selectedOutputType = note.noteOutputType
             selectedLanguage = note.appLanguage
+            selectedWriteLanguage = environment.settingsService.summaryWriteLanguage(for: note.id)
             attemptRecordingRecovery()
         }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: PlatformToolbar.trailing) {
                 HStack(spacing: 16) {
                     Button(action: toggleFavorite) {
                         Image(systemName: note.isFavorite ? "star.fill" : "star")
@@ -190,6 +192,11 @@ struct NoteDetailView: View {
                 LanguagePicker(selection: $selectedLanguage)
             }
 
+            SummaryWriteLanguagePicker(selection: $selectedWriteLanguage)
+                .onChange(of: selectedWriteLanguage) { _, newValue in
+                    environment.settingsService.setSummaryWriteLanguage(newValue, for: note.id)
+                }
+
             HStack(spacing: 12) {
                 Button {
                     transcribeAgain()
@@ -207,6 +214,14 @@ struct NoteDetailView: View {
                 .buttonStyle(SecondaryButtonStyle())
                 .disabled(isProcessing || note.displayTranscript.isEmpty)
             }
+
+            Button {
+                resummarizeOnly(length: .exhaustive)
+            } label: {
+                Label("Longer summary", systemImage: "text.alignleft")
+            }
+            .buttonStyle(SecondaryButtonStyle())
+            .disabled(isProcessing || note.displayTranscript.isEmpty)
 
             if !audioAvailable {
                 SettingsSectionHint(text: L10n.NoteDetail.audioDeletedHint)
@@ -258,6 +273,7 @@ struct NoteDetailView: View {
             Text(L10n.NoteDetail.tabActions).tag(2)
         }
         .pickerStyle(.segmented)
+        .labelsHidden()
         .padding(4)
         .background(AppTheme.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -340,14 +356,30 @@ struct NoteDetailView: View {
             if let output = note.structuredOutput, !output.actionItems.isEmpty {
                 ForEach(output.actionItems) { item in
                     HStack(alignment: .top) {
-                        Image(systemName: "checkmark.circle")
+                        Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "checkmark.circle")
                             .foregroundStyle(AppTheme.primary)
-                        VStack(alignment: .leading) {
+                        VStack(alignment: .leading, spacing: 6) {
                             Text(item.text)
-                            if let assignee = item.assignee {
-                                Text(L10n.NoteDetail.assignee(assignee))
-                                    .font(.caption)
-                                    .foregroundStyle(AppTheme.textSecondary)
+                                .strikethrough(item.isCompleted)
+                            HStack {
+                                Menu(item.assignee ?? "Assign") {
+                                    Button("Unassigned") {
+                                        ActionItemPersistence.assign(nil, itemId: item.id, on: note)
+                                        try? modelContext.save()
+                                    }
+                                    ForEach(environment.settingsService.teammates) { person in
+                                        Button(person.trimmedName) {
+                                            ActionItemPersistence.assign(person.trimmedName, itemId: item.id, on: note)
+                                            try? modelContext.save()
+                                        }
+                                    }
+                                }
+                                .font(.caption)
+                                if let due = item.dueDate, !due.isEmpty {
+                                    Text(due)
+                                        .font(.caption)
+                                        .foregroundStyle(AppTheme.textSecondary)
+                                }
                             }
                         }
                     }
@@ -451,6 +483,7 @@ struct NoteDetailView: View {
     private func applySelectionsToNote() {
         note.outputType = selectedOutputType.rawValue
         note.language = selectedLanguage.rawValue
+        environment.settingsService.setSummaryWriteLanguage(selectedWriteLanguage, for: note.id)
     }
 
     private func attemptRecordingRecovery() {
@@ -497,7 +530,7 @@ struct NoteDetailView: View {
         }
     }
     
-    private func resummarizeOnly() {
+    private func resummarizeOnly(length: SummaryLength? = nil) {
         applySelectionsToNote()
         isProcessing = true
         processingError = nil
@@ -505,7 +538,7 @@ struct NoteDetailView: View {
         
         Task {
             do {
-                try await environment.processRecordingUseCase.resummarize(note: note) { stage in
+                try await environment.processRecordingUseCase.resummarize(note: note, length: length) { stage in
                     processingStage = stage
                 }
                 try? modelContext.save()
@@ -529,7 +562,7 @@ struct NoteDetailView: View {
                 Spacer()
             }
             .navigationTitle(L10n.NoteDetail.editSegment)
-            .navigationBarTitleDisplayMode(.inline)
+            .platformInlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(L10n.Common.cancel) { editingSegment = nil }
