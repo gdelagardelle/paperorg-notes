@@ -83,7 +83,7 @@ struct NoteOrganizerSection: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(AppTheme.textSecondary)
                         .textCase(.uppercase)
-                    Text("Assign the open tasks on this note and open Mail.")
+                    Text("Assign the open tasks on this note and send them to the office app.")
                         .font(.caption)
                         .foregroundStyle(AppTheme.textSecondary)
                     Menu("Hand to…") {

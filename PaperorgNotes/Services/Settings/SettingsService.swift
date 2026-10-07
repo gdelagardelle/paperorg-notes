@@ -15,6 +15,8 @@ final class SettingsService {
         static let providerPreferences = "providerPreferences"
         static let defaultOutputType = "defaultOutputType"
         static let summaryLength = "summaryLength"
+        static let defaultSummaryWriteLanguage = "defaultSummaryWriteLanguage"
+        static let summaryWriteLanguagesByNote = "summaryWriteLanguagesByNote"
         static let keepAudioFiles = "keepAudioFiles"
         static let deleteAudioAfterDays = "deleteAudioAfterDays"
         static let emailRecipients = "emailRecipients"
@@ -80,6 +82,27 @@ final class SettingsService {
     
     var summaryLength: SummaryLength {
         didSet { defaults.set(summaryLength.rawValue, forKey: Keys.summaryLength) }
+    }
+
+    /// Write language for new recordings. Existing notes keep their own choice.
+    var defaultSummaryWriteLanguage: SummaryWriteLanguage {
+        didSet { defaults.set(defaultSummaryWriteLanguage.rawValue, forKey: Keys.defaultSummaryWriteLanguage) }
+    }
+
+    private var summaryWriteLanguagesByNote: [String: String] {
+        didSet { defaults.set(summaryWriteLanguagesByNote, forKey: Keys.summaryWriteLanguagesByNote) }
+    }
+
+    func summaryWriteLanguage(for noteID: UUID) -> SummaryWriteLanguage {
+        guard let raw = summaryWriteLanguagesByNote[noteID.uuidString],
+              let language = SummaryWriteLanguage(rawValue: raw) else {
+            return .same
+        }
+        return language
+    }
+
+    func setSummaryWriteLanguage(_ language: SummaryWriteLanguage, for noteID: UUID) {
+        summaryWriteLanguagesByNote[noteID.uuidString] = language.rawValue
     }
     
     var keepAudioFiles: Bool {
@@ -447,6 +470,8 @@ final class SettingsService {
         self.luxasrEnabled = defaults.object(forKey: Keys.luxasrEnabled) as? Bool ?? true
         self.defaultOutputType = OutputType(rawValue: defaults.string(forKey: Keys.defaultOutputType) ?? "") ?? .meetingNotes
         self.summaryLength = SummaryLength(rawValue: defaults.string(forKey: Keys.summaryLength) ?? "") ?? .detailed
+        self.defaultSummaryWriteLanguage = SummaryWriteLanguage(rawValue: defaults.string(forKey: Keys.defaultSummaryWriteLanguage) ?? "") ?? .same
+        self.summaryWriteLanguagesByNote = defaults.dictionary(forKey: Keys.summaryWriteLanguagesByNote) as? [String: String] ?? [:]
         self.keepAudioFiles = defaults.object(forKey: Keys.keepAudioFiles) as? Bool ?? true
         
         let retentionDays = defaults.integer(forKey: Keys.deleteAudioAfterDays)
@@ -604,6 +629,8 @@ final class SettingsService {
         autoDetectLanguage = false
         defaultOutputType = .meetingNotes
         summaryLength = .detailed
+        defaultSummaryWriteLanguage = .same
+        summaryWriteLanguagesByNote = [:]
         keepAudioFiles = true
         deleteAudioAfterDays = nil
         deleteAudioAfterTranscription = false

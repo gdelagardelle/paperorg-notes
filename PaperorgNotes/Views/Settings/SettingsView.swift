@@ -258,6 +258,11 @@ struct SettingsView: View {
                             Text(len.displayName).tag(len)
                         }
                     }
+                    Picker("Write the note in", selection: $settings.defaultSummaryWriteLanguage) {
+                        ForEach(SummaryWriteLanguage.allCases) { language in
+                            Text(language.title).tag(language)
+                        }
+                    }
                 }
                 
                 Section("Email") {

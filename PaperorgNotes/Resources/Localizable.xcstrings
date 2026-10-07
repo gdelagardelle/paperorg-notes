@@ -4779,6 +4779,18 @@
             "state": "translated",
             "value": "Pro aktivieren"
           }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro aktivéieren"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ativar Pro"
+          }
         }
       }
     },
@@ -7809,6 +7821,18 @@
             "state": "translated",
             "value": "Pro-Kauf erhalten — Bestätigung läuft"
           }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro-Kaf kritt — Bestätegung leeft"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compra Pro recebida — a confirmar"
+          }
         }
       }
     },
@@ -7830,6 +7854,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Apple hat Ihren Kauf bestätigt. Die Verknüpfung mit Ihrem Konto dauert meist wenige Sekunden. Tippen Sie auf das Aktualisieren-Symbol, falls dies stehen bleibt."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple huet Äre Kaf confirméiert. D'Verknëppung mat Ärem Kont dauert meeschtens e puer Sekonnen. Tippt op d'Aktualiséieren-Symbol, wann dat hei stoen bleift."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A Apple confirmou a sua compra. A ligação à sua conta demora normalmente alguns segundos. Toque no ícone de atualizar se isto continuar visível."
           }
         }
       }

@@ -21,6 +21,14 @@ final class ProTranscriptionRouter {
     }
 
     func transcribe(_ request: TranscriptionRequest) async throws -> TranscriptionResult {
+        #if os(macOS)
+        // Free processing on iPhone is gated by App Attest for com.paperorg.voicenotes.
+        // This Mac build is a different bundle and cannot produce that proof, so the
+        // notes API answers 403. Luxembourgish still goes directly to LuxASR.
+        if !registry.settings.usesProBackend {
+            return try await transcribeWithoutAppAttest(request)
+        }
+        #endif
         let client = registry.proBackend
         let duration = await AudioDurationReader.duration(for: request.audioURL)
         var lastError: Error?
@@ -91,10 +99,61 @@ final class ProTranscriptionRouter {
         throw lastError ?? TranscriptionError.noProviderAvailable(request.language)
     }
 
-    private func tagged(_ result: TranscriptionResult, attemptLog: [String]) -> TranscriptionResult {
+    #if os(macOS)
+    private func transcribeWithoutAppAttest(_ request: TranscriptionRequest) async throws -> TranscriptionResult {
+        let credentials = TranscriptionCredentials.from(registry.settings)
+        var lastError: Error?
+        var attemptLog: [String] = []
+        // Auto-detect has no on-device recognizer here. The office speaks
+        // Luxembourgish, and LuxASR is the provider that can take that audio
+        // without the iPhone App Attest check.
+        let spoken = request.language.isAutoDetect ? AppLanguage.luxembourgish : request.language
+        let spokenRequest = TranscriptionRequest(
+            audioURL: request.audioURL,
+            language: spoken,
+            enableDiarization: request.enableDiarization,
+            prompt: request.prompt,
+            segmentTimeRange: request.segmentTimeRange,
+            fallbackLanguage: request.fallbackLanguage,
+            recordingSegment: request.recordingSegment
+        )
+
+        for provider in directProviders(for: spoken) {
+            let startedAt = Date()
+            do {
+                let result = try await provider.transcribe(spokenRequest, credentials: credentials)
+                guard !result.fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    throw TranscriptionError.emptyResult
+                }
+                attemptLog.append("\(provider.identifier): succeeded directly")
+                return tagged(result, attemptLog: attemptLog, proBackend: false)
+            } catch {
+                lastError = error
+                attemptLog.append(
+                    "\(provider.identifier): failed after \(String(format: "%.1f", Date().timeIntervalSince(startedAt)))s — \(error.localizedDescription)"
+                )
+            }
+        }
+
+        throw lastError ?? TranscriptionError.providerError(
+            "This Mac can't complete the iPhone device check, and no on-device transcriber is available for \(spoken.displayName)."
+        )
+    }
+
+    private func directProviders(for language: AppLanguage) -> [any TranscriptionProvider] {
+        switch language {
+        case .luxembourgish, .autoDetect:
+            return [registry.provider(for: .luxasr)].compactMap { $0 }
+        case .english, .french, .german, .portuguese:
+            return [appleProvider]
+        }
+    }
+    #endif
+
+    private func tagged(_ result: TranscriptionResult, attemptLog: [String], proBackend: Bool = true) -> TranscriptionResult {
         var metadata = result.metadata
         metadata["attemptLog"] = attemptLog.joined(separator: " | ")
-        metadata["proBackend"] = "true"
+        metadata["proBackend"] = proBackend ? "true" : "false"
         return TranscriptionResult(
             providerId: result.providerId,
             language: result.language,

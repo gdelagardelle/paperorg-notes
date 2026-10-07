@@ -13,7 +13,9 @@ final class SummaryService {
     func generate(
         transcript: String,
         outputType: OutputType,
-        language: AppLanguage
+        language: AppLanguage,
+        languageName: String? = nil,
+        length: SummaryLength? = nil
     ) async throws -> SummaryGeneration {
         if outputType == .rawTranscript {
             return .notRequested
@@ -25,20 +27,25 @@ final class SummaryService {
         return try await generateViaProBackend(
             transcript: transcript,
             outputType: outputType,
-            language: language
+            language: language,
+            languageName: languageName,
+            length: length ?? settings.summaryLength
         )
     }
 
     private func generateViaProBackend(
         transcript: String,
         outputType: OutputType,
-        language: AppLanguage
+        language: AppLanguage,
+        languageName: String?,
+        length: SummaryLength
     ) async throws -> SummaryGeneration {
         let data = try await proBackend.summarize(
             transcript: transcript,
             outputType: outputType,
             language: language,
-            summaryLength: settings.summaryLength
+            languageName: languageName,
+            summaryLength: length
         )
         var output = try SummaryJSONParser.decode(data).normalized()
         output = sanitize(output, transcript: transcript)
@@ -149,6 +156,10 @@ final class SummaryService {
         }
 
         return sanitized
+    }
+
+    func keepingTranscript(_ transcript: String, outputType: OutputType) -> SummaryGeneration {
+        .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
     }
 
     private func fallbackSummary(transcript: String, outputType: OutputType) -> StructuredOutput {

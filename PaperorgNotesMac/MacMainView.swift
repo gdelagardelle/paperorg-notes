@@ -220,6 +220,10 @@ struct MacQuickRecordControls: View {
                 outputType: environment.settingsService.defaultOutputType,
                 status: .draft
             )
+            environment.settingsService.setSummaryWriteLanguage(
+                environment.settingsService.defaultSummaryWriteLanguage,
+                for: note.id
+            )
             modelContext.insert(note)
             try modelContext.save()
         } catch {

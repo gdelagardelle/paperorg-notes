@@ -10,7 +10,10 @@ enum OfficeWorkflow {
     ) -> StructuredOutput {
         let roster = teammates.filter { !$0.trimmedName.isEmpty }
         let spokenAssignee = assigneeSpoken(in: transcript, roster: roster)
-        let items = output.actionItems.map { item -> ActionItem in
+        let sourceItems = output.actionItems.isEmpty
+            ? tasksSpoken(in: transcript, roster: roster)
+            : output.actionItems
+        let items = sourceItems.map { item -> ActionItem in
             var copy = item
             if copy.dueAt == nil {
                 copy.dueAt = TaskDueDate.parse(copy.dueDate)
@@ -74,6 +77,36 @@ enum OfficeWorkflow {
             }
         }
         return lines.joined(separator: "\n")
+    }
+
+    /// When the summary model returns no tasks, keep a sentence that names a
+    /// teammate and asks for something to be done.
+    static func tasksSpoken(in transcript: String, roster: [Teammate]) -> [ActionItem] {
+        let cues = [
+            "appeler", "appelle", "schécken", "schicken", "envoyer", "envoie",
+            "demander", "demande", "relancer", "préparer", "preparer", "checker",
+            "rappeler", "transmettre", "muss", "soll", "please", "faut", "sief", "merci de"
+        ]
+        let sentences = transcript
+            .replacingOccurrences(of: "\n", with: " ")
+            .components(separatedBy: CharacterSet(charactersIn: ".!?"))
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { $0.count > 8 }
+
+        return sentences.compactMap { sentence in
+            guard let person = roster.first(where: { containsName($0.trimmedName, in: sentence) }) else {
+                return nil
+            }
+            let folded = sentence.folding(options: .diacriticInsensitive, locale: Locale(identifier: "fr_LU")).lowercased()
+            guard cues.contains(where: { cue in
+                folded.contains(cue.folding(options: .diacriticInsensitive, locale: Locale(identifier: "fr_LU")).lowercased())
+            }) else { return nil }
+            return ActionItem(
+                text: sentence,
+                assignee: person.trimmedName,
+                heardExcerpt: sentence
+            )
+        }
     }
 
     static func openTasks(in notes: [Note]) -> [(item: ActionItem, note: Note)] {

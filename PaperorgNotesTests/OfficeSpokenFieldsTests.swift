@@ -29,6 +29,24 @@ final class OfficeSpokenFieldsTests: XCTestCase {
         XCTAssertEqual(result.statut, "a_faire")
     }
 
+    func testSpokenSentenceBecomesATaskForThatPerson() {
+        let tasks = OfficeWorkflow.tasksSpoken(
+            in: "Dany war um Call. Demander à Dany de relancer le siège demain.",
+            roster: Teammate.starterOffice
+        )
+        XCTAssertEqual(tasks.count, 1)
+        XCTAssertEqual(tasks.first?.assignee, "Dany")
+        XCTAssertEqual(tasks.first?.text, "Demander à Dany de relancer le siège demain")
+    }
+
+    func testANameWithoutARequestIsNotATask() {
+        let tasks = OfficeWorkflow.tasksSpoken(
+            in: "Dany war um Call.",
+            roster: Teammate.starterOffice
+        )
+        XCTAssertTrue(tasks.isEmpty)
+    }
+
     func testClientNameStaysTheSpokenProject() {
         XCTAssertEqual(
             OfficeSpokenFields.clientName(project: "Schmit", people: ["Dany"], assignee: "Dany"),
@@ -38,5 +56,15 @@ final class OfficeSpokenFieldsTests: XCTestCase {
             OfficeSpokenFields.clientName(project: nil, people: ["Dany", "Schmit"], assignee: "Dany"),
             "Schmit"
         )
+    }
+
+    func testWriteLanguageAsksForATranslationWhenItDiffers() {
+        let french = SummaryWriteLanguage.requestLanguageName(output: .french, spoken: .luxembourgish)
+        XCTAssertTrue(french.contains("Français"))
+        XCTAssertTrue(french.contains("Lëtzebuergesch"))
+        XCTAssertTrue(french.contains("Translate"))
+
+        let same = SummaryWriteLanguage.requestLanguageName(output: .german, spoken: .german)
+        XCTAssertEqual(same, "Deutsch")
     }
 }

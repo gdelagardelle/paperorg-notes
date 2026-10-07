@@ -27,7 +27,7 @@ require("PaperorgNotes/App/AppEnvironment.swift", (
     "NWPathMonitor",
     "connectivityMonitor",
 ))
-require("PaperorgNotes/App/MainTabView.swift", (
+require("PaperorgNotes/App/RootView.swift", (
     "retryingNoteIDs",
     "retryWaitingTranscriptions",
     "connectivityMonitor.isConnected",

@@ -8,6 +8,7 @@ struct RecordView: View {
     @Query(sort: \Note.createdAt, order: .reverse) private var recentNotes: [Note]
 
     @State private var selectedLanguage: AppLanguage = .autoDetect
+    @State private var selectedWriteLanguage: SummaryWriteLanguage = .same
     @State private var recordingLanguageSegments: [RecordingLanguageSegment] = []
     @State private var selectedOutputType: OutputType
     @State private var standingMeetingID: UUID?
@@ -152,6 +153,7 @@ struct RecordView: View {
         .platformHiddenNavigationBar()
         .onAppear {
             selectedLanguage = environment.settingsService.preferredRecordLanguage
+            selectedWriteLanguage = environment.settingsService.defaultSummaryWriteLanguage
             selectedOutputType = environment.settingsService.defaultOutputType
             environment.deepLinkHandler.consumeAppGroupQuickRecordFlag()
             relinkActiveNoteIfRecording()
@@ -217,6 +219,25 @@ struct RecordView: View {
                     Text(L10n.Record.languageSwitchHint)
                         .font(.caption)
                         .foregroundStyle(AppTheme.textSecondary)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Write the note in")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppTheme.textSecondary)
+                    .textCase(.uppercase)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(SummaryWriteLanguage.allCases) { language in
+                            SelectionChip(
+                                title: language.title,
+                                isSelected: selectedWriteLanguage == language,
+                                action: { selectWriteLanguage(language) }
+                            )
+                        }
+                    }
                 }
             }
             
@@ -481,6 +502,7 @@ struct RecordView: View {
             recordingLanguageSegments = []
         }
         applyStandingMeeting(to: note)
+        environment.settingsService.setSummaryWriteLanguage(selectedWriteLanguage, for: note.id)
         modelContext.insert(note)
         activeNote = note
         do {
@@ -544,6 +566,7 @@ struct RecordView: View {
                     )
                     note.durationSeconds = duration
                     applyStandingMeeting(to: note)
+                    environment.settingsService.setSummaryWriteLanguage(selectedWriteLanguage, for: note.id)
                     modelContext.insert(note)
                     importedNote = note
                     activeNote = note
@@ -720,6 +743,14 @@ struct RecordView: View {
         activeNote = note
         selectedLanguage = note.appLanguage
         recordingLanguageSegments = note.recordingLanguageSegments
+    }
+
+    private func selectWriteLanguage(_ language: SummaryWriteLanguage) {
+        selectedWriteLanguage = language
+        environment.settingsService.defaultSummaryWriteLanguage = language
+        if let activeNote {
+            environment.settingsService.setSummaryWriteLanguage(language, for: activeNote.id)
+        }
     }
 
     private func selectRecordLanguage(_ language: AppLanguage) {
