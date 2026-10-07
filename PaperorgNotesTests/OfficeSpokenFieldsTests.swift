@@ -67,4 +67,12 @@ final class OfficeSpokenFieldsTests: XCTestCase {
         let same = SummaryWriteLanguage.requestLanguageName(output: .german, spoken: .german)
         XCTAssertEqual(same, "Deutsch")
     }
+
+    func testTranslatedDatesAndNumbersStayWhenTheNoteChangesLanguage() {
+        let transcript = "De Client rufft de 15. Oktober un. De Montant ass 1200 Euro."
+        XCTAssertTrue(SummaryService.keepsTranslatedFact("15 octobre", transcript: transcript, translating: true))
+        XCTAssertTrue(SummaryService.keepsTranslatedFact("1 200 €", transcript: transcript, translating: true))
+        XCTAssertFalse(SummaryService.keepsTranslatedFact("15 octobre", transcript: transcript, translating: false))
+        XCTAssertTrue(SummaryService.keepsTranslatedFact("1200", transcript: transcript, translating: false))
+    }
 }

@@ -114,6 +114,11 @@ final class ProcessRecordingUseCase {
             debugEvents.append("Overall confidence: \(String(format: "%.2f", finalTranscript.qualityReport.overallConfidence))")
             debugEvents.append("Low-confidence segments: \(finalTranscript.qualityReport.lowConfidenceSegmentIds.count)")
 
+            // Keep the transcript even when the summary is refused, and leave
+            // any earlier summary in place until a new one actually arrives.
+            replaceStoredTranscript(finalTranscript, on: note, language: resolvedLanguage)
+            try save(note)
+
             let summary = try await generateSummary(
                 for: note,
                 transcript: finalTranscript.fullText,
@@ -124,7 +129,7 @@ final class ProcessRecordingUseCase {
             if let output = summary.output {
                 debugEvents.append("Summary short chars: \(output.shortSummary.count)")
             }
-            replaceResults(on: note, transcript: finalTranscript, summary: summary, language: resolvedLanguage)
+            replaceSummary(on: note, summary: summary)
 
             if settingsService.deleteAudioAfterTranscription || !settingsService.keepAudioFiles {
                 storageService.deleteAudio(for: note.id)
@@ -306,10 +311,15 @@ final class ProcessRecordingUseCase {
         return result
     }
 
-    private func replaceResults(on note: Note, transcript: FinalTranscript, summary: SummaryGeneration, language: AppLanguage) {
-        clearTranscriptionResults(note)
-        applyTranscript(transcript, to: note, language: language)
-        replaceSummary(on: note, summary: summary)
+    private func replaceStoredTranscript(_ finalTranscript: FinalTranscript, on note: Note, language: AppLanguage) {
+        if let context = note.modelContext {
+            for segment in note.segments {
+                context.delete(segment)
+            }
+        }
+        note.segments.removeAll()
+        note.correctedTranscript = nil
+        applyTranscript(finalTranscript, to: note, language: language)
     }
 
     private func applyTranscript(_ finalTranscript: FinalTranscript, to note: Note, language: AppLanguage) {
@@ -340,23 +350,15 @@ final class ProcessRecordingUseCase {
         )
         let writeLanguage = settingsService.summaryWriteLanguage(for: note.id).appLanguage ?? spokenLanguage
         let languageName = SummaryWriteLanguage.requestLanguageName(output: writeLanguage, spoken: spokenLanguage)
-        do {
-            return try await summaryService.generate(
-                transcript: transcript,
-                outputType: note.noteOutputType,
-                language: writeLanguage,
-                languageName: languageName,
-                length: length
-            )
-        } catch {
-            #if os(macOS)
-            // The transcript already exists. A refused summary must not throw
-            // that text away on a Mac that cannot pass the iPhone device check.
-            return summaryService.keepingTranscript(transcript, outputType: note.noteOutputType)
-            #else
-            throw error
-            #endif
-        }
+        let translating = !writeLanguage.isAutoDetect && writeLanguage != spokenLanguage
+        return try await summaryService.generate(
+            transcript: transcript,
+            outputType: note.noteOutputType,
+            language: writeLanguage,
+            languageName: languageName,
+            length: length,
+            translating: translating
+        )
     }
 
     private func replaceSummary(on note: Note, summary: SummaryGeneration) {
@@ -379,30 +381,11 @@ final class ProcessRecordingUseCase {
         note.structuredSections = buildSections(from: enriched, note: note)
     }
     
-    private func clearTranscriptionResults(_ note: Note) {
-        deleteChildren(of: note)
-        note.segments.removeAll()
-        note.rawTranscript = nil
-        note.correctedTranscript = nil
-        note.primaryProvider = nil
-        note.detectedLanguage = nil
-        note.qualityReportJSON = nil
-        clearSummaryResults(note)
-    }
-    
     private func clearSummaryResults(_ note: Note) {
         deleteSections(of: note)
         note.summaryShort = nil
         note.summaryDetailed = nil
         note.structuredOutputJSON = nil
-    }
-
-    private func deleteChildren(of note: Note) {
-        guard let context = note.modelContext else { return }
-        for segment in note.segments {
-            context.delete(segment)
-        }
-        deleteSections(of: note)
     }
 
     private func deleteSections(of note: Note) {

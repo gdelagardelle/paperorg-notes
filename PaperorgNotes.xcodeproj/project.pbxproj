@@ -59,6 +59,7 @@
 		44C81EE2E443ACDD43BE55EC /* BackgroundTaskRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9019FC0A51ACC797357D8F57 /* BackgroundTaskRunner.swift */; };
 		44DBFABED555FC250901ABD9 /* SubscriptionPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15FF4BE76333D5C3AED55EAA /* SubscriptionPlan.swift */; };
 		45A23803A98BFB53B9D59593 /* ProTranscriptionRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A5F341369B3D0BDA7654913 /* ProTranscriptionRouter.swift */; };
+		464AA366D518AF72E3C82642 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 94369770D7AA147A771E6EF1 /* Assets.xcassets */; };
 		47EE42893ACF727B1C51C409 /* EncryptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA483298C7DA2060170BD821 /* EncryptionService.swift */; };
 		49ACB3FA66A22419DD6F2B79 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 341A5C7198151CC7CA8CC630 /* Localizable.xcstrings */; };
 		4B2C0B074240AFA180686DB2 /* ExportBranding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382E43B13BC104B0DC4917A5 /* ExportBranding.swift */; };
@@ -300,6 +301,7 @@
 		902B6D6A36F9BC9D7688A140 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		923CEA82446856AA18906690 /* PaperorgNotes.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PaperorgNotes.entitlements; sourceTree = "<group>"; };
 		93893A2E19AAAF5CE666C272 /* PaperorgNotesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperorgNotesTests.swift; sourceTree = "<group>"; };
+		94369770D7AA147A771E6EF1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9779823E1BF0DA8B2EBFD414 /* PurchasePresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchasePresenter.swift; sourceTree = "<group>"; };
 		9824E63EEC45F2200D535A2F /* SettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsService.swift; sourceTree = "<group>"; };
 		9D07D76A907A59C39C441D31 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -513,6 +515,7 @@
 		380EEADF3C52EEEFF8379FE6 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				94369770D7AA147A771E6EF1 /* Assets.xcassets */,
 				CD1DA3F1C01177C2AAC3B041 /* Info.plist */,
 				F4DB3CB6956BCBE38CED1F20 /* PaperorgNotesMac.entitlements */,
 				1414A1CCFB5A656E53EBDA2C /* PaperorgNotesMac.local.entitlements */,
@@ -899,6 +902,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				464AA366D518AF72E3C82642 /* Assets.xcassets in Resources */,
 				E7B38338869E605F6AC9BA47 /* Assets.xcassets in Resources */,
 				819258145726ACADDFE6BA50 /* Localizable.xcstrings in Resources */,
 				D1715C172C15EDBD9A47AE83 /* PrivacyInfo.xcprivacy in Resources */,
@@ -1162,7 +1166,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 78;
+				CURRENT_PROJECT_VERSION = 79;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -1170,7 +1174,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.10;
+				MARKETING_VERSION = 1.0.11;
 				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1318,7 +1322,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 78;
+				CURRENT_PROJECT_VERSION = 79;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1326,7 +1330,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.10;
+				MARKETING_VERSION = 1.0.11;
 				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes.widget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1341,7 +1345,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotes/Resources/PaperorgNotes.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 78;
+				CURRENT_PROJECT_VERSION = 79;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotes/Resources/Info.plist;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -1349,7 +1353,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.10;
+				MARKETING_VERSION = 1.0.11;
 				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1468,7 +1472,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PaperorgNotesWidget/PaperorgNotesWidget.entitlements;
-				CURRENT_PROJECT_VERSION = 78;
+				CURRENT_PROJECT_VERSION = 79;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = PaperorgNotesWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1476,7 +1480,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.10;
+				MARKETING_VERSION = 1.0.11;
 				PRODUCT_BUNDLE_IDENTIFIER = com.paperorg.voicenotes.widget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;

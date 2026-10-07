@@ -15,7 +15,8 @@ final class SummaryService {
         outputType: OutputType,
         language: AppLanguage,
         languageName: String? = nil,
-        length: SummaryLength? = nil
+        length: SummaryLength? = nil,
+        translating: Bool = false
     ) async throws -> SummaryGeneration {
         if outputType == .rawTranscript {
             return .notRequested
@@ -29,7 +30,8 @@ final class SummaryService {
             outputType: outputType,
             language: language,
             languageName: languageName,
-            length: length ?? settings.summaryLength
+            length: length ?? settings.summaryLength,
+            translating: translating
         )
     }
 
@@ -38,7 +40,8 @@ final class SummaryService {
         outputType: OutputType,
         language: AppLanguage,
         languageName: String?,
-        length: SummaryLength
+        length: SummaryLength,
+        translating: Bool
     ) async throws -> SummaryGeneration {
         let data = try await proBackend.summarize(
             transcript: transcript,
@@ -48,7 +51,7 @@ final class SummaryService {
             summaryLength: length
         )
         var output = try SummaryJSONParser.decode(data).normalized()
-        output = sanitize(output, transcript: transcript)
+        output = sanitize(output, transcript: transcript, translating: translating)
         return .generated(makeStructuredOutput(from: output, outputType: outputType))
     }
 
@@ -139,7 +142,11 @@ final class SummaryService {
         }
     }
 
-    private func sanitize(_ output: StructuredOutputDTO, transcript: String) -> StructuredOutputDTO {
+    nonisolated static func keepsTranslatedFact(_ value: String, transcript: String, translating: Bool) -> Bool {
+        translating || transcript.contains(value)
+    }
+
+    private func sanitize(_ output: StructuredOutputDTO, transcript: String, translating: Bool) -> StructuredOutputDTO {
         var sanitized = output
         let transcriptLower = transcript.lowercased()
 
@@ -148,40 +155,13 @@ final class SummaryService {
         }
 
         sanitized.datesMentioned = output.datesMentioned.filter {
-            transcript.contains($0)
+            Self.keepsTranslatedFact($0, transcript: transcript, translating: translating)
         }
 
         sanitized.importantNumbers = output.importantNumbers.filter {
-            transcript.contains($0)
+            Self.keepsTranslatedFact($0, transcript: transcript, translating: translating)
         }
 
         return sanitized
-    }
-
-    func keepingTranscript(_ transcript: String, outputType: OutputType) -> SummaryGeneration {
-        .fallback(fallbackSummary(transcript: transcript, outputType: outputType))
-    }
-
-    private func fallbackSummary(transcript: String, outputType: OutputType) -> StructuredOutput {
-        let sentences = transcript.components(separatedBy: ". ").prefix(3)
-        let short = sentences.joined(separator: ". ")
-
-        return StructuredOutput(
-            outputType: outputType,
-            title: String(transcript.prefix(60)),
-            shortSummary: short,
-            detailedSummary: transcript,
-            keyIdeas: [],
-            decisions: [],
-            actionItems: [],
-            openQuestions: [],
-            risks: [],
-            nextSteps: [],
-            peopleMentioned: [],
-            datesMentioned: [],
-            importantNumbers: [],
-            followUpEmailDraft: nil,
-            generatedAt: .now
-        )
     }
 }
