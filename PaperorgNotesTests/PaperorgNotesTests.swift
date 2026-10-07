@@ -5,7 +5,7 @@ import Foundation
 struct ProBackendErrorRegression {
     static func main() {
         let rawPayload = #"{"message":"Route POST:/v1/auth/register not found","error":"Not Found","statusCode":404}"#
-        guard ProBackendError.serverError(rawPayload).localizedDescription == "Paperorg Pro is temporarily unavailable. Please try again later." else {
+        guard ProBackendError.serverError(rawPayload).localizedDescription == "Meeting Closure Pro is temporarily unavailable. Please try again later." else {
             exit(1)
         }
     }
@@ -673,7 +673,7 @@ final class ProUsageInfoDecodingTests: XCTestCase {
         let rawPayload = #"{"message":"Route POST:/v1/auth/register not found","error":"Not Found","statusCode":404}"#
         let message = ProBackendError.serverError(rawPayload).localizedDescription
 
-        XCTAssertEqual(message, "Paperorg Pro is temporarily unavailable. Please try again later.")
+        XCTAssertEqual(message, "Meeting Closure Pro is temporarily unavailable. Please try again later.")
     }
 
     func testDecodesLegacyFlatShape() throws {
@@ -1276,7 +1276,7 @@ final class RecordingLengthCapTests: XCTestCase {
 
         XCTAssertNotEqual(
             message,
-            "Paperorg Pro is temporarily unavailable. Please try again later."
+            "Meeting Closure Pro is temporarily unavailable. Please try again later."
         )
         XCTAssertFalse(message.isEmpty)
     }
