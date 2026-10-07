@@ -346,14 +346,21 @@ final class ProcessRecordingUseCase {
     private func replaceSummary(on note: Note, summary: SummaryGeneration) {
         clearSummaryResults(note)
         guard let structured = summary.output else { return }
-        note.summaryShort = structured.shortSummary
-        note.summaryDetailed = structured.detailedSummary
-        note.structuredOutputJSON = try? JSONEncoder().encode(structured)
+        let enriched = OfficeWorkflow.enrich(
+            structured,
+            transcript: note.displayTranscript,
+            segments: note.segments,
+            teammates: settingsService.teammates,
+            defaultOwner: settingsService.owner(forProject: note.projectName)
+        )
+        note.summaryShort = enriched.shortSummary
+        note.summaryDetailed = enriched.detailedSummary
+        note.structuredOutputJSON = try? JSONEncoder().encode(enriched)
         
-        if note.title == "Untitled Recording", let title = structured.title, !title.isEmpty {
+        if note.title == "Untitled Recording", let title = enriched.title, !title.isEmpty {
             note.title = title
         }
-        note.structuredSections = buildSections(from: structured, note: note)
+        note.structuredSections = buildSections(from: enriched, note: note)
     }
     
     private func clearTranscriptionResults(_ note: Note) {

@@ -683,9 +683,12 @@ struct SecondaryButtonStyle: ButtonStyle {
 struct SettingsScreenStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .scrollContentBackground(.hidden)
+            .platformHiddenScrollContentBackground()
             .background(AppScreenBackground())
             .tint(AppTheme.accent)
+            #if os(macOS)
+            .formStyle(.grouped)
+            #endif
     }
 }
 

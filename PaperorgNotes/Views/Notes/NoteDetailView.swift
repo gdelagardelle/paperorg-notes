@@ -88,14 +88,14 @@ struct NoteDetailView: View {
         }
         .background(AppScreenBackground())
         .navigationTitle(note.title)
-        .navigationBarTitleDisplayMode(.inline)
+        .platformInlineNavigationTitle()
         .onAppear {
             selectedOutputType = note.noteOutputType
             selectedLanguage = note.appLanguage
             attemptRecordingRecovery()
         }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem(placement: PlatformToolbar.trailing) {
                 HStack(spacing: 16) {
                     Button(action: toggleFavorite) {
                         Image(systemName: note.isFavorite ? "star.fill" : "star")
@@ -340,14 +340,30 @@ struct NoteDetailView: View {
             if let output = note.structuredOutput, !output.actionItems.isEmpty {
                 ForEach(output.actionItems) { item in
                     HStack(alignment: .top) {
-                        Image(systemName: "checkmark.circle")
+                        Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "checkmark.circle")
                             .foregroundStyle(AppTheme.primary)
-                        VStack(alignment: .leading) {
+                        VStack(alignment: .leading, spacing: 6) {
                             Text(item.text)
-                            if let assignee = item.assignee {
-                                Text(L10n.NoteDetail.assignee(assignee))
-                                    .font(.caption)
-                                    .foregroundStyle(AppTheme.textSecondary)
+                                .strikethrough(item.isCompleted)
+                            HStack {
+                                Menu(item.assignee ?? "Assign") {
+                                    Button("Unassigned") {
+                                        ActionItemPersistence.assign(nil, itemId: item.id, on: note)
+                                        try? modelContext.save()
+                                    }
+                                    ForEach(environment.settingsService.teammates) { person in
+                                        Button(person.trimmedName) {
+                                            ActionItemPersistence.assign(person.trimmedName, itemId: item.id, on: note)
+                                            try? modelContext.save()
+                                        }
+                                    }
+                                }
+                                .font(.caption)
+                                if let due = item.dueDate, !due.isEmpty {
+                                    Text(due)
+                                        .font(.caption)
+                                        .foregroundStyle(AppTheme.textSecondary)
+                                }
                             }
                         }
                     }
@@ -529,7 +545,7 @@ struct NoteDetailView: View {
                 Spacer()
             }
             .navigationTitle(L10n.NoteDetail.editSegment)
-            .navigationBarTitleDisplayMode(.inline)
+            .platformInlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(L10n.Common.cancel) { editingSegment = nil }

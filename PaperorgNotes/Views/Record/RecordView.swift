@@ -6,10 +6,11 @@ struct RecordView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \Note.createdAt, order: .reverse) private var recentNotes: [Note]
-    
+
     @State private var selectedLanguage: AppLanguage = .autoDetect
     @State private var recordingLanguageSegments: [RecordingLanguageSegment] = []
-    @State private var selectedOutputType: OutputType = .meetingNotes
+    @State private var selectedOutputType: OutputType
+    @State private var standingMeetingID: UUID?
     @State private var activeNote: Note?
     @State private var showProcessing = false
     @State private var processingStage: ProcessingStage = .savingAudio
@@ -21,7 +22,11 @@ struct RecordView: View {
     @State private var showIncludedMinutesAccess = false
     @State private var showAudioImporter = false
     @State private var quickRecordTask: Task<Void, Never>?
-    
+
+    init(defaultOutputType: OutputType = .meetingNotes) {
+        _selectedOutputType = State(initialValue: defaultOutputType)
+    }
+
     private var isRecordingSession: Bool {
         environment.recordingService.state == .recording || environment.recordingService.state == .paused
     }
@@ -141,10 +146,10 @@ struct RecordView: View {
             recentSection
         }
         .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+        .platformHiddenScrollContentBackground()
         .safeAreaPadding(.bottom, 12)
         .background(AppScreenBackground())
-        .navigationBarHidden(true)
+        .platformHiddenNavigationBar()
         .onAppear {
             selectedLanguage = environment.settingsService.preferredRecordLanguage
             selectedOutputType = environment.settingsService.defaultOutputType
@@ -154,6 +159,14 @@ struct RecordView: View {
         }
         .onDisappear {
             quickRecordTask?.cancel()
+        }
+        .onChange(of: selectedOutputType) { _, newValue in
+            guard !isRecordingSession else { return }
+            environment.settingsService.defaultOutputType = newValue
+        }
+        .onChange(of: environment.settingsService.defaultOutputType) { _, newValue in
+            guard !isRecordingSession else { return }
+            selectedOutputType = newValue
         }
         .onChange(of: environment.recordingService.state) { _, newState in
             pulseAnimation = newState == .recording
@@ -223,6 +236,27 @@ struct RecordView: View {
                                 action: { selectedOutputType = type }
                             )
                             .disabled(isRecordingSession)
+                        }
+                    }
+                }
+            }
+
+            if !environment.settingsService.standingMeetings.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Standing meeting")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .textCase(.uppercase)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(environment.settingsService.standingMeetings) { meeting in
+                                SelectionChip(
+                                    title: meeting.title,
+                                    isSelected: standingMeetingID == meeting.id,
+                                    action: { applyStanding(meeting) }
+                                )
+                                .disabled(isRecordingSession)
+                            }
                         }
                     }
                 }
@@ -399,6 +433,25 @@ struct RecordView: View {
         }
     }
 
+    private func applyStanding(_ meeting: StandingMeeting) {
+        standingMeetingID = meeting.id
+        selectedOutputType = meeting.outputType
+    }
+
+    private func applyStandingMeeting(to note: Note) {
+        guard let standingMeetingID,
+              let meeting = environment.settingsService.standingMeetings.first(where: { $0.id == standingMeetingID }) else { return }
+        if note.title == "Untitled Recording" {
+            note.title = meeting.title
+        }
+        for tag in meeting.tags where !note.tags.contains(tag) {
+            note.tags.append(tag)
+        }
+        if let project = meeting.tags.first, note.projectName == nil {
+            note.projectName = project
+        }
+    }
+
     private func performStartRecording() async throws {
         let noteId = UUID()
 
@@ -427,6 +480,7 @@ struct RecordView: View {
         } else {
             recordingLanguageSegments = []
         }
+        applyStandingMeeting(to: note)
         modelContext.insert(note)
         activeNote = note
         do {
@@ -489,6 +543,7 @@ struct RecordView: View {
                         status: .processing
                     )
                     note.durationSeconds = duration
+                    applyStandingMeeting(to: note)
                     modelContext.insert(note)
                     importedNote = note
                     activeNote = note

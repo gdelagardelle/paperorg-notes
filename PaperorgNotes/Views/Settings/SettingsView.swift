@@ -20,11 +20,16 @@ struct SettingsView: View {
     @State private var testEmailAddress = ""
     @State private var testEmailResult: String?
     @State private var sendingTestEmail = false
+    @State private var newTeammateName = ""
+    @State private var newTeammateEmail = ""
+    @State private var newClientName = ""
+    @State private var newClientOwner = ""
+    @State private var newStandingTitle = ""
     
     var body: some View {
         @Bindable var settings = environment.settingsService
         
-        NavigationStack {
+        settingsRoot {
             Form {
                 Section(L10n.Settings.proSection) {
                     if environment.subscriptionService.isServerProConfirmed {
@@ -85,9 +90,11 @@ struct SettingsView: View {
                     }
                 }
 
+                #if os(iOS)
                 if environment.subscriptionService.isProActive {
                     ExportBrandingSettingsSection()
                 }
+                #endif
 
                 Section(L10n.Settings.languageSection) {
                     Picker(L10n.Settings.defaultLanguage, selection: $settings.defaultLanguage) {
@@ -95,6 +102,106 @@ struct SettingsView: View {
                             Text("\(lang.flag) \(lang.displayName)").tag(lang)
                         }
                     }
+                }
+
+                Section {
+                    TextField("Your name", text: $settings.deskUserName)
+                    SettingsSectionHint(text: "Used for the Mine list. Tasks assigned to this name stay with you.")
+                } header: {
+                    Text("You")
+                }
+
+                Section {
+                    SettingsSectionHint(text: "People you can assign a task to. Record each name once so transcription spells it the way you say it. Add an email, then hand off from Tasks.")
+                    ForEach(settings.teammates) { person in
+                        TeammateSettingsRow(person: person) { updated in
+                            settings.replaceTeammate(updated)
+                        } onDelete: {
+                            settings.removeTeammate(id: person.id)
+                        }
+                    }
+                    HStack {
+                        TextField("Name", text: $newTeammateName)
+                        TextField("Email", text: $newTeammateEmail)
+                            .platformEmailKeyboardType()
+                            .platformNoAutocapitalization()
+                        Button("Add") {
+                            settings.addTeammate(name: newTeammateName, email: newTeammateEmail)
+                            newTeammateName = ""
+                            newTeammateEmail = ""
+                        }
+                        .disabled(newTeammateName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                } header: {
+                    Text("Team")
+                }
+
+                Section {
+                    SettingsSectionHint(text: "A client file groups every note, decision, and open task. The default owner is assigned when a recording is filed under that name.")
+                    ForEach(settings.clientFiles) { client in
+                        HStack {
+                            Text(client.name)
+                            Spacer()
+                            Picker("Owner", selection: Binding(
+                                get: { client.defaultOwner },
+                                set: { settings.upsertClient(name: client.name, owner: $0) }
+                            )) {
+                                Text("No owner").tag("")
+                                ForEach(settings.teammates) { person in
+                                    Text(person.trimmedName).tag(person.trimmedName)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(maxWidth: 160)
+                        }
+                    }
+                    HStack {
+                        TextField("Client", text: $newClientName)
+                        TextField("Default owner", text: $newClientOwner)
+                        Button("Add") {
+                            settings.upsertClient(name: newClientName, owner: newClientOwner)
+                            newClientName = ""
+                            newClientOwner = ""
+                        }
+                        .disabled(newClientName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                } header: {
+                    Text("Clients")
+                }
+
+                Section {
+                    SettingsSectionHint(text: "A standing meeting sets the note style, tags, and who usually leaves with the tasks.")
+                    ForEach(settings.standingMeetings) { meeting in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(meeting.title)
+                                Text(meeting.tags.joined(separator: ", "))
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.textSecondary)
+                            }
+                            Spacer()
+                            Button(role: .destructive) {
+                                settings.removeStandingMeeting(id: meeting.id)
+                            } label: {
+                                Image(systemName: "trash")
+                            }
+                        }
+                    }
+                    HStack {
+                        TextField("Meeting name", text: $newStandingTitle)
+                        Button("Add") {
+                            let tags = newStandingTitle.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                            let title = tags.first ?? newStandingTitle
+                            settings.addStandingMeeting(StandingMeeting(
+                                title: String(title),
+                                tags: tags.count > 1 ? Array(tags.dropFirst()) : [String(title)]
+                            ))
+                            newStandingTitle = ""
+                        }
+                        .disabled(newStandingTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                } header: {
+                    Text("Standing meetings")
                 }
                 
                 Section {
@@ -125,7 +232,7 @@ struct SettingsView: View {
                     
                     HStack {
                         TextField("Add term", text: $newVocabularyTerm)
-                            .textInputAutocapitalization(.never)
+                            .platformNoAutocapitalization()
                         Button("Add") {
                             settings.addVocabularyTerm(newVocabularyTerm)
                             newVocabularyTerm = ""
@@ -192,8 +299,8 @@ struct SettingsView: View {
                     HStack {
                         TextField("Add email address", text: $newEmail)
                             .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .textInputAutocapitalization(.never)
+                            .platformEmailKeyboardType()
+                            .platformNoAutocapitalization()
                         Button("Add") {
                             addRecipient()
                         }
@@ -234,9 +341,9 @@ struct SettingsView: View {
                     HStack {
                         TextField("Test address", text: $testEmailAddress)
                             .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
+                            .platformEmailKeyboardType()
+                            .platformNoAutocapitalization()
+                            .platformAutocorrectionDisabled()
                         Button(sendingTestEmail ? "Sending…" : "Send test") {
                             sendTestEmail()
                         }
@@ -268,8 +375,8 @@ struct SettingsView: View {
 
                             TextField("From address", text: $settings.smtpFromAddress)
                                 .textContentType(.emailAddress)
-                                .keyboardType(.emailAddress)
-                                .textInputAutocapitalization(.never)
+                                .platformEmailKeyboardType()
+                                .platformNoAutocapitalization()
                                 .onChange(of: settings.smtpFromAddress) { _, value in
                                     let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
                                     if settings.smtpUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
@@ -280,15 +387,15 @@ struct SettingsView: View {
 
                             if settings.smtpProviderPreset == .custom {
                                 TextField("SMTP host", text: $settings.smtpHost)
-                                    .textInputAutocapitalization(.never)
+                                    .platformNoAutocapitalization()
 
                                 Stepper("Port: \(settings.smtpPort)", value: $settings.smtpPort, in: 1...65535)
                             }
 
                             TextField("Email username", text: $settings.smtpUsername)
                                 .textContentType(.username)
-                                .keyboardType(.emailAddress)
-                                .textInputAutocapitalization(.never)
+                                .platformEmailKeyboardType()
+                                .platformNoAutocapitalization()
 
                             SecureField("App password", text: $smtpPassword)
                                 .textContentType(.password)
@@ -338,10 +445,28 @@ struct SettingsView: View {
                     }
                 }
                 
+                #if os(iOS)
                 Section("Security") {
                     Toggle("Face ID Lock", isOn: $settings.faceIDEnabled)
                 }
-                
+                #endif
+
+                Section("Sync") {
+                    HStack {
+                        Text("iCloud")
+                        Spacer()
+                        Text(environment.storageService.usesICloudStorage ? "Connected" : "Local only")
+                            .foregroundStyle(
+                                environment.storageService.usesICloudStorage
+                                    ? Color.green
+                                    : AppTheme.textSecondary
+                            )
+                    }
+                    Text("Notes, tasks, and transcripts sync across iPhone, iPad, and Mac when signed into the same Apple ID. Audio files sync via iCloud Drive and may take a moment.")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+
                 Section("About") {
                     HStack {
                         Text("Version")
@@ -387,7 +512,7 @@ struct SettingsView: View {
                     Text(L10n.Settings.testingSection)
                 }
             }
-            .listStyle(.insetGrouped)
+            .platformInsetGroupedListStyle()
             .settingsScreenStyle()
             .navigationTitle(L10n.Settings.title)
             .onAppear {
@@ -536,6 +661,72 @@ struct SettingsView: View {
             options: .regularExpression
         ) != nil
     }
+
+    @ViewBuilder
+    private func settingsRoot<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        #if os(macOS)
+        content()
+        #else
+        NavigationStack {
+            content()
+        }
+        #endif
+    }
+}
+
+struct TeammateSettingsRow: View {
+    let person: Teammate
+    let onChange: (Teammate) -> Void
+    let onDelete: () -> Void
+    @Environment(AppEnvironment.self) private var environment
+    @State private var recorder = TeamNameRecorder()
+
+    @State private var name: String
+    @State private var email: String
+
+    init(person: Teammate, onChange: @escaping (Teammate) -> Void, onDelete: @escaping () -> Void) {
+        self.person = person
+        self.onChange = onChange
+        self.onDelete = onDelete
+        _name = State(initialValue: person.name)
+        _email = State(initialValue: person.email)
+    }
+
+    var body: some View {
+        HStack {
+            TextField("Name", text: $name)
+                .onSubmit(commit)
+            TextField("Email", text: $email)
+                .platformEmailKeyboardType()
+                .platformNoAutocapitalization()
+                .onSubmit(commit)
+            Button(recorder.isRecording ? "Stop" : "Record name") {
+                recorder.toggleRecording(for: currentPerson, settings: environment.settingsService)
+            }
+            .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            if person.nameRecordingFile != nil {
+                Button("Play") { recorder.play(person: currentPerson) }
+                    .buttonStyle(.borderless)
+            }
+            Button(role: .destructive, action: onDelete) {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+        }
+        .onChange(of: name) { _, _ in commit() }
+        .onChange(of: email) { _, _ in commit() }
+    }
+
+    private var currentPerson: Teammate {
+        var updated = person
+        updated.name = name
+        updated.email = email
+        return updated
+    }
+
+    private func commit() {
+        onChange(currentPerson)
+    }
 }
 
 extension ProviderID: Identifiable {
@@ -587,7 +778,7 @@ struct ProviderConsentView: View {
             }
             .background(AppScreenBackground())
             .navigationTitle("Provider Consent")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformInlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

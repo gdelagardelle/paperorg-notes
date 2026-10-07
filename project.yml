@@ -8,6 +8,7 @@ options:
     - de
   deploymentTarget:
     iOS: "17.0"
+    macOS: "14.0"
   xcodeVersion: "16.0"
   generateEmptyDirectories: true
 
@@ -45,6 +46,12 @@ targets:
         com.apple.security.application-groups:
           - group.com.paperorg.voicenotes
         com.apple.developer.devicecheck.appattest-environment: $(APP_ATTEST_ENVIRONMENT)
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.paperorg.voicenotes
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.developer.ubiquity-container-identifiers:
+          - iCloud.com.paperorg.voicenotes
     info:
       path: PaperorgNotes/Resources/Info.plist
       properties:
@@ -135,7 +142,76 @@ targets:
     dependencies:
       - target: PaperorgNotes
 
+  PaperorgNotesMac:
+    type: application
+    platform: macOS
+    sources:
+      - path: PaperorgNotesMac
+      - path: PaperorgNotes
+        excludes:
+          - App/PaperorgNotesApp.swift
+          - App/MainTabView.swift
+          - Intents
+          - Views/Settings/ExportBrandingSettingsSection.swift
+          - Resources/LaunchScreen.storyboard
+          - Resources/Info.plist
+          - Resources/PaperorgNotes.entitlements
+          - Resources/PaperorgPro.storekit
+    resources:
+      - path: PaperorgNotes/Resources/Assets.xcassets
+      - path: PaperorgNotes/Resources/Localizable.xcstrings
+      - path: PaperorgNotes/Resources/PrivacyInfo.xcprivacy
+    entitlements:
+      path: PaperorgNotesMac/Resources/PaperorgNotesMac.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.device.audio-input: true
+        com.apple.security.network.client: true
+        com.apple.security.files.user-selected.read-write: true
+        com.apple.developer.icloud-container-identifiers:
+          - iCloud.com.paperorg.voicenotes
+        com.apple.developer.icloud-services:
+          - CloudKit
+        com.apple.developer.ubiquity-container-identifiers:
+          - iCloud.com.paperorg.voicenotes
+    info:
+      path: PaperorgNotesMac/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Paperorg Notes
+        LSApplicationCategoryType: public.app-category.productivity
+        NSMicrophoneUsageDescription: Paperorg Notes needs microphone access to record voice notes and meetings.
+        NSSpeechRecognitionUsageDescription: Paperorg Notes uses speech recognition for on-device English transcription.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        CFBundleURLTypes:
+          - CFBundleURLName: com.paperorg.voicenotes.mac
+            CFBundleURLSchemes:
+              - paperorgnotes
+        PAPERORG_PRO_BACKEND_URL: $(PAPERORG_PRO_BACKEND_URL)
+        PAPERORG_PLATFORM_API_URL: $(PAPERORG_PLATFORM_API_URL)
+        PAPERORG_USE_PLATFORM_AUTH: $(PAPERORG_USE_PLATFORM_AUTH)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.voicenotes.mac
+        MARKETING_VERSION: "1.0.10"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_ENTITLEMENTS: PaperorgNotesMac/Resources/PaperorgNotesMac.entitlements
+    dependencies: []
+
 schemes:
+  PaperorgNotesMac:
+    build:
+      targets:
+        PaperorgNotesMac: all
+    run:
+      config: Debug
+      storeKitConfiguration: PaperorgNotes/Resources/PaperorgPro.storekit
+    test:
+      targets: []
+
   PaperorgNotes:
     build:
       targets:

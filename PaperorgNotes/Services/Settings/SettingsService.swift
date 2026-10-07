@@ -28,6 +28,10 @@ final class SettingsService {
         static let consentedProviders = "consentedProviders"
         static let deleteAudioAfterTranscription = "deleteAudioAfterTranscription"
         static let customVocabulary = "customVocabulary"
+        static let teammates = "teammates"
+        static let deskUserName = "deskUserName"
+        static let clientFiles = "clientFiles"
+        static let standingMeetings = "standingMeetings"
         static let reviewBeforeEmail = "reviewBeforeEmail"
         static let sendEmailAfterTranscription = "sendEmailAfterTranscription"
         static let useOwnMailServerForEmail = "useOwnMailServerForEmail"
@@ -134,6 +138,22 @@ final class SettingsService {
     
     var customVocabulary: [String] {
         didSet { defaults.set(customVocabulary, forKey: Keys.customVocabulary) }
+    }
+
+    var teammates: [Teammate] {
+        didSet { persistTeammates() }
+    }
+
+    var deskUserName: String {
+        didSet { defaults.set(deskUserName, forKey: Keys.deskUserName) }
+    }
+
+    var clientFiles: [ClientFile] {
+        didSet { persistJSON(clientFiles, key: Keys.clientFiles) }
+    }
+
+    var standingMeetings: [StandingMeeting] {
+        didSet { persistJSON(standingMeetings, key: Keys.standingMeetings) }
     }
     
     var reviewBeforeEmail: Bool {
@@ -311,7 +331,16 @@ final class SettingsService {
     }
     
     func transcriptionPrompt() -> String? {
-        VocabularyFormatter.prompt(from: customVocabulary)
+        let names = teammates.map(\.trimmedName).filter { !$0.isEmpty }
+        let combined = names + customVocabulary
+        return VocabularyFormatter.prompt(from: combined)
+    }
+
+    func rememberSpokenName(_ name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        guard !customVocabulary.contains(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame }) else { return }
+        customVocabulary = customVocabulary + [trimmed]
     }
     
     func addVocabularyTerm(_ term: String) {
@@ -325,6 +354,65 @@ final class SettingsService {
     
     func removeVocabularyTerm(_ term: String) {
         customVocabulary = customVocabulary.filter { $0 != term }
+    }
+
+    func addTeammate(name: String, email: String) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !teammates.contains(where: { $0.trimmedName.caseInsensitiveCompare(trimmedName) == .orderedSame }) else { return }
+        teammates.append(Teammate(name: trimmedName, email: trimmedEmail))
+    }
+
+    func replaceTeammate(_ person: Teammate) {
+        guard let index = teammates.firstIndex(where: { $0.id == person.id }) else { return }
+        var updated = person
+        updated.name = person.trimmedName
+        updated.email = person.trimmedEmail
+        guard !updated.name.isEmpty else { return }
+        teammates[index] = updated
+    }
+
+    func removeTeammate(id: UUID) {
+        teammates.removeAll { $0.id == id }
+    }
+
+    func teammate(named name: String) -> Teammate? {
+        teammates.first { $0.trimmedName.caseInsensitiveCompare(name) == .orderedSame }
+    }
+
+    private func persistTeammates() {
+        persistJSON(teammates, key: Keys.teammates)
+    }
+
+    func owner(forProject name: String?) -> String? {
+        guard let name else { return nil }
+        return clientFiles.first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.defaultOwner
+    }
+
+    func upsertClient(name: String, owner: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        if let index = clientFiles.firstIndex(where: { $0.name.caseInsensitiveCompare(trimmed) == .orderedSame }) {
+            clientFiles[index].defaultOwner = owner
+            clientFiles[index].name = trimmed
+        } else {
+            clientFiles.append(ClientFile(name: trimmed, defaultOwner: owner))
+        }
+    }
+
+    func addStandingMeeting(_ meeting: StandingMeeting) {
+        standingMeetings.append(meeting)
+    }
+
+    func removeStandingMeeting(id: UUID) {
+        standingMeetings.removeAll { $0.id == id }
+    }
+
+    private func persistJSON<T: Encodable>(_ value: T, key: String) {
+        if let data = try? JSONEncoder().encode(value) {
+            defaults.set(data, forKey: key)
+        }
     }
     
     init(keychain: KeychainService, defaults: UserDefaults = .standard) {
@@ -375,6 +463,25 @@ final class SettingsService {
         self.hasAcceptedPrivacyPolicy = defaults.bool(forKey: Keys.hasAcceptedPrivacyPolicy)
         self.consentedProviders = Set(defaults.stringArray(forKey: Keys.consentedProviders) ?? [])
         self.customVocabulary = defaults.stringArray(forKey: Keys.customVocabulary) ?? []
+        if let data = defaults.data(forKey: Keys.teammates),
+           let decoded = try? JSONDecoder().decode([Teammate].self, from: data) {
+            self.teammates = decoded
+        } else {
+            self.teammates = Teammate.starterOffice
+        }
+        self.deskUserName = defaults.string(forKey: Keys.deskUserName) ?? ""
+        if let data = defaults.data(forKey: Keys.clientFiles),
+           let decoded = try? JSONDecoder().decode([ClientFile].self, from: data) {
+            self.clientFiles = decoded
+        } else {
+            self.clientFiles = []
+        }
+        if let data = defaults.data(forKey: Keys.standingMeetings),
+           let decoded = try? JSONDecoder().decode([StandingMeeting].self, from: data) {
+            self.standingMeetings = decoded
+        } else {
+            self.standingMeetings = []
+        }
         self.reviewBeforeEmail = defaults.object(forKey: Keys.reviewBeforeEmail) as? Bool ?? true
         if defaults.object(forKey: Keys.sendEmailAfterTranscription) != nil {
             self.sendEmailAfterTranscription = defaults.bool(forKey: Keys.sendEmailAfterTranscription)
@@ -510,6 +617,10 @@ final class SettingsService {
         hasAcceptedPrivacyPolicy = false
         consentedProviders = []
         customVocabulary = []
+        teammates = Teammate.starterOffice
+        deskUserName = ""
+        clientFiles = []
+        standingMeetings = []
         reviewBeforeEmail = true
         sendEmailAfterTranscription = false
         useOwnMailServerForEmail = false

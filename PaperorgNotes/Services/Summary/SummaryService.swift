@@ -83,12 +83,21 @@ final class SummaryService {
             ? "Keep summaries concise (2-3 sentences for short summary)."
             : "Provide a thorough detailed summary."
         let outputLanguageInstruction = languageOutputInstruction(for: language)
+        let knownNames = settings.teammates.map(\.trimmedName).filter { !$0.isEmpty }
+        let nameInstruction = knownNames.isEmpty
+            ? ""
+            : "Known people — when one of these is responsible, set assignee to the exact spelling: \(knownNames.joined(separator: ", "))."
+        let clientInstruction = outputType == .clientCall
+            ? "For this client call, shortSummary must say who called, what they asked, what was promised, and who will do it."
+            : ""
 
         return """
         Output type: \(outputType.displayName)
         Required output language: \(language.displayName)
         \(outputLanguageInstruction)
         \(lengthInstruction)
+        \(nameInstruction)
+        \(clientInstruction)
 
         Transcript:
         \(transcript)

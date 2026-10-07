@@ -1,3 +1,4 @@
+#if canImport(UIKit)
 import UIKit
 
 @MainActor
@@ -15,11 +16,13 @@ private final class BackgroundTaskHandle: @unchecked Sendable {
         identifier = .invalid
     }
 }
+#endif
 
 /// Keeps async work alive briefly when the user locks the phone mid-stop or mid-processing.
 enum BackgroundTaskRunner {
     @MainActor
     static func run<T>(_ name: String, operation: () async throws -> T) async rethrows -> T {
+        #if canImport(UIKit)
         let application = UIApplication.shared
         let handle = BackgroundTaskHandle(application: application)
         handle.identifier = application.beginBackgroundTask(withName: name) {
@@ -30,6 +33,7 @@ enum BackgroundTaskRunner {
         defer {
             handle.end()
         }
+        #endif
         return try await operation()
     }
 }

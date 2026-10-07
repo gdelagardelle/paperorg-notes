@@ -45,7 +45,7 @@ struct IncludedMinutesAccessView: View {
             }
             .padding(24)
             .navigationTitle(L10n.Included.title)
-            .navigationBarTitleDisplayMode(.inline)
+            .platformInlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(L10n.Common.cancel) { dismiss() }

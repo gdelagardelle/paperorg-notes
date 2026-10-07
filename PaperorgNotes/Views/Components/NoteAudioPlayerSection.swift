@@ -147,7 +147,7 @@ struct AudioTrimSheet: View {
                 }
             }
             .navigationTitle("Trim Recording")
-            .navigationBarTitleDisplayMode(.inline)
+            .platformInlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

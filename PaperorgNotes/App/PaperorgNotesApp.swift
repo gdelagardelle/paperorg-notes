@@ -7,7 +7,7 @@ struct PaperorgNotesApp: App {
     private let modelContainerResult: Result<ModelContainer, Error>
 
     init() {
-        modelContainerResult = Self.makeModelContainer()
+        modelContainerResult = AppModelContainer.make()
     }
 
     var body: some Scene {
@@ -21,24 +21,6 @@ struct PaperorgNotesApp: App {
             case .failure(let error):
                 StoreRecoveryView(error: error)
             }
-        }
-    }
-
-    private static func makeModelContainer() -> Result<ModelContainer, Error> {
-        let schema = Schema([
-            Note.self,
-            TranscriptSegmentModel.self,
-            StructuredSectionModel.self
-        ])
-        let config = ModelConfiguration(
-            schema: schema,
-            isStoredInMemoryOnly: false,
-            allowsSave: true
-        )
-        do {
-            return .success(try ModelContainer(for: schema, configurations: [config]))
-        } catch {
-            return .failure(error)
         }
     }
 }

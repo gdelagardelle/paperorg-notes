@@ -1,9 +1,9 @@
-import UIKit
+import Foundation
 
 struct ExportBranding {
     let brandName: String
     let brandSubtitle: String
-    let logo: UIImage?
+    let logo: PlatformImage?
     let footerText: String
 
     @MainActor
@@ -11,7 +11,7 @@ struct ExportBranding {
         guard settings.usesProBackend else { return nil }
         let name = settings.exportBrandName.trimmingCharacters(in: .whitespacesAndNewlines)
         let subtitle = settings.exportBrandSubtitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        let logo = storage.loadCustomExportLogo() ?? UIImage(named: "LaunchLogo")
+        let logo = storage.loadCustomExportLogo() ?? PlatformImageFactory.named("LaunchLogo")
         return ExportBranding(
             brandName: name.isEmpty ? "Paperorg Notes" : name,
             brandSubtitle: subtitle,
