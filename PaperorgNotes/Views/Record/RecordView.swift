@@ -901,9 +901,14 @@ struct ProcessingView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 32)
-        .background(AppScreenBackground())
+        #if os(macOS)
+        .frame(minWidth: 460)
+        .fixedSize(horizontal: false, vertical: true)
+        #else
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.hidden)
+        #endif
+        .background(AppScreenBackground())
     }
     
     private var errorContent: some View {
@@ -971,15 +976,15 @@ struct ProcessingView: View {
                 Text(step.displayName)
                     .font(.subheadline.weight(step == stage ? .semibold : .regular))
                     .foregroundStyle(step == stage ? AppTheme.textPrimary : AppTheme.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 if step == stage, let detail = step.detailMessage(for: language) {
                     Text(detail)
                         .font(.caption2)
                         .foregroundStyle(AppTheme.textSecondary)
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            
-            Spacer()
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
     
@@ -988,7 +993,7 @@ struct ProcessingView: View {
         if stageOrder(step) < stageOrder(stage) {
             Image(systemName: "checkmark")
                 .font(.caption.bold())
-                .foregroundStyle(.white)
+                .foregroundStyle(AppTheme.background)
         } else if step == stage {
             ProgressView()
                 .tint(AppTheme.accent)

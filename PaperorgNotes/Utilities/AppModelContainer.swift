@@ -3,7 +3,9 @@ import SwiftData
 
 enum AppModelContainer {
     /// SwiftData + CloudKit requires optional attributes/relationships and no unique constraints.
-    /// Audio/checkpoints still sync through `ICloudStorageRoot`; database sync stays local until schema v3.
+    /// The configuration default is `.automatic`, which turns CloudKit on as soon as the
+    /// iCloud entitlement is present and then fails to load (`SwiftDataError` 1) because
+    /// `Note.id` is unique. Audio still syncs through `ICloudStorageRoot`. The database stays local.
     private static let cloudKitDatabaseSyncEnabled = false
 
     static func make() -> Result<ModelContainer, Error> {
@@ -17,7 +19,8 @@ enum AppModelContainer {
             "PaperorgNotes",
             schema: schema,
             isStoredInMemoryOnly: false,
-            allowsSave: true
+            allowsSave: true,
+            cloudKitDatabase: .none
         )
 
         if cloudKitDatabaseSyncEnabled,
@@ -40,6 +43,26 @@ enum AppModelContainer {
         } catch {
             return .failure(error)
         }
+    }
+
+    /// Removes the SwiftData store only. Recordings live in a different folder and must stay.
+    static func destroyLocalStore() {
+        let schema = Schema([
+            Note.self,
+            TranscriptSegmentModel.self,
+            StructuredSectionModel.self
+        ])
+        let url = ModelConfiguration(
+            "PaperorgNotes",
+            schema: schema,
+            isStoredInMemoryOnly: false,
+            allowsSave: true,
+            cloudKitDatabase: .none
+        ).url
+        let fileManager = FileManager.default
+        try? fileManager.removeItem(at: url)
+        try? fileManager.removeItem(atPath: url.path + "-shm")
+        try? fileManager.removeItem(atPath: url.path + "-wal")
     }
 
     private static var hasCloudKitEntitlement: Bool {

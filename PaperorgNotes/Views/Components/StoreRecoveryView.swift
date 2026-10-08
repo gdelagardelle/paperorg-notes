@@ -39,9 +39,7 @@ struct StoreRecoveryView: View {
     }
 
     private func resetStore() {
-        let supportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("PaperorgNotes", isDirectory: true)
-        try? FileManager.default.removeItem(at: supportURL)
+        AppModelContainer.destroyLocalStore()
         didReset = true
     }
 }

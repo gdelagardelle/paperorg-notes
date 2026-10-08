@@ -26,13 +26,17 @@ Copy full EN / FR / DE description sections from METADATA.md.
 - **FR:** `compte rendu,transcription,luxembourgeois,dictée,résumé IA,réunion,notes vocales`
 - **DE:** `meeting notes,transkription,lëtzebuergesch,diktat,ki zusammenfassung,mehrsprachig`
 
-## What's New (build 79, version 1.0.11)
+## What's New (build 80, version 1.0.12)
 
-**EN:** Write a recording in another language, and ask for a longer summary. A failed summary keeps the transcript instead of replacing the note.
+**EN:** Notes open again after the last update. Write a recording in another language, and ask for a longer summary. A failed summary keeps the transcript.
+
+**FR:** Les notes s’ouvrent à nouveau. Une conversation peut être rédigée dans une autre langue, et le résumé peut être plus long.
+
+**DE:** Notizen öffnen sich wieder. Eine Aufnahme kann in einer anderen Sprache geschrieben werden, und die Zusammenfassung kann länger sein.
 
 ## TestFlight
 
-Build **1.0.11 (79)** is the next upload. 1.0.10 is already on sale, so this is a new version, not a replacement build.
+Build **1.0.12 (80)** is the next upload. 1.0.10 is on sale. 1.0.11 (79) was uploaded and must not be the version submitted for review.
 
 ## Web offer
 
