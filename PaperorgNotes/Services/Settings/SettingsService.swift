@@ -167,6 +167,23 @@ final class SettingsService {
         didSet { persistTeammates() }
     }
 
+    /// Office names are a Mac desk feature. The phone must not seed or send them.
+    var officeRoster: [Teammate] {
+        #if os(macOS)
+        teammates
+        #else
+        []
+        #endif
+    }
+
+    private static var defaultTeammates: [Teammate] {
+        #if os(macOS)
+        Teammate.starterOffice
+        #else
+        []
+        #endif
+    }
+
     var deskUserName: String {
         didSet { defaults.set(deskUserName, forKey: Keys.deskUserName) }
     }
@@ -354,7 +371,7 @@ final class SettingsService {
     }
     
     func transcriptionPrompt() -> String? {
-        let names = teammates.map(\.trimmedName).filter { !$0.isEmpty }
+        let names = officeRoster.map(\.trimmedName).filter { !$0.isEmpty }
         let combined = names + customVocabulary
         return VocabularyFormatter.prompt(from: combined)
     }
@@ -492,7 +509,7 @@ final class SettingsService {
            let decoded = try? JSONDecoder().decode([Teammate].self, from: data) {
             self.teammates = decoded
         } else {
-            self.teammates = Teammate.starterOffice
+            self.teammates = Self.defaultTeammates
         }
         self.deskUserName = defaults.string(forKey: Keys.deskUserName) ?? ""
         if let data = defaults.data(forKey: Keys.clientFiles),
@@ -644,7 +661,7 @@ final class SettingsService {
         hasAcceptedPrivacyPolicy = false
         consentedProviders = []
         customVocabulary = []
-        teammates = Teammate.starterOffice
+        teammates = Self.defaultTeammates
         deskUserName = ""
         clientFiles = []
         standingMeetings = []

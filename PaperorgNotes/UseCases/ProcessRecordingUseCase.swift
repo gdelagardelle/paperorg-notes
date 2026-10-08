@@ -368,7 +368,7 @@ final class ProcessRecordingUseCase {
             structured,
             transcript: note.displayTranscript,
             segments: note.segments,
-            teammates: settingsService.teammates,
+            teammates: settingsService.officeRoster,
             defaultOwner: settingsService.owner(forProject: note.projectName)
         )
         note.summaryShort = enriched.shortSummary

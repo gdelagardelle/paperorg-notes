@@ -93,7 +93,7 @@ final class SummaryService {
             ? "Keep summaries concise (2-3 sentences for short summary)."
             : "Provide a thorough detailed summary."
         let outputLanguageInstruction = languageOutputInstruction(for: language)
-        let knownNames = settings.teammates.map(\.trimmedName).filter { !$0.isEmpty }
+        let knownNames = settings.officeRoster.map(\.trimmedName).filter { !$0.isEmpty }
         let nameInstruction = knownNames.isEmpty
             ? ""
             : "Known people — when one of these is responsible, set assignee to the exact spelling: \(knownNames.joined(separator: ", "))."

@@ -6,7 +6,9 @@ struct NoteOrganizerSection: View {
     @Environment(\.modelContext) private var modelContext
     @State private var newTag = ""
     @State private var projectName: String = ""
+    #if os(macOS)
     @State private var handoffMessage: String?
+    #endif
     
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -77,6 +79,7 @@ struct NoteOrganizerSection: View {
                 }
             }
 
+            #if os(macOS)
             if !teammates.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Hand off")
@@ -98,6 +101,7 @@ struct NoteOrganizerSection: View {
                     }
                 }
             }
+            #endif
         }
         .surfaceCard()
         .onAppear {
@@ -127,6 +131,7 @@ struct NoteOrganizerSection: View {
         try? modelContext.save()
     }
 
+    #if os(macOS)
     private var teammates: [Teammate] {
         environment.settingsService.teammates.filter { !$0.trimmedName.isEmpty }
     }
@@ -147,6 +152,7 @@ struct NoteOrganizerSection: View {
             }
         }
     }
+    #endif
 }
 
 /// Simple horizontal flow layout for tags

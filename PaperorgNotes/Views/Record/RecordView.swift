@@ -262,6 +262,7 @@ struct RecordView: View {
                 }
             }
 
+            #if os(macOS)
             if !environment.settingsService.standingMeetings.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Standing meeting")
@@ -282,6 +283,7 @@ struct RecordView: View {
                     }
                 }
             }
+            #endif
 
             importRow
         }
@@ -454,10 +456,12 @@ struct RecordView: View {
         }
     }
 
+    #if os(macOS)
     private func applyStanding(_ meeting: StandingMeeting) {
         standingMeetingID = meeting.id
         selectedOutputType = meeting.outputType
     }
+    #endif
 
     private func applyStandingMeeting(to note: Note) {
         guard let standingMeetingID,

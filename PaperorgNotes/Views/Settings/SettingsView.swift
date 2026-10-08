@@ -104,6 +104,7 @@ struct SettingsView: View {
                     }
                 }
 
+                #if os(macOS)
                 Section {
                     TextField("Your name", text: $settings.deskUserName)
                     SettingsSectionHint(text: "Used for the Mine list. Tasks assigned to this name stay with you.")
@@ -203,6 +204,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Standing meetings")
                 }
+                #endif
                 
                 Section {
                     VStack(alignment: .leading, spacing: 8) {

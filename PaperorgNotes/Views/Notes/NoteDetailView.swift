@@ -361,13 +361,14 @@ struct NoteDetailView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(item.text)
                                 .strikethrough(item.isCompleted)
+                            #if os(macOS)
                             HStack {
                                 Menu(item.assignee ?? "Assign") {
                                     Button("Unassigned") {
                                         ActionItemPersistence.assign(nil, itemId: item.id, on: note)
                                         try? modelContext.save()
                                     }
-                                    ForEach(environment.settingsService.teammates) { person in
+                                    ForEach(environment.settingsService.officeRoster) { person in
                                         Button(person.trimmedName) {
                                             ActionItemPersistence.assign(person.trimmedName, itemId: item.id, on: note)
                                             try? modelContext.save()
@@ -381,6 +382,13 @@ struct NoteDetailView: View {
                                         .foregroundStyle(AppTheme.textSecondary)
                                 }
                             }
+                            #else
+                            if let due = item.dueDate, !due.isEmpty {
+                                Text(due)
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.textSecondary)
+                            }
+                            #endif
                         }
                     }
                 }

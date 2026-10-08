@@ -26,7 +26,7 @@ Copy full EN / FR / DE description sections from METADATA.md.
 - **FR:** `compte rendu,transcription,luxembourgeois,dictée,résumé IA,réunion,notes vocales`
 - **DE:** `meeting notes,transkription,lëtzebuergesch,diktat,ki zusammenfassung,mehrsprachig`
 
-## What's New (build 80, version 1.0.12)
+## What's New (build 81, version 1.0.12)
 
 **EN:** Notes open again after the last update. Write a recording in another language, and ask for a longer summary. A failed summary keeps the transcript.
 
@@ -36,7 +36,7 @@ Copy full EN / FR / DE description sections from METADATA.md.
 
 ## TestFlight
 
-Build **1.0.12 (80)** is the next upload. 1.0.10 is on sale. 1.0.11 (79) was uploaded and must not be the version submitted for review.
+Build **1.0.12 (81)** replaces build 80, which was pulled because the phone still showed the office roster. 1.0.10 is on sale.
 
 ## Web offer
 
