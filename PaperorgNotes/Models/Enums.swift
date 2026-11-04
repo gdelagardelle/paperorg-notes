@@ -138,6 +138,7 @@ enum OutputType: String, Codable, CaseIterable, Identifiable, Sendable {
 
 enum NoteStatus: String, Codable, Sendable {
     case draft
+    case awaitingTranscription
     case processing
     case waitingForNetwork
     case ready

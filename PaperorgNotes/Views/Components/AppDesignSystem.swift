@@ -176,6 +176,8 @@ struct NoteStatusBadge: View {
         switch status {
         case .ready:
             Image(systemName: "checkmark.circle.fill")
+        case .awaitingTranscription:
+            Image(systemName: "waveform")
         case .processing:
             ProgressView()
                 .scaleEffect(0.65)
@@ -191,6 +193,7 @@ struct NoteStatusBadge: View {
     private var label: String {
         switch status {
         case .ready: return "Ready"
+        case .awaitingTranscription: return L10n.Record.savedStatus
         case .processing: return "Processing"
         case .waitingForNetwork: return L10n.OfflineRecovery.waitingStatus
         case .failed: return "Failed"
@@ -201,6 +204,7 @@ struct NoteStatusBadge: View {
     private var color: Color {
         switch status {
         case .ready: return AppTheme.primary
+        case .awaitingTranscription: return AppTheme.accent
         case .processing: return AppTheme.accent
         case .waitingForNetwork: return AppTheme.warning
         case .failed: return AppTheme.error
@@ -261,6 +265,14 @@ struct NoteCardRow: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
 
+                if note.noteStatus == .processing,
+                   LongRecordingTranscription.takesLonger(note.durationSeconds) {
+                    Text(L10n.Record.longTranscriptionStatus)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.accent)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 if style == .standard, !note.tags.isEmpty {
                     HStack(spacing: 6) {
                         ForEach(note.tags.prefix(3), id: \.self) { tag in
@@ -297,6 +309,7 @@ struct NoteCardRow: View {
     private var accentStripe: Color {
         switch note.noteStatus {
         case .ready: return AppTheme.primary
+        case .awaitingTranscription: return AppTheme.accent
         case .processing: return AppTheme.accent
         case .waitingForNetwork: return AppTheme.warning
         case .failed: return AppTheme.error

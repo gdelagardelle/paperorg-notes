@@ -43,6 +43,7 @@ final class ProcessRecordingUseCase {
     func execute(
         note: Note,
         audioURL: URL,
+        onProgress: (@MainActor (_ completed: Int, _ total: Int, _ waiting: Bool) -> Void)? = nil,
         onStageChange: @escaping (ProcessingStage) -> Void
     ) async throws {
         let startedAt = Date()
@@ -82,7 +83,8 @@ final class ProcessRecordingUseCase {
 
             let initialResult = try await transcribeRecording(
                 note: note,
-                audioURL: audioURL
+                audioURL: audioURL,
+                onProgress: onProgress
             )
             let resolvedLanguage = initialResult.language
             note.detectedLanguage = resolvedLanguage.rawValue
@@ -161,6 +163,7 @@ final class ProcessRecordingUseCase {
     
     func transcribeAgain(
         note: Note,
+        onProgress: (@MainActor (_ completed: Int, _ total: Int, _ waiting: Bool) -> Void)? = nil,
         onStageChange: @escaping (ProcessingStage) -> Void
     ) async throws {
         let audioURL = storageService.audioURL(for: note.id)
@@ -171,7 +174,12 @@ final class ProcessRecordingUseCase {
         note.processingStage = ProcessingStage.savingAudio.rawValue
         onStageChange(.savingAudio)
         try save(note)
-        try await execute(note: note, audioURL: audioURL, onStageChange: onStageChange)
+        try await execute(
+            note: note,
+            audioURL: audioURL,
+            onProgress: onProgress,
+            onStageChange: onStageChange
+        )
     }
     
     func resummarize(
@@ -212,63 +220,143 @@ final class ProcessRecordingUseCase {
     
     private func transcribeRecording(
         note: Note,
-        audioURL: URL
+        audioURL: URL,
+        onProgress: (@MainActor (_ completed: Int, _ total: Int, _ waiting: Bool) -> Void)? = nil
     ) async throws -> TranscriptionResult {
         let noteLanguage = note.appLanguage
         let segments = note.recordingLanguageSegments
+        let measuredDuration = await AudioTrimService.assetDuration(of: audioURL)
+        let totalDuration = max(note.durationSeconds, measuredDuration)
 
+        let planned: [LanguageAudioSlice]
         if TranscriptionLanguagePlanner.shouldTranscribeInSlices(
             noteLanguage: noteLanguage,
             segments: segments
         ) {
-            let slices = TranscriptionLanguagePlanner.recordingSlices(
+            planned = TranscriptionLanguagePlanner.recordingSlices(
                 noteLanguage: noteLanguage,
                 segments: segments,
-                totalDuration: note.durationSeconds
+                totalDuration: totalDuration
             )
-            guard !slices.isEmpty else {
+            guard !planned.isEmpty else {
                 throw TranscriptionError.providerError(
                     "Recording language switches were too close together. Record a bit longer in each language."
                 )
             }
-
-            var sliceResults: [(slice: LanguageAudioSlice, result: TranscriptionResult)] = []
-            sliceResults.reserveCapacity(slices.count)
-
-            for (index, slice) in slices.enumerated() {
-                let sliceURL = try await AudioTrimService.trim(
-                    sourceURL: audioURL,
-                    start: slice.startTime,
-                    end: slice.endTime
+        } else if LongRecordingTranscription.takesLonger(totalDuration)
+                    || AudioTrimService.fileByteCount(of: audioURL) > LongRecordingTranscription.maxUploadBytes {
+            let span = totalDuration > 0 ? totalDuration : measuredDuration
+            guard span > 0 else {
+                throw TranscriptionError.providerError(
+                    "This recording is too large to send in one piece, and its length could not be read."
                 )
-                defer { try? FileManager.default.removeItem(at: sliceURL) }
-
-                let result = try await transcribeSingle(
-                    noteLanguage: slice.language,
-                    audioURL: sliceURL,
-                    explicitLanguage: slice.language,
-                    recordingSegment: RecordingSegmentIdentity(
-                        sessionID: note.id,
-                        index: index,
-                        startSeconds: slice.startTime
-                    )
-                )
-                sliceResults.append((slice, result))
             }
-
-            guard let merged = TranscriptionLanguagePlanner.mergeTranscriptionResults(sliceResults),
-                  !merged.fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                throw TranscriptionError.emptyResult
-            }
-            return merged
+            planned = [
+                LanguageAudioSlice(language: noteLanguage, startTime: 0, endTime: span)
+            ]
+        } else {
+            return try await transcribeSingle(
+                noteLanguage: noteLanguage,
+                audioURL: audioURL,
+                explicitLanguage: noteLanguage,
+                recordingSegment: nil
+            )
         }
 
-        return try await transcribeSingle(
-            noteLanguage: noteLanguage,
-            audioURL: audioURL,
-            explicitLanguage: noteLanguage,
-            recordingSegment: nil
-        )
+        var pending = planned.flatMap { LongRecordingTranscription.chunks(of: $0) }
+        if pending.count == 1,
+           pending[0].startTime <= 0.05,
+           pending[0].endTime >= totalDuration - 0.5,
+           AudioTrimService.fileByteCount(of: audioURL) <= LongRecordingTranscription.maxUploadBytes {
+            return try await transcribeSingle(
+                noteLanguage: pending[0].language,
+                audioURL: audioURL,
+                explicitLanguage: pending[0].language,
+                recordingSegment: nil
+            )
+        }
+
+        var sliceResults: [(slice: LanguageAudioSlice, result: TranscriptionResult)] = []
+        var index = 0
+        var completed = 0
+        let estimate = max(1, Int((totalDuration / LongRecordingTranscription.chunkDuration).rounded(.up)))
+        while !pending.isEmpty {
+            let chunk = pending.removeFirst()
+            let sliceURL = try await AudioTrimService.trim(
+                sourceURL: audioURL,
+                start: chunk.startTime,
+                end: chunk.endTime
+            )
+            defer { try? FileManager.default.removeItem(at: sliceURL) }
+
+            if AudioTrimService.fileByteCount(of: sliceURL) > LongRecordingTranscription.maxUploadBytes,
+               chunk.duration > 20 {
+                let mid = chunk.startTime + (chunk.duration / 2)
+                pending.insert(
+                    LanguageAudioSlice(language: chunk.language, startTime: mid, endTime: chunk.endTime),
+                    at: 0
+                )
+                pending.insert(
+                    LanguageAudioSlice(language: chunk.language, startTime: chunk.startTime, endTime: mid),
+                    at: 0
+                )
+                continue
+            }
+
+            let total = max(estimate, completed + pending.count + 1)
+            onProgress?(completed, total, false)
+            let result = try await transcribeAllowingRateLimit(
+                noteLanguage: chunk.language,
+                audioURL: sliceURL,
+                explicitLanguage: chunk.language,
+                recordingSegment: RecordingSegmentIdentity(
+                    sessionID: note.id,
+                    index: index,
+                    startSeconds: chunk.startTime
+                ),
+                onWait: {
+                    onProgress?(completed, total, true)
+                }
+            )
+            index += 1
+            completed += 1
+            onProgress?(completed, max(estimate, completed), false)
+            sliceResults.append((chunk, result))
+        }
+
+        guard let merged = TranscriptionLanguagePlanner.mergeTranscriptionResults(sliceResults),
+              !merged.fullText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw TranscriptionError.emptyResult
+        }
+        return merged
+    }
+
+    /// A long note sends several requests. The server allows a short burst,
+    /// then asks the client to wait. Waiting here keeps the same note going.
+    private func transcribeAllowingRateLimit(
+        noteLanguage: AppLanguage,
+        audioURL: URL,
+        explicitLanguage: AppLanguage,
+        recordingSegment: RecordingSegmentIdentity?,
+        onWait: (@MainActor () -> Void)? = nil
+    ) async throws -> TranscriptionResult {
+        for attempt in 0..<12 {
+            do {
+                return try await transcribeSingle(
+                    noteLanguage: noteLanguage,
+                    audioURL: audioURL,
+                    explicitLanguage: explicitLanguage,
+                    recordingSegment: recordingSegment
+                )
+            } catch let error as ProBackendError where error.isTranscriptionRateLimit {
+                if attempt == 11 { throw error }
+                for _ in 0..<12 {
+                    onWait?()
+                    try await Task.sleep(nanoseconds: 15 * 1_000_000_000)
+                }
+            }
+        }
+        throw ProBackendError.transcriptionRateLimited
     }
 
     private func transcribeSingle(
@@ -423,7 +511,7 @@ final class ProcessRecordingUseCase {
             return error.localizedDescription
         }
         if error is CancellationError {
-            return "Processing was cancelled. Your previous transcript and summary were kept."
+            return "Transcription stopped. Open the note and tap Transcribe now to continue."
         }
         if error is DecodingError {
             return "Processing failed because the server returned an unexpected response. Open the note and tap Transcribe again."
@@ -467,5 +555,143 @@ final class ProcessRecordingUseCase {
         }
         
         return sections
+    }
+}
+
+enum SessionMerge {
+    /// Splits one saved recording into 3-hour parts when the session is longer.
+    /// A shorter recording is returned unchanged.
+    @MainActor
+    static func split(
+        _ note: Note,
+        storage: StorageService,
+        settings: SettingsService,
+        context: ModelContext
+    ) async -> [Note] {
+        let duration = note.durationSeconds
+        let boundaries = MergeableSession.parts(for: duration)
+        guard boundaries.count > 1 else { return [note] }
+
+        let source = storage.audioURL(for: note.id)
+        var temps: [URL] = []
+        var installed: [URL] = []
+        do {
+            for boundary in boundaries {
+                let url = try await AudioTrimService.trim(
+                    sourceURL: source,
+                    start: boundary.start,
+                    end: boundary.end
+                )
+                temps.append(url)
+            }
+            guard temps.count == boundaries.count else { throw AudioTrimError.exportFailed }
+
+            let baseTitle = MergeableSession.titleWithoutPartSuffix(note.title)
+            var partIDs = [note.id]
+            for index in 1..<boundaries.count {
+                let id = UUID()
+                let destination = storage.audioURL(for: id)
+                try storage.replaceAudio(at: destination, with: temps[index])
+                installed.append(destination)
+                partIDs.append(id)
+            }
+            try storage.replaceAudio(at: source, with: temps[0])
+
+            note.durationSeconds = boundaries[0].end - boundaries[0].start
+            note.title = MergeableSession.partTitle(baseTitle, index: 0, count: boundaries.count)
+            note.recordingLanguageSegments = []
+            note.status = NoteStatus.awaitingTranscription.rawValue
+
+            var notes = [note]
+            for index in 1..<boundaries.count {
+                let id = partIDs[index]
+                let part = Note(
+                    id: id,
+                    title: MergeableSession.partTitle(baseTitle, index: index, count: boundaries.count),
+                    audioFileName: "\(id.uuidString).m4a",
+                    language: note.appLanguage,
+                    outputType: note.noteOutputType,
+                    status: .awaitingTranscription
+                )
+                part.durationSeconds = boundaries[index].end - boundaries[index].start
+                context.insert(part)
+                notes.append(part)
+            }
+            settings.assignMergeGroup(notes.map(\.id))
+            try context.save()
+            return notes
+        } catch {
+            for url in temps + installed {
+                try? FileManager.default.removeItem(at: url)
+            }
+            return [note]
+        }
+    }
+
+    @MainActor
+    static func merge(
+        _ notes: [Note],
+        storage: StorageService,
+        settings: SettingsService,
+        context: ModelContext
+    ) async throws {
+        guard notes.count > 1 else { return }
+        let output = FileManager.default.temporaryDirectory
+            .appendingPathComponent("merge-\(UUID().uuidString).m4a")
+        try await AudioTrimService.join(
+            urls: notes.map { storage.audioURL(for: $0.id) },
+            into: output
+        )
+        let primary = notes[0]
+        try storage.replaceAudio(at: storage.audioURL(for: primary.id), with: output)
+        primary.durationSeconds = notes.reduce(0) { $0 + $1.durationSeconds }
+        primary.title = MergeableSession.titleWithoutPartSuffix(primary.title)
+        primary.recordingLanguageSegments = []
+        primary.updatedAt = .now
+
+        let transcripts = notes.map {
+            $0.displayTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        let kept = transcripts.filter { !$0.isEmpty }
+        clearGeneratedText(on: primary, context: context)
+        if kept.count == notes.count {
+            primary.rawTranscript = kept.joined(separator: "\n\n")
+            primary.status = NoteStatus.ready.rawValue
+        } else {
+            primary.rawTranscript = kept.isEmpty ? nil : kept.joined(separator: "\n\n")
+            primary.status = NoteStatus.awaitingTranscription.rawValue
+        }
+
+        settings.clearMergeGroup(containing: primary.id)
+        for extra in notes.dropFirst() {
+            storage.deleteAudio(for: extra.id)
+            for segment in extra.segments {
+                context.delete(segment)
+            }
+            for section in extra.structuredSections {
+                context.delete(section)
+            }
+            context.delete(extra)
+        }
+        try context.save()
+    }
+
+    @MainActor
+    private static func clearGeneratedText(on note: Note, context: ModelContext) {
+        for segment in note.segments {
+            context.delete(segment)
+        }
+        note.segments.removeAll()
+        for section in note.structuredSections {
+            context.delete(section)
+        }
+        note.structuredSections.removeAll()
+        note.rawTranscript = nil
+        note.correctedTranscript = nil
+        note.summaryShort = nil
+        note.summaryDetailed = nil
+        note.structuredOutputJSON = nil
+        note.qualityReportJSON = nil
+        note.errorMessage = nil
     }
 }

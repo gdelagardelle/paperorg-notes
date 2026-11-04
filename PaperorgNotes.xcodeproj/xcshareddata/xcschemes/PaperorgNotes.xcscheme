@@ -29,6 +29,34 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "CCC79E126D4920037F54714B"
+               BuildableName = "PaperorgNotesWatch.app"
+               BlueprintName = "PaperorgNotesWatch"
+               ReferencedContainer = "container:PaperorgNotes.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "7F6E55621FFE4933270DC99D"
+               BuildableName = "PaperorgNotesWatchWidget.appex"
+               BlueprintName = "PaperorgNotesWatchWidget"
+               ReferencedContainer = "container:PaperorgNotes.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "AB87B253C8F1B026D3F065F5"
                BuildableName = "PaperorgNotesWidgetExtension.appex"
                BlueprintName = "PaperorgNotesWidgetExtension"

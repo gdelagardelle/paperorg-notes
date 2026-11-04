@@ -17,6 +17,8 @@ final class SettingsService {
         static let summaryLength = "summaryLength"
         static let defaultSummaryWriteLanguage = "defaultSummaryWriteLanguage"
         static let summaryWriteLanguagesByNote = "summaryWriteLanguagesByNote"
+        static let mergeGroupByNote = "mergeGroupByNote"
+        static let mergeGroupMembers = "mergeGroupMembers"
         static let keepAudioFiles = "keepAudioFiles"
         static let deleteAudioAfterDays = "deleteAudioAfterDays"
         static let emailRecipients = "emailRecipients"
@@ -62,7 +64,10 @@ final class SettingsService {
 
     /// Last language chip selected on the Record screen (defaults to auto-detect for new installs).
     var preferredRecordLanguage: AppLanguage {
-        didSet { defaults.set(preferredRecordLanguage.rawValue, forKey: Keys.preferredRecordLanguage) }
+        didSet {
+            defaults.set(preferredRecordLanguage.rawValue, forKey: Keys.preferredRecordLanguage)
+            publishWatchSetup()
+        }
     }
     
     var autoDetectLanguage: Bool {
@@ -104,6 +109,42 @@ final class SettingsService {
     func setSummaryWriteLanguage(_ language: SummaryWriteLanguage, for noteID: UUID) {
         summaryWriteLanguagesByNote[noteID.uuidString] = language.rawValue
     }
+
+    private var mergeGroupByNote: [String: String] {
+        didSet { defaults.set(mergeGroupByNote, forKey: Keys.mergeGroupByNote) }
+    }
+
+    private var mergeGroupMembers: [String: [String]] {
+        didSet { defaults.set(mergeGroupMembers, forKey: Keys.mergeGroupMembers) }
+    }
+
+    func assignMergeGroup(_ noteIDs: [UUID]) {
+        guard noteIDs.count > 1 else { return }
+        let group = UUID().uuidString
+        let members = noteIDs.map(\.uuidString)
+        var groups = mergeGroupByNote
+        for id in members {
+            groups[id] = group
+        }
+        mergeGroupByNote = groups
+        mergeGroupMembers[group] = members
+    }
+
+    func mergeMembers(containing noteID: UUID) -> [UUID] {
+        guard let group = mergeGroupByNote[noteID.uuidString],
+              let members = mergeGroupMembers[group] else { return [] }
+        return members.compactMap(UUID.init(uuidString:))
+    }
+
+    func clearMergeGroup(containing noteID: UUID) {
+        guard let group = mergeGroupByNote[noteID.uuidString] else { return }
+        var groups = mergeGroupByNote
+        for id in mergeGroupMembers[group] ?? [] {
+            groups.removeValue(forKey: id)
+        }
+        mergeGroupByNote = groups
+        mergeGroupMembers.removeValue(forKey: group)
+    }
     
     var keepAudioFiles: Bool {
         didSet { defaults.set(keepAudioFiles, forKey: Keys.keepAudioFiles) }
@@ -124,7 +165,10 @@ final class SettingsService {
     }
     
     var emailRecipients: [String] {
-        didSet { defaults.set(emailRecipients, forKey: Keys.emailRecipients) }
+        didSet {
+            defaults.set(emailRecipients, forKey: Keys.emailRecipients)
+            publishWatchSetup()
+        }
     }
     
     var emailPolicy: EmailPolicy {
@@ -201,7 +245,10 @@ final class SettingsService {
     }
 
     var sendEmailAfterTranscription: Bool {
-        didSet { defaults.set(sendEmailAfterTranscription, forKey: Keys.sendEmailAfterTranscription) }
+        didSet {
+            defaults.set(sendEmailAfterTranscription, forKey: Keys.sendEmailAfterTranscription)
+            publishWatchSetup()
+        }
     }
 
     var useOwnMailServerForEmail: Bool {
@@ -234,6 +281,14 @@ final class SettingsService {
             && !smtpFromAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && smtpPassword != nil
     }
+
+    #if os(iOS)
+    private func publishWatchSetup() {
+        WatchRecordingInbox.shared.pushSetup()
+    }
+    #else
+    private func publishWatchSetup() {}
+    #endif
 
     var canAutomaticallySendEmail: Bool {
         if useOwnMailServerForEmail {
@@ -489,6 +544,9 @@ final class SettingsService {
         self.summaryLength = SummaryLength(rawValue: defaults.string(forKey: Keys.summaryLength) ?? "") ?? .detailed
         self.defaultSummaryWriteLanguage = SummaryWriteLanguage(rawValue: defaults.string(forKey: Keys.defaultSummaryWriteLanguage) ?? "") ?? .same
         self.summaryWriteLanguagesByNote = defaults.dictionary(forKey: Keys.summaryWriteLanguagesByNote) as? [String: String] ?? [:]
+        self.mergeGroupByNote = defaults.dictionary(forKey: Keys.mergeGroupByNote) as? [String: String] ?? [:]
+        let storedMembers = defaults.dictionary(forKey: Keys.mergeGroupMembers) ?? [:]
+        self.mergeGroupMembers = storedMembers.compactMapValues { $0 as? [String] }
         self.keepAudioFiles = defaults.object(forKey: Keys.keepAudioFiles) as? Bool ?? true
         
         let retentionDays = defaults.integer(forKey: Keys.deleteAudioAfterDays)
@@ -648,6 +706,8 @@ final class SettingsService {
         summaryLength = .detailed
         defaultSummaryWriteLanguage = .same
         summaryWriteLanguagesByNote = [:]
+        mergeGroupByNote = [:]
+        mergeGroupMembers = [:]
         keepAudioFiles = true
         deleteAudioAfterDays = nil
         deleteAudioAfterTranscription = false

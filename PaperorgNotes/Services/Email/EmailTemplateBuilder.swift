@@ -28,6 +28,7 @@ struct EmailNoteContent: Sendable {
     let languageDisplayName: String
     let outputType: OutputType
     var audioAttached: Bool
+    var audioTooLargeToAttach: Bool
 
     init(
         title: String,
@@ -39,7 +40,8 @@ struct EmailNoteContent: Sendable {
         language: AppLanguage,
         languageDisplayName: String? = nil,
         outputType: OutputType,
-        audioAttached: Bool = false
+        audioAttached: Bool = false,
+        audioTooLargeToAttach: Bool = false
     ) {
         self.title = title
         self.summary = summary
@@ -51,6 +53,7 @@ struct EmailNoteContent: Sendable {
         self.languageDisplayName = languageDisplayName ?? language.displayName
         self.outputType = outputType
         self.audioAttached = audioAttached
+        self.audioTooLargeToAttach = audioTooLargeToAttach
     }
 
     @MainActor
@@ -107,13 +110,14 @@ struct EmailNoteContent: Sendable {
     }
 
     var plainText: String {
+        var text: String
         switch contentMode {
         case .summaryOnly:
-            return summary
+            text = summary
         case .fullTranscript:
-            return transcript
+            text = transcript
         case .both:
-            var text = ""
+            text = ""
             if !summary.isEmpty {
                 text += "SUMMARY\n\(summary)\n\n"
             }
@@ -121,8 +125,12 @@ struct EmailNoteContent: Sendable {
             if audioAttached {
                 text += "\n\nAUDIO\nThe recording is attached."
             }
-            return text
         }
+        if audioTooLargeToAttach {
+            if !text.isEmpty { text += "\n\n" }
+            text += "AUDIO\n\(String(localized: "email.audio_too_large"))"
+        }
+        return text
     }
 }
 
@@ -176,7 +184,7 @@ enum EmailTemplateBuilder {
                   <tr>
                     <td style="padding:20px 28px 28px 28px;border-top:1px solid \(border);background:#FAFBFD;">
                       <div style="font-size:12px;line-height:1.5;color:\(textSecondary);">
-                        Sent by <strong style="color:\(primary);">Paperorg Notes</strong>.\(content.audioAttached ? " The recording is attached." : "")
+                        Sent by <strong style="color:\(primary);">Paperorg Notes</strong>.\(content.audioAttached ? " The recording is attached." : "")\(content.audioTooLargeToAttach ? " \(escapeHTML(String(localized: "email.audio_too_large")))" : "")
                       </div>
                     </td>
                   </tr>
@@ -216,6 +224,8 @@ enum EmailTemplateBuilder {
         }
         if content.audioAttached {
             html += section(title: "Audio", body: "The recording is attached.", topPadding: html.isEmpty ? 16 : 8)
+        } else if content.audioTooLargeToAttach {
+            html += section(title: "Audio", body: String(localized: "email.audio_too_large"), topPadding: html.isEmpty ? 16 : 8)
         }
         return html
     }

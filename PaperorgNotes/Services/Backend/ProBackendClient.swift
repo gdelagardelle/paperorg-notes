@@ -297,6 +297,7 @@ final class ProBackendClient {
         var request = URLRequest(url: baseURL.appending(path: "/v1/summarize"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 180
         try authorize(&request)
 
         var outputTypeName = outputType.displayName

@@ -94,6 +94,21 @@ enum L10n {
         static let noteStyle = String(localized: "record.note_style")
         static let emptyTitle = String(localized: "record.empty.title")
         static let emptySubtitle = String(localized: "record.empty.subtitle")
+        static let longTranscriptionTitle = String(localized: "record.long_transcription.title")
+        static let longTranscriptionMessage = String(localized: "record.long_transcription.message")
+        static let longTranscriptionStatus = String(localized: "record.long_transcription.status")
+        static let longTranscriptionWaiting = String(localized: "record.long_transcription.waiting")
+
+        static func longTranscriptionPart(_ completed: Int, _ total: Int) -> String {
+            String(format: String(localized: "record.long_transcription.part"), completed, total)
+        }
+        static let transcriptionChoiceTitle = String(localized: "record.transcription_choice.title")
+        static let transcriptionChoiceMessage = String(localized: "record.transcription_choice.message")
+        static let transcriptionChoiceMerge = String(localized: "record.transcription_choice.merge")
+        static let transcribeNow = String(localized: "record.transcribe_now")
+        static let transcribeLater = String(localized: "record.transcribe_later")
+        static let savedStatus = String(localized: "record.saved_status")
+        static let mergeParts = String(localized: "record.merge_parts")
     }
 
     enum Import {
@@ -230,6 +245,9 @@ enum L10n {
         static let close = String(localized: "email.close")
         static let shareNote = String(localized: "email.share_note")
         static let button = String(localized: "email.button")
+        static let shareRecording = String(localized: "email.share_recording")
+        static let audioTooLarge = String(localized: "email.audio_too_large")
+        static let shareRecordingHint = String(localized: "email.share_recording.hint")
         static let alertTitle = String(localized: "email.alert.title")
         static let openSettings = String(localized: "email.open_settings")
 

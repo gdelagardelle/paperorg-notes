@@ -9,6 +9,69 @@ struct LanguageAudioSlice: Sendable, Hashable {
 }
 
 /// Pure helpers for transcription language planning.
+enum MergeableSession {
+    /// One part stays within the 3-hour upload the live server accepts as a single file.
+    static let partLimit: TimeInterval = 3 * 60 * 60
+
+    static func isMergable(_ duration: TimeInterval) -> Bool {
+        duration > partLimit + 1
+    }
+
+    static func parts(for duration: TimeInterval) -> [(start: TimeInterval, end: TimeInterval)] {
+        guard isMergable(duration), duration > 0 else { return [(0, max(duration, 0))] }
+        var pieces: [(start: TimeInterval, end: TimeInterval)] = []
+        var start: TimeInterval = 0
+        while start < duration - 0.05 {
+            let end = min(start + partLimit, duration)
+            guard end - start > 0.05 else { break }
+            pieces.append((start, end))
+            start = end
+        }
+        return pieces
+    }
+
+    static func partTitle(_ title: String, index: Int, count: Int) -> String {
+        "\(title) · \(index + 1)/\(count)"
+    }
+
+    static func titleWithoutPartSuffix(_ title: String) -> String {
+        guard let range = title.range(of: #" · \d+/\d+$"#, options: .regularExpression) else {
+            return title
+        }
+        return String(title[..<range.lowerBound])
+    }
+}
+
+enum LongRecordingTranscription {
+    /// The live server refuses one upload over 100 MB, and a free account
+    /// over 3 minutes. Two and a half minutes stays under both.
+    static let chunkDuration: TimeInterval = 150
+    static let maxUploadBytes = 8 * 1024 * 1024
+
+    static func takesLonger(_ duration: TimeInterval) -> Bool {
+        duration > chunkDuration + 1
+    }
+
+    static func chunks(
+        of slice: LanguageAudioSlice,
+        maximumChunkDuration: TimeInterval = chunkDuration
+    ) -> [LanguageAudioSlice] {
+        guard slice.duration > maximumChunkDuration + 0.05 else { return [slice] }
+
+        var pieces: [LanguageAudioSlice] = []
+        var start = slice.startTime
+        while start < slice.endTime - 0.05 {
+            let end = min(start + maximumChunkDuration, slice.endTime)
+            guard end - start > 0.05 else { break }
+            pieces.append(
+                LanguageAudioSlice(language: slice.language, startTime: start, endTime: end)
+            )
+            start = end
+        }
+        return pieces
+    }
+}
+
 enum TranscriptionLanguagePlanner {
     static let minimumSliceDuration: TimeInterval = 0.5
 

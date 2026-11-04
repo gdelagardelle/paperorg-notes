@@ -202,6 +202,7 @@ enum ProBackendError: LocalizedError {
     case deviceIntegrityVerificationFailed
     case audioTooLong
     case recordingSegmentConflict
+    case transcriptionRateLimited
     case serverError(String)
 
     var errorDescription: String? {
@@ -218,9 +219,16 @@ enum ProBackendError: LocalizedError {
             return L10n.Import.errorServerTooLong
         case .recordingSegmentConflict:
             return "Recording segments conflict. Try transcribing again."
+        case .transcriptionRateLimited:
+            return String(localized: "pro.error.transcription_busy")
         case .serverError:
             return String(localized: "pro.error.unavailable")
         }
+    }
+
+    var isTranscriptionRateLimit: Bool {
+        if case .transcriptionRateLimited = self { return true }
+        return false
     }
 
     /// A 413/429/402 from notes-api is a final answer. Continuing the provider
@@ -228,7 +236,8 @@ enum ProBackendError: LocalizedError {
     var stopsProviderFallback: Bool {
         switch self {
         case .audioTooLong, .usageLimitReached, .subscriptionRequired,
-             .deviceIntegrityVerificationFailed, .recordingSegmentConflict:
+             .deviceIntegrityVerificationFailed, .recordingSegmentConflict,
+             .transcriptionRateLimited:
             return true
         case .notAuthenticated, .serverError:
             return false
@@ -262,6 +271,9 @@ enum ProBackendHTTPMapping {
         case 413:
             return treats413AsAudioTooLong ? .audioTooLong : .serverError(message)
         case 429:
+            if message.localizedCaseInsensitiveContains("too many transcription requests") {
+                return .transcriptionRateLimited
+            }
             return .usageLimitReached
         default:
             return .serverError(message)

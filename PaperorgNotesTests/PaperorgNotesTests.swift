@@ -1290,11 +1290,63 @@ final class TranscriptionFallbackPolicyTests: XCTestCase {
         XCTAssertTrue(ProBackendError.usageLimitReached.stopsProviderFallback)
         XCTAssertTrue(ProBackendError.subscriptionRequired.stopsProviderFallback)
         XCTAssertTrue(ProBackendError.deviceIntegrityVerificationFailed.stopsProviderFallback)
+        XCTAssertTrue(ProBackendError.transcriptionRateLimited.stopsProviderFallback)
     }
 
     func testTransientBackendErrorsMayTryTheNextProvider() {
         XCTAssertFalse(ProBackendError.serverError("timeout").stopsProviderFallback)
         XCTAssertFalse(ProBackendError.notAuthenticated.stopsProviderFallback)
+    }
+}
+
+final class MergeableSessionTests: XCTestCase {
+    func testThreeHoursStaysOnePart() {
+        let parts = MergeableSession.parts(for: 3 * 60 * 60)
+        XCTAssertEqual(parts.count, 1)
+        XCTAssertFalse(MergeableSession.isMergable(3 * 60 * 60))
+    }
+
+    func testFourHoursSplitsIntoMergeableParts() {
+        let parts = MergeableSession.parts(for: 4 * 60 * 60)
+        XCTAssertEqual(parts.count, 2)
+        XCTAssertEqual(parts[0].start, 0)
+        XCTAssertEqual(parts[0].end, 3 * 60 * 60)
+        XCTAssertEqual(parts[1].start, 3 * 60 * 60)
+        XCTAssertEqual(parts[1].end, 4 * 60 * 60)
+        XCTAssertTrue(MergeableSession.isMergable(4 * 60 * 60))
+    }
+
+    func testPartTitleRoundTrips() {
+        let titled = MergeableSession.partTitle("Untitled Recording", index: 1, count: 2)
+        XCTAssertEqual(titled, "Untitled Recording · 2/2")
+        XCTAssertEqual(MergeableSession.titleWithoutPartSuffix(titled), "Untitled Recording")
+    }
+}
+
+final class LongRecordingTranscriptionTests: XCTestCase {
+    func testAShortSliceStaysWhole() {
+        let slice = LanguageAudioSlice(language: .french, startTime: 0, endTime: 120)
+        XCTAssertEqual(LongRecordingTranscription.chunks(of: slice).count, 1)
+        XCTAssertFalse(LongRecordingTranscription.takesLonger(120))
+    }
+
+    func testAFourHourRecordingSplitsIntoShortPieces() {
+        let slice = LanguageAudioSlice(language: .luxembourgish, startTime: 0, endTime: 240 * 60)
+        let pieces = LongRecordingTranscription.chunks(of: slice)
+        XCTAssertEqual(pieces.count, 96)
+        XCTAssertEqual(pieces.first?.startTime, 0)
+        XCTAssertEqual(pieces.last?.endTime, 240 * 60)
+        XCTAssertTrue(pieces.allSatisfy { $0.duration <= 150 + 0.01 })
+        XCTAssertTrue(LongRecordingTranscription.takesLonger(240 * 60))
+    }
+
+    func testALanguageSliceKeepsItsLanguageWhenSplit() {
+        let slice = LanguageAudioSlice(language: .german, startTime: 1_000, endTime: 2_500)
+        let pieces = LongRecordingTranscription.chunks(of: slice)
+        XCTAssertEqual(pieces.count, 10)
+        XCTAssertEqual(pieces.map(\.language), Array(repeating: AppLanguage.german, count: 10))
+        XCTAssertEqual(pieces.first?.startTime, 1_000)
+        XCTAssertEqual(pieces.last?.endTime, 2_500)
     }
 }
 
@@ -1312,8 +1364,34 @@ final class RecordingLengthPolicyTests: XCTestCase {
         XCTAssertEqual(RecordingLengthPolicy.capMinutes(from: nil, isPro: false), 3)
     }
 
-    func testAMissingServerCapStillStopsProAtThreeHours() {
-        XCTAssertEqual(RecordingLengthPolicy.capMinutes(from: nil, isPro: true), 180)
+    func testAMissingServerCapStillStopsProAtFourHours() {
+        XCTAssertEqual(RecordingLengthPolicy.capMinutes(from: nil, isPro: true), 240)
+    }
+
+    func testTheOldThreeHourServerCapLetsProRecordFourHours() {
+        let usage = ProUsageInfo(
+            isPro: true,
+            minutesLimit: 600,
+            minutesUsed: 0,
+            minutesRemaining: 600,
+            periodKey: "2026-10",
+            proExpiresAt: nil,
+            maxRecordingMinutes: 180
+        )
+        XCTAssertEqual(RecordingLengthPolicy.capMinutes(from: usage, isPro: true), 240)
+    }
+
+    func testADifferentServerCapStillWinsForPro() {
+        let usage = ProUsageInfo(
+            isPro: true,
+            minutesLimit: 600,
+            minutesUsed: 0,
+            minutesRemaining: 600,
+            periodKey: "2026-10",
+            proExpiresAt: nil,
+            maxRecordingMinutes: 120
+        )
+        XCTAssertEqual(RecordingLengthPolicy.capMinutes(from: usage, isPro: true), 120)
     }
 
     func testTheServerCapWinsWhenPresent() {
@@ -1340,6 +1418,18 @@ final class BackendHTTPMappingTests: XCTestCase {
         guard case .audioTooLong = error else {
             return XCTFail("413 on transcribe must be audioTooLong, got \(error)")
         }
+    }
+
+    func testABurstOfTranscriptionRequestsIsNotTheMonthlyQuota() {
+        let error = ProBackendHTTPMapping.error(
+            statusCode: 429,
+            message: "Too many transcription requests. Try again shortly.",
+            treats413AsAudioTooLong: true
+        )
+        guard case .transcriptionRateLimited = error else {
+            return XCTFail("request burst must be retryable, got \(error)")
+        }
+        XCTAssertTrue(error.isTranscriptionRateLimit)
     }
 
     func testEmailMaps413ToAGenericServerError() {
@@ -1393,6 +1483,25 @@ final class EmailLetterTests: XCTestCase {
         XCTAssertTrue(html.contains(">Transcript<"))
         XCTAssertTrue(html.contains(">Audio<"))
         XCTAssertTrue(html.contains("The recording is attached."))
+    }
+
+    func testOversizedRecordingIsDescribedInsteadOfAttached() {
+        let content = EmailNoteContent(
+            title: "Board",
+            summary: "Hire a designer.",
+            transcript: "We agreed to hire.",
+            contentMode: .both,
+            recordedAt: Date(timeIntervalSince1970: 0),
+            durationSeconds: 10_800,
+            language: .english,
+            outputType: .meetingNotes,
+            audioTooLargeToAttach: true
+        )
+        XCTAssertTrue(content.plainText.contains("AUDIO\n"))
+        XCTAssertFalse(content.plainText.contains("The recording is attached."))
+        let html = EmailTemplateBuilder.buildHTML(content: content)
+        XCTAssertTrue(html.contains(">Audio<"))
+        XCTAssertFalse(html.contains("The recording is attached."))
     }
 }
 

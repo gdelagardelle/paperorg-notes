@@ -60,6 +60,8 @@ targets:
         NSMicrophoneUsageDescription: Paperorg Notes needs microphone access to record voice notes and meetings.
         NSSpeechRecognitionUsageDescription: Paperorg Notes uses speech recognition for on-device English transcription.
         NSFaceIDUsageDescription: Paperorg Notes uses Face ID to protect your private notes.
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.paperorg.voicenotes.transcribe.*
         UIBackgroundModes:
           - audio
         UILaunchStoryboardName: LaunchScreen
@@ -76,8 +78,8 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.voicenotes
-        MARKETING_VERSION: "1.0.12"
-        CURRENT_PROJECT_VERSION: "81"
+        MARKETING_VERSION: "1.0.13"
+        CURRENT_PROJECT_VERSION: "89"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -89,6 +91,8 @@ targets:
       # explicit CODE_SIGN_IDENTITY conflicts with automatic signing.
     dependencies:
       - target: PaperorgNotesWidgetExtension
+        embed: true
+      - target: PaperorgNotesWatch
         embed: true
 
   PaperorgNotesWidgetExtension:
@@ -112,10 +116,61 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.voicenotes.widget
-        MARKETING_VERSION: "1.0.12"
-        CURRENT_PROJECT_VERSION: "81"
+        MARKETING_VERSION: "1.0.13"
+        CURRENT_PROJECT_VERSION: "89"
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_ENTITLEMENTS: PaperorgNotesWidget/PaperorgNotesWidget.entitlements
+        SKIP_INSTALL: YES
+
+  PaperorgNotesWatch:
+    type: application
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - path: PaperorgNotesWatch
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.voicenotes.watch
+        MARKETING_VERSION: "1.0.13"
+        CURRENT_PROJECT_VERSION: "89"
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: com.paperorg.voicenotes
+        INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: NO
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: Paperorg Notes needs the microphone to record a voice note on your Apple Watch.
+    info:
+      path: PaperorgNotesWatch/Info.plist
+      properties:
+        CFBundleDisplayName: Notes
+        WKCompanionAppBundleIdentifier: com.paperorg.voicenotes
+        WKRunsIndependentlyOfCompanionApp: false
+        NSMicrophoneUsageDescription: Paperorg Notes needs the microphone to record a voice note on your Apple Watch.
+        CFBundleURLTypes:
+          - CFBundleURLName: com.paperorg.voicenotes.watch
+            CFBundleURLSchemes:
+              - paperorg-watch
+    dependencies:
+      - target: PaperorgNotesWatchWidget
+        embed: true
+
+  PaperorgNotesWatchWidget:
+    type: app-extension
+    platform: watchOS
+    deploymentTarget: "10.0"
+    sources:
+      - path: PaperorgNotesWatchWidget
+    info:
+      path: PaperorgNotesWatchWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Record
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.paperorg.voicenotes.watch.widget
+        MARKETING_VERSION: "1.0.13"
+        CURRENT_PROJECT_VERSION: "89"
+        GENERATE_INFOPLIST_FILE: YES
         SKIP_INSTALL: YES
 
   PaperorgNotesTests:
@@ -222,6 +277,8 @@ schemes:
       targets:
         PaperorgNotes: all
         PaperorgNotesWidgetExtension: all
+        PaperorgNotesWatch: all
+        PaperorgNotesWatchWidget: all
     run:
       config: Debug
       storeKitConfiguration: PaperorgNotes/Resources/PaperorgPro.storekit

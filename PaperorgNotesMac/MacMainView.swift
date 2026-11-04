@@ -242,14 +242,15 @@ struct MacQuickRecordControls: View {
             )).first else { return }
             note.audioFileName = result.audioURL.lastPathComponent
             note.durationSeconds = result.duration
-            note.status = NoteStatus.processing.rawValue
+            note.status = NoteStatus.awaitingTranscription.rawValue
             note.updatedAt = .now
             try modelContext.save()
-            try await environment.processRecordingUseCase.execute(
-                note: note,
-                audioURL: result.audioURL
-            ) { _ in }
-            try modelContext.save()
+            _ = await SessionMerge.split(
+                note,
+                storage: environment.storageService,
+                settings: environment.settingsService,
+                context: modelContext
+            )
         } catch {
             print("Menu bar stop failed: \(error.localizedDescription)")
         }

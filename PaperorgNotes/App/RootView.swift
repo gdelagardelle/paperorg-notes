@@ -42,6 +42,9 @@ struct RootView: View {
             }
             #endif
             if newPhase == .active, settings.hasCompletedPlanSelection {
+                #if os(iOS)
+                WatchRecordingInbox.shared.pushSetup()
+                #endif
                 recoverInterruptedProcessing()
                 Task {
                     await environment.subscriptionService.refreshEntitlements(reportError: false)

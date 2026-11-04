@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var gdprExportURL: URL?
     @State private var showGDPRExportShare = false
     @State private var gdprExportError: String?
+    @State private var isExportingData = false
     @State private var showPaywall = false
     @State private var showIncludedMinutesAccess = false
     @State private var serverEmailStatus: BackendEmailStatus?
@@ -443,9 +444,16 @@ struct SettingsView: View {
                         SettingsSectionHint(text: "Audio is removed after transcription. Retention options are unavailable.")
                     }
                     
-                    Button("Export All Data") {
+                    Button {
                         exportAllData()
+                    } label: {
+                        if isExportingData {
+                            ProgressView()
+                        } else {
+                            Text("Export All Data")
+                        }
                     }
+                    .disabled(isExportingData)
                     
                     Button("Delete All Data", role: .destructive) {
                         showDeleteConfirmation = true
@@ -627,11 +635,21 @@ struct SettingsView: View {
     }
 
     private func exportAllData() {
-        do {
-            gdprExportURL = try environment.storageService.exportGDPRArchive(notes: notes)
-            showGDPRExportShare = true
-        } catch {
-            gdprExportError = error.localizedDescription
+        isExportingData = true
+        let snapshot = Array(notes)
+        Task {
+            defer { isExportingData = false }
+            do {
+                let url = try await environment.storageService.exportGDPRArchive(notes: snapshot)
+                #if os(iOS)
+                SharePresenter.present(items: [url])
+                #else
+                gdprExportURL = url
+                showGDPRExportShare = true
+                #endif
+            } catch {
+                gdprExportError = error.localizedDescription
+            }
         }
     }
     

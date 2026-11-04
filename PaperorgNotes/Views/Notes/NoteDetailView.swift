@@ -12,7 +12,11 @@ struct NoteDetailView: View {
     @State private var selectedLanguage: AppLanguage = .luxembourgish
     @State private var selectedWriteLanguage: SummaryWriteLanguage = .same
     @State private var isProcessing = false
+    @State private var showLongTranscriptionNotice = false
     @State private var processingStage: ProcessingStage = .transcribing
+    @State private var progressCompleted = 0
+    @State private var progressTotal = 0
+    @State private var progressWaiting = false
     @State private var processingError: String?
     @State private var editingSegment: TranscriptSegmentModel?
     @State private var editText = ""
@@ -27,6 +31,12 @@ struct NoteDetailView: View {
     
     private var audioAvailable: Bool {
         FileManager.default.fileExists(atPath: environment.storageService.audioURL(for: note.id).path)
+    }
+
+    private var recordingNeedsSeparateShare: Bool {
+        guard audioAvailable else { return false }
+        let url = environment.storageService.audioURL(for: note.id)
+        return AudioTrimService.fileByteCount(of: url) > EmailService.maxAttachmentBytes
     }
     
     var body: some View {
@@ -149,9 +159,17 @@ struct NoteDetailView: View {
             ProcessingView(
                 stage: processingStage,
                 error: processingError,
-                language: selectedLanguage
+                language: selectedLanguage,
+                completed: progressCompleted,
+                total: progressTotal,
+                waiting: progressWaiting
             )
             .interactiveDismissDisabled(true)
+        }
+        .alert(L10n.Record.longTranscriptionTitle, isPresented: $showLongTranscriptionNotice) {
+            Button(L10n.Common.ok, role: .cancel) {}
+        } message: {
+            Text(L10n.Record.longTranscriptionMessage)
         }
         .sheet(isPresented: $showExportShare) {
             ActivityShareSheet(items: exportURLs)
@@ -197,11 +215,26 @@ struct NoteDetailView: View {
                     environment.settingsService.setSummaryWriteLanguage(newValue, for: note.id)
                 }
 
+            if environment.settingsService.mergeMembers(containing: note.id).count > 1 {
+                Button {
+                    mergeSessionParts()
+                } label: {
+                    Label(L10n.Record.mergeParts, systemImage: "arrow.triangle.merge")
+                }
+                .buttonStyle(AccentButtonStyle())
+                .disabled(isProcessing)
+            }
+
             HStack(spacing: 12) {
                 Button {
                     transcribeAgain()
                 } label: {
-                    Label(L10n.NoteDetail.transcribeAgain, systemImage: "arrow.clockwise")
+                    Label(
+                        note.noteStatus == .awaitingTranscription
+                            ? L10n.Record.transcribeNow
+                            : L10n.NoteDetail.transcribeAgain,
+                        systemImage: "arrow.clockwise"
+                    )
                 }
                 .buttonStyle(AccentButtonStyle())
                 .disabled(isProcessing || !audioAvailable)
@@ -243,6 +276,14 @@ struct NoteDetailView: View {
                 }
                 Spacer()
                 NoteStatusBadge(status: note.noteStatus)
+            }
+
+            if note.noteStatus == .processing,
+               LongRecordingTranscription.takesLonger(note.durationSeconds) {
+                Text(L10n.Record.longTranscriptionStatus)
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.accent)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -418,6 +459,14 @@ struct NoteDetailView: View {
                 EmailButton(note: note)
             }
 
+            if recordingNeedsSeparateShare {
+                Button(L10n.Email.shareRecording) {
+                    shareRecording()
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                SettingsSectionHint(text: L10n.Email.shareRecordingHint)
+            }
+
             Button(L10n.NoteDetail.shareText) {
                 sharePlainText()
             }
@@ -479,6 +528,11 @@ struct NoteDetailView: View {
         }
     }
 
+    private func shareRecording() {
+        exportURLs = [environment.storageService.audioURL(for: note.id)]
+        showExportShare = true
+    }
+
     private func sharePlainText() {
         do {
             exportURLs = [try environment.exportService.exportPlainText(note: note)]
@@ -511,15 +565,64 @@ struct NoteDetailView: View {
         }
     }
     
+    private func mergeSessionParts() {
+        let ids = environment.settingsService.mergeMembers(containing: note.id)
+        let notes = ids.compactMap { id -> Note? in
+            let targetId = id
+            return try? modelContext.fetch(
+                FetchDescriptor<Note>(predicate: #Predicate { $0.id == targetId })
+            ).first
+        }
+        guard notes.count > 1 else { return }
+        isProcessing = true
+        Task {
+            do {
+                try await SessionMerge.merge(
+                    notes,
+                    storage: environment.storageService,
+                    settings: environment.settingsService,
+                    context: modelContext
+                )
+                isProcessing = false
+            } catch {
+                processingError = error.localizedDescription
+                isProcessing = false
+            }
+        }
+    }
+
     private func transcribeAgain() {
         applySelectionsToNote()
+        let lengthy = LongRecordingTranscription.takesLonger(note.durationSeconds)
+        progressCompleted = 0
+        progressTotal = lengthy ? 1 : 0
+        progressWaiting = false
         isProcessing = true
         processingError = nil
         processingStage = .transcribing
         
-        Task {
+        let run: (TranscriptionProgress) async -> Void = { progress in
+            #if os(iOS)
+            let wasIdleDisabled = UIApplication.shared.isIdleTimerDisabled
+            UIApplication.shared.isIdleTimerDisabled = true
+            defer { UIApplication.shared.isIdleTimerDisabled = wasIdleDisabled }
+            #endif
             do {
-                try await environment.processRecordingUseCase.transcribeAgain(note: note) { stage in
+                try await environment.processRecordingUseCase.transcribeAgain(
+                    note: note,
+                    onProgress: { completed, total, waiting in
+                        progressCompleted = completed
+                        progressTotal = total
+                        progressWaiting = waiting
+                        progress.update(
+                            completed: completed,
+                            total: total,
+                            subtitle: waiting
+                                ? L10n.Record.longTranscriptionWaiting
+                                : L10n.Record.longTranscriptionPart(completed, total)
+                        )
+                    }
+                ) { stage in
                     processingStage = stage
                 }
                 try? modelContext.save()
@@ -536,10 +639,24 @@ struct NoteDetailView: View {
                 isProcessing = false
             }
         }
+        Task {
+            if lengthy {
+                await ContinuedTranscription.perform(
+                    title: L10n.Record.longTranscriptionTitle,
+                    subtitle: L10n.Record.longTranscriptionStatus,
+                    operation: run
+                )
+            } else {
+                await run(TranscriptionProgress())
+            }
+        }
     }
     
     private func resummarizeOnly(length: SummaryLength? = nil) {
         applySelectionsToNote()
+        progressCompleted = 0
+        progressTotal = 0
+        progressWaiting = false
         isProcessing = true
         processingError = nil
         processingStage = .summarizing

@@ -7,7 +7,11 @@ struct PaperorgNotesApp: App {
     private let modelContainerResult: Result<ModelContainer, Error>
 
     init() {
+        ContinuedTranscription.register()
         modelContainerResult = AppModelContainer.make()
+        if case .success(let container) = modelContainerResult {
+            WatchRecordingInbox.shared.start(environment: .live, container: container)
+        }
     }
 
     var body: some Scene {

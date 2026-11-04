@@ -13,7 +13,11 @@ enum RecordingState: Sendable, Equatable {
 
 enum RecordingLengthPolicy {
     static let freeMinutes = 3
-    static let proMinutes = 180
+    static let proMinutes = 240
+    /// The API still in production reports a 3-hour Pro cap. A 4-hour recording
+    /// is split before upload, so that stale number must not stop the session.
+    /// Any other server cap stays in force.
+    static let legacyProMinutes = 180
 
     static func shouldStop(duration: TimeInterval, maxMinutes: Int) -> Bool {
         guard maxMinutes > 0 else { return false }
@@ -25,6 +29,9 @@ enum RecordingLengthPolicy {
     /// 413s after upload.
     static func capMinutes(from usage: ProUsageInfo?, isPro: Bool) -> Int {
         if let minutes = usage?.maxRecordingMinutes, minutes > 0 {
+            if isPro, minutes == legacyProMinutes {
+                return proMinutes
+            }
             return minutes
         }
         return isPro ? proMinutes : freeMinutes

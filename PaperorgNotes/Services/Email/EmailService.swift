@@ -22,6 +22,9 @@ enum EmailError: LocalizedError, Equatable {
 
 @MainActor
 final class EmailService {
+    /// Mail servers, and Paperorg's own sender, refuse anything larger than this.
+    static let maxAttachmentBytes = 15 * 1024 * 1024
+
     private let settings: SettingsService
     
     init(settings: SettingsService) {
@@ -37,11 +40,16 @@ final class EmailService {
         var pdfURL: URL?
         var markdownURL: URL?
 
-        if note.audioDeletedAt == nil,
+        if settings.emailAttachAudio,
+           note.audioDeletedAt == nil,
            let candidate = exportService.audioURL(for: note),
            FileManager.default.fileExists(atPath: candidate.path) {
-            audioURL = candidate
-            content.audioAttached = true
+            if AudioTrimService.fileByteCount(of: candidate) > Self.maxAttachmentBytes {
+                content.audioTooLargeToAttach = true
+            } else {
+                audioURL = candidate
+                content.audioAttached = true
+            }
         }
 
         let body = content.plainText

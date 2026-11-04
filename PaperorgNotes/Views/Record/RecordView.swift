@@ -14,7 +14,12 @@ struct RecordView: View {
     @State private var standingMeetingID: UUID?
     @State private var activeNote: Note?
     @State private var showProcessing = false
+    @State private var showLongTranscriptionNotice = false
+    @State private var pendingTranscription: PendingTranscription?
     @State private var processingStage: ProcessingStage = .savingAudio
+    @State private var progressCompleted = 0
+    @State private var progressTotal = 0
+    @State private var progressWaiting = false
     @State private var processingError: String?
     @State private var pulseAnimation = false
     @State private var showQuickRecordQueued = false
@@ -66,7 +71,10 @@ struct RecordView: View {
                     ProcessingView(
                         stage: processingStage,
                         error: processingError,
-                        language: selectedLanguage
+                        language: selectedLanguage,
+                        completed: progressCompleted,
+                        total: progressTotal,
+                        waiting: progressWaiting
                     )
                     .interactiveDismissDisabled(true)
                 }
@@ -74,6 +82,21 @@ struct RecordView: View {
                     Button(L10n.Common.ok, role: .cancel) {}
                 } message: {
                     Text(processingError ?? "")
+                }
+                .alert(L10n.Record.longTranscriptionTitle, isPresented: $showLongTranscriptionNotice) {
+                    Button(L10n.Common.ok, role: .cancel) {}
+                } message: {
+                    Text(L10n.Record.longTranscriptionMessage)
+                }
+                .sheet(item: $pendingTranscription) { pending in
+                    TranscriptionChoiceSheet(mergable: pending.mergable) {
+                        let ids = pending.noteIDs
+                        pendingTranscription = nil
+                        startTranscription(of: ids)
+                    } later: {
+                        pendingTranscription = nil
+                        startQueuedQuickRecordIfPossible()
+                    }
                 }
                 .alert(L10n.Record.quickRecordQueuedTitle, isPresented: $showQuickRecordQueued) {
                     Button(L10n.Common.ok, role: .cancel) {}
@@ -569,6 +592,7 @@ struct RecordView: View {
                         status: .processing
                     )
                     note.durationSeconds = duration
+                    note.status = NoteStatus.awaitingTranscription.rawValue
                     applyStandingMeeting(to: note)
                     environment.settingsService.setSummaryWriteLanguage(selectedWriteLanguage, for: note.id)
                     modelContext.insert(note)
@@ -576,19 +600,17 @@ struct RecordView: View {
                     activeNote = note
                     try modelContext.save()
 
-                    try await environment.processRecordingUseCase.execute(
-                        note: note,
-                        audioURL: environment.storageService.audioURL(for: noteId)
-                    ) { stage in
-                        processingStage = stage
-                    }
-
-                    try modelContext.save()
-                    preparePostRecordingEmail(for: note)
-
-                    try? await Task.sleep(nanoseconds: 800_000_000)
+                    let notes = await SessionMerge.split(
+                        note,
+                        storage: environment.storageService,
+                        settings: environment.settingsService,
+                        context: modelContext
+                    )
                     showProcessing = false
-                    presentIncludedMinutesUpgradeIfNeeded()
+                    pendingTranscription = PendingTranscription(
+                        noteIDs: notes.map(\.id),
+                        mergable: notes.count > 1
+                    )
                 } catch {
                     processingError = safeProcessingError(error)
                     if let note = importedNote {
@@ -634,24 +656,20 @@ struct RecordView: View {
                     let note = try noteForRecordingResult(result.noteId)
                     
                     note.durationSeconds = result.duration
-                    note.status = NoteStatus.processing.rawValue
+                    note.status = NoteStatus.awaitingTranscription.rawValue
                     try modelContext.save()
-                    
-                    try await environment.processRecordingUseCase.execute(
-                        note: note,
-                        audioURL: result.audioURL
-                    ) { stage in
-                        processingStage = stage
-                    }
-                    
-                    try modelContext.save()
-                    
-                    preparePostRecordingEmail(for: note)
-                    
-                    try? await Task.sleep(nanoseconds: 800_000_000)
+
+                    let notes = await SessionMerge.split(
+                        note,
+                        storage: environment.storageService,
+                        settings: environment.settingsService,
+                        context: modelContext
+                    )
                     showProcessing = false
-                    presentIncludedMinutesUpgradeIfNeeded()
-                    startQueuedQuickRecordIfPossible()
+                    pendingTranscription = PendingTranscription(
+                        noteIDs: notes.map(\.id),
+                        mergable: notes.count > 1
+                    )
                 } catch {
                     processingError = safeProcessingError(error)
                     if let noteId = finalizedNoteId ?? activeNote?.id,
@@ -675,6 +693,88 @@ struct RecordView: View {
                     startQueuedQuickRecordIfPossible()
                 }
             }
+        }
+    }
+
+    private func startTranscription(of noteIDs: [UUID]) {
+        let notes = notesForTranscription(noteIDs)
+        let duration = notes.reduce(0) { $0 + $1.durationSeconds }
+        let lengthy = LongRecordingTranscription.takesLonger(duration)
+        progressCompleted = 0
+        progressTotal = lengthy ? 1 : 0
+        progressWaiting = false
+        showProcessing = true
+        processingStage = .savingAudio
+        processingError = nil
+
+        Task {
+            let run: (TranscriptionProgress) async -> Void = { progress in
+                #if os(iOS)
+                let wasIdleDisabled = UIApplication.shared.isIdleTimerDisabled
+                UIApplication.shared.isIdleTimerDisabled = true
+                defer { UIApplication.shared.isIdleTimerDisabled = wasIdleDisabled }
+                #endif
+                await BackgroundTaskRunner.run("TranscribeRecording") {
+                do {
+                    for note in notes {
+                        note.status = NoteStatus.processing.rawValue
+                        try modelContext.save()
+                        try await environment.processRecordingUseCase.execute(
+                            note: note,
+                            audioURL: environment.storageService.audioURL(for: note.id),
+                            onProgress: { completed, total, waiting in
+                                progressCompleted = completed
+                                progressTotal = total
+                                progressWaiting = waiting
+                                progress.update(
+                                    completed: completed,
+                                    total: total,
+                                    subtitle: waiting
+                                        ? L10n.Record.longTranscriptionWaiting
+                                        : L10n.Record.longTranscriptionPart(completed, total)
+                                )
+                            }
+                        ) { stage in
+                            processingStage = stage
+                        }
+                    }
+                    if notes.count > 1 {
+                        try await SessionMerge.merge(
+                            notes,
+                            storage: environment.storageService,
+                            settings: environment.settingsService,
+                            context: modelContext
+                        )
+                    }
+                    if let primary = notes.first {
+                        preparePostRecordingEmail(for: primary)
+                    }
+                    try? await Task.sleep(nanoseconds: 800_000_000)
+                    showProcessing = false
+                    presentIncludedMinutesUpgradeIfNeeded()
+                    startQueuedQuickRecordIfPossible()
+                } catch {
+                    processingError = safeProcessingError(error)
+                    showProcessing = false
+                    startQueuedQuickRecordIfPossible()
+                }
+                }
+            }
+            if lengthy {
+                await ContinuedTranscription.perform(
+                    title: L10n.Record.longTranscriptionTitle,
+                    subtitle: L10n.Record.longTranscriptionStatus,
+                    operation: run
+                )
+            } else {
+                await run(TranscriptionProgress())
+            }
+        }
+    }
+
+    private func notesForTranscription(_ noteIDs: [UUID]) -> [Note] {
+        noteIDs.compactMap { id in
+            try? noteForRecordingResult(id)
         }
     }
 
@@ -887,6 +987,9 @@ struct ProcessingView: View {
     let stage: ProcessingStage
     let error: String?
     let language: AppLanguage
+    var completed: Int = 0
+    var total: Int = 0
+    var waiting: Bool = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -931,6 +1034,15 @@ struct ProcessingView: View {
         }
     }
     
+    private var progressFraction: Double {
+        guard total > 0 else { return 0 }
+        return min(1, Double(completed) / Double(total))
+    }
+
+    private var progressPercent: Int {
+        Int((progressFraction * 100).rounded())
+    }
+
     private var progressContent: some View {
         VStack(spacing: 24) {
             VStack(spacing: 8) {
@@ -940,9 +1052,28 @@ struct ProcessingView: View {
                 Text("Finishing your note")
                     .font(.title2.bold())
                     .foregroundStyle(AppTheme.textPrimary)
-                Text("This usually takes under a minute.")
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.textSecondary)
+                if total > 1 {
+                    Text("\(progressPercent)%")
+                        .font(.system(size: 44, weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(AppTheme.textPrimary)
+                    ProgressView(value: progressFraction)
+                        .tint(AppTheme.accent)
+                    Text(waiting
+                         ? L10n.Record.longTranscriptionWaiting
+                         : stage == .summarizing
+                            ? "Writing the summary."
+                            : L10n.Record.longTranscriptionPart(completed, total))
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.textSecondary)
+                } else {
+                    ProgressView()
+                    Text(stage == .summarizing
+                         ? "Writing the summary."
+                         : "This usually takes under a minute.")
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
             }
             
             VStack(spacing: 14) {
@@ -1021,5 +1152,39 @@ struct ProcessingView: View {
     
     private func stageOrder(_ step: ProcessingStage) -> Int {
         ProcessingStage.allCases.firstIndex(of: step) ?? 0
+    }
+}
+
+struct PendingTranscription: Identifiable {
+    let id = UUID()
+    let noteIDs: [UUID]
+    let mergable: Bool
+}
+
+struct TranscriptionChoiceSheet: View {
+    let mergable: Bool
+    let now: () -> Void
+    let later: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            AppSectionHeader(
+                title: L10n.Record.transcriptionChoiceTitle,
+                subtitle: mergable
+                    ? L10n.Record.transcriptionChoiceMerge
+                    : L10n.Record.transcriptionChoiceMessage
+            )
+            Button(L10n.Record.transcribeNow, action: now)
+                .buttonStyle(AccentButtonStyle())
+            Button(L10n.Record.transcribeLater, action: later)
+                .buttonStyle(SecondaryButtonStyle())
+        }
+        .padding(24)
+        #if os(macOS)
+        .frame(minWidth: 420)
+        #else
+        .presentationDetents([.medium])
+        #endif
+        .background(AppScreenBackground())
     }
 }

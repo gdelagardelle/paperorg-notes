@@ -238,7 +238,7 @@ final class StorageService {
         try fileManager.removeItem(at: customExportLogoURL)
     }
     
-    func exportGDPRArchive(notes: [Note]) throws -> URL {
+    func exportGDPRArchive(notes: [Note]) async throws -> URL {
         let exportId = UUID()
         let tempDir = gdprDirectory.appendingPathComponent("export-\(exportId.uuidString)", isDirectory: true)
         try fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -278,15 +278,26 @@ final class StorageService {
         let jsonData = try JSONSerialization.data(withJSONObject: metadata, options: .prettyPrinted)
         try jsonData.write(to: tempDir.appendingPathComponent("notes.json"))
         
-        for note in notes {
+        let audioCopies: [(URL, URL)] = notes.compactMap { note in
             let audio = audioURL(for: note.id)
-            if fileManager.fileExists(atPath: audio.path) {
-                try? fileManager.copyItem(at: audio, to: tempDir.appendingPathComponent("\(note.id.uuidString).m4a"))
-            }
+            guard fileManager.fileExists(atPath: audio.path) else { return nil }
+            return (audio, tempDir.appendingPathComponent("\(note.id.uuidString).m4a"))
         }
         
         let zipURL = gdprDirectory.appendingPathComponent("paperorg-export-\(Int(Date.now.timeIntervalSince1970)).zip")
-        try ZipUtility.zip(directory: tempDir, to: zipURL)
+        let sourceDir = tempDir
+        try await Task.detached(priority: .userInitiated) {
+            let fileManager = FileManager.default
+            for (from, to) in audioCopies {
+                try fileManager.copyItem(at: from, to: to)
+            }
+            try ZipUtility.zip(directory: sourceDir, to: zipURL)
+        }.value
+        guard fileManager.fileExists(atPath: zipURL.path),
+              let size = try? fileManager.attributesOfItem(atPath: zipURL.path)[.size] as? Int,
+              size > 0 else {
+            throw CocoaError(.fileWriteUnknown)
+        }
         return zipURL
     }
 }

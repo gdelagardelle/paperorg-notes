@@ -771,6 +771,41 @@
         }
       }
     },
+    "email.audio_too_large": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Aufnahme ist zu groß für eine E-Mail und wurde nicht angehängt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The recording is too large for email and was left out."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'enregistrement est trop volumineux pour un e-mail et n'a pas été joint."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "D'Opnam ass ze grouss fir eng E-Mail a gouf net bäigeluecht."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A gravação é demasiado grande para um e-mail e ficou de fora."
+          }
+        }
+      }
+    },
     "email.button": {
       "extractionState": "stale",
       "localizations": {
@@ -1292,6 +1327,76 @@
           "stringUnit": {
             "state": "translated",
             "value": "Enviar e-mail"
+          }
+        }
+      }
+    },
+    "email.share_recording": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme teilen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share recording"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partager l'enregistrement"
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnam deelen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partilhar gravação"
+          }
+        }
+      }
+    },
+    "email.share_recording.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu groß für E-Mail. AirDrop oder eine andere App kann die Datei übernehmen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too large for email. AirDrop or another app can take the file."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trop volumineux pour un e-mail. AirDrop ou une autre app peut prendre le fichier."
+          }
+        },
+        "lb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ze grouss fir E-Mail. AirDrop oder eng aner App kann de Fichier huelen."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demasiado grande para e-mail. O AirDrop ou outra app pode levar o ficheiro."
           }
         }
       }
@@ -9179,33 +9284,163 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meeting Closure Pro: 600 minutes/month, auto-email summary + PDF, up to 3 hours per recording."
+            "value": "Meeting Closure Pro: 600 minutes/month, auto-email summary + PDF, up to 4 hours per recording."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meeting Closure Pro: 600 Minuten/Monat, Auto-E-Mail mit Zusammenfassung + PDF, bis 3 Stunden pro Aufnahme."
+            "value": "Meeting Closure Pro: 600 Minuten/Monat, Auto-E-Mail mit Zusammenfassung + PDF, bis 4 Stunden pro Aufnahme."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clôture de réunion Pro : 600 minutes/mois, e-mail auto avec résumé + PDF, jusqu’à 3 h par enregistrement."
+            "value": "Clôture de réunion Pro : 600 minutes/mois, e-mail auto avec résumé + PDF, jusqu’à 4 h par enregistrement."
           }
         },
         "lb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meeting Closure Pro: 600 Minutten/Mount, Auto-E-Mail mat Resumé + PDF, bis zu 3 Stonnen pro Opnam."
+            "value": "Meeting Closure Pro: 600 Minutten/Mount, Auto-E-Mail mat Resumé + PDF, bis zu 4 Stonnen pro Opnam."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meeting Closure Pro: 600 minutos/mês, e-mail automático com resumo + PDF, até 3 horas por gravação."
+            "value": "Meeting Closure Pro: 600 minutos/mês, e-mail automático com resumo + PDF, até 4 horas por gravação."
           }
         }
+      }
+    },
+    "record.long_transcription.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This one will take longer" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Diese Aufnahme dauert länger" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Celle-ci prendra plus de temps" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Dës Opnam dauert méi laang" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Esta gravação vai demorar mais" } }
+      }
+    },
+    "record.long_transcription.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "You can leave the app. The iPhone keeps transcribing and shows the progress. A long recording is sent in short pieces, so it takes a while. Swiping the app away stops it." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Sie können die App verlassen. Das iPhone transkribiert weiter und zeigt den Fortschritt. Eine lange Aufnahme wird in kurzen Teilen gesendet und dauert deshalb. Wegwischen beendet sie." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Vous pouvez quitter l’app. L’iPhone continue la transcription et affiche la progression. Un long enregistrement part en courts extraits, donc cela prend du temps. Le balayer l’arrête." } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Dir kënnt d'App verloossen. Den iPhone transkribéiert weider a weist de Fortschrëtt. Eng laang Opnam gëtt a kuerzen Deeler geschéckt an dauert dofir. Ewechwëschen hält se un." } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Pode sair da aplicação. O iPhone continua a transcrever e mostra o progresso. Uma gravação longa é enviada em partes curtas, por isso demora. Arrastá-la para fora pára a transcrição." } }
+      }
+    },
+    "record.long_transcription.part": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Part %d of %d" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Teil %d von %d" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Partie %d sur %d" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Deel %d vu(n) %d" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Parte %d de %d" } }
+      }
+    },
+    "record.long_transcription.waiting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Waiting to send the next part" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Wartet auf den nächsten Teil" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "En attente du prochain extrait" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Waart op den nächsten Deel" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "À espera da parte seguinte" } }
+      }
+    },
+    "record.long_transcription.status": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Transcription keeps running if you leave the app." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Die Transkription läuft weiter, wenn Sie die App verlassen." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "La transcription continue si vous quittez l’app." } },
+        "lb": { "stringUnit": { "state": "translated", "value": "D'Transkriptioun leeft weider, wann Dir d'App verloosst." } },
+        "pt": { "stringUnit": { "state": "translated", "value": "A transcrição continua se sair da aplicação." } }
+      }
+    },
+    "record.transcription_choice.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Recording saved" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Aufnahme gespeichert" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Enregistrement enregistré" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Opnam gespäichert" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Gravação guardada" } }
+      }
+    },
+    "record.transcription_choice.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Transcribe this recording now, or keep it and transcribe it later." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Diese Aufnahme jetzt transkribieren, oder sie behalten und später transkribieren." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Transcrire cet enregistrement maintenant, ou le garder pour plus tard." } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Dës Opnam elo transkribéieren, oder se halen a spéider transkribéieren." } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Transcrever esta gravação agora, ou guardá-la e transcrever mais tarde." } }
+      }
+    },
+    "record.transcription_choice.merge": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This session is longer than 3 hours, so it was saved in parts. You can merge those parts into one note." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Diese Sitzung ist länger als 3 Stunden und wurde in Teilen gespeichert. Sie können die Teile zu einer Notiz zusammenführen." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Cette session dépasse 3 heures, elle a donc été enregistrée en parties. Vous pouvez les fusionner en une seule note." } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Dës Sëtzung ass méi laang wéi 3 Stonnen a gouf an Deeler gespäichert. Dir kënnt déi Deeler zu enger Notiz zesummeleeën." } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Esta sessão passa de 3 horas, por isso foi guardada em partes. Pode juntar essas partes numa só nota." } }
+      }
+    },
+    "record.transcribe_now": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Transcribe now" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Jetzt transkribieren" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Transcrire maintenant" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Elo transkribéieren" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Transcrever agora" } }
+      }
+    },
+    "record.transcribe_later": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Transcribe later" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Später transkribieren" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Transcrire plus tard" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Spéider transkribéieren" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Transcrever mais tarde" } }
+      }
+    },
+    "record.saved_status": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Saved" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Gespeichert" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Enregistré" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Gespäichert" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Guardado" } }
+      }
+    },
+    "record.merge_parts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Merge into one note" } },
+        "de": { "stringUnit": { "state": "translated", "value": "Zu einer Notiz zusammenführen" } },
+        "fr": { "stringUnit": { "state": "translated", "value": "Fusionner en une note" } },
+        "lb": { "stringUnit": { "state": "translated", "value": "Zu enger Notiz zesummeleeën" } },
+        "pt": { "stringUnit": { "state": "translated", "value": "Juntar numa só nota" } }
+      }
+    },
+    "pro.error.transcription_busy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Transcription is busy. Wait a few minutes and try this note again." } },
+        "de": { "stringUnit": { "state": "translated", "value": "Die Transkription ist beschäftigt. Warten Sie einige Minuten und versuchen Sie diese Notiz erneut." } },
+        "fr": { "stringUnit": { "state": "translated", "value": "La transcription est occupée. Attendez quelques minutes et réessayez cette note." } },
+        "lb": { "stringUnit": { "state": "translated", "value": "D'Transkriptioun ass beschäftegt. Waart e puer Minutten a probéiert dës Notiz nach eng Kéier." } },
+        "pt": { "stringUnit": { "state": "translated", "value": "A transcrição está ocupada. Espere alguns minutos e tente esta nota outra vez." } }
       }
     },
     "pro.error.not_authenticated": {
