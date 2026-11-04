@@ -85,7 +85,10 @@ class BillingRepository(
 
     /** The base plans this user may buy, priced and localised by Play. */
     suspend fun plans(): List<ProPlan> {
-        if (!connect()) return emptyList()
+        if (!connect()) {
+            onMessage?.invoke("Google Play Billing could not connect on this device.")
+            return emptyList()
+        }
         val params = QueryProductDetailsParams.newBuilder()
             .setProductList(
                 listOf(
@@ -100,21 +103,31 @@ class BillingRepository(
             client.queryProductDetailsAsync(params) { result, queryResult ->
                 if (!continuation.isActive) return@queryProductDetailsAsync
                 if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                    continuation.resume(queryResult.productDetailsList)
+                    val fetched = queryResult.productDetailsList
+                    val unfetched = queryResult.unfetchedProductList
+                    if (fetched.isEmpty() && unfetched.isNotEmpty()) {
+                        val status = unfetched.joinToString { "${it.productId}:${it.statusCode}" }
+                        onMessage?.invoke("Play has not published Pro to this install yet ($status).")
+                    }
+                    continuation.resume(fetched)
                 } else {
+                    onMessage?.invoke(billingMessage(result))
                     continuation.resume(emptyList())
                 }
             }
         }
         productDetails = details.firstOrNull { it.productId == PRO_PRODUCT_ID }
-        return productDetails?.subscriptionOfferDetails
-            .orEmpty()
+        val offers = productDetails?.subscriptionOfferDetails.orEmpty()
+        if (productDetails != null && offers.isEmpty()) {
+            onMessage?.invoke("Play returned Pro but no active offers yet. Wait and reopen Settings.")
+        }
+        return offers
             // One entry per billing period. Where Play reports an intro offer
             // the user is eligible for, its token is the one that gives them
             // the discount, so the first offer per base plan is the right one.
             .groupBy { it.basePlanId }
-            .mapNotNull { (basePlanId, offers) ->
-                val offer = offers.firstOrNull() ?: return@mapNotNull null
+            .mapNotNull { (basePlanId, offerList) ->
+                val offer = offerList.firstOrNull() ?: return@mapNotNull null
                 val phase = offer.pricingPhases.pricingPhaseList.lastOrNull()
                     ?: return@mapNotNull null
                 ProPlan(
@@ -154,8 +167,8 @@ class BillingRepository(
      * reinstall or a new phone has no local entitlement, and Play still
      * reports the active subscription.
      */
-    suspend fun syncPurchases(): Boolean {
-        if (!connect()) return false
+    suspend fun syncPurchases(): PurchaseSyncOutcome {
+        if (!connect()) return PurchaseSyncOutcome.NoneFound
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.SUBS)
             .build()
@@ -165,16 +178,27 @@ class BillingRepository(
             }
         }
         var restored = false
+        var verifyFailed = false
         purchases.forEach { purchase ->
-            if (redeem(purchase, announce = false)) restored = true
+            when (redeem(purchase, announce = false)) {
+                RedeemOutcome.Granted -> restored = true
+                RedeemOutcome.VerifyFailed -> verifyFailed = true
+                RedeemOutcome.Skipped -> Unit
+            }
         }
-        if (restored) onEntitlementChanged?.invoke()
-        return restored
+        if (restored) {
+            onEntitlementChanged?.invoke()
+            return PurchaseSyncOutcome.Restored
+        }
+        if (verifyFailed) return PurchaseSyncOutcome.VerifyFailed
+        return PurchaseSyncOutcome.NoneFound
     }
 
-    private suspend fun redeem(purchase: Purchase, announce: Boolean): Boolean {
-        if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) return false
-        if (!purchase.products.contains(PRO_PRODUCT_ID)) return false
+    private suspend fun redeem(purchase: Purchase, announce: Boolean): RedeemOutcome {
+        if (purchase.purchaseState != Purchase.PurchaseState.PURCHASED) {
+            return RedeemOutcome.Skipped
+        }
+        if (!purchase.products.contains(PRO_PRODUCT_ID)) return RedeemOutcome.Skipped
 
         val verified = withContext(Dispatchers.IO) {
             runCatching { api().verifyPlayPurchase(purchase.purchaseToken, PRO_PRODUCT_ID) }
@@ -185,7 +209,7 @@ class BillingRepository(
                     UserFacingError.message(error as? Exception ?: Exception(error.message)),
                 )
             }
-            return false
+            return RedeemOutcome.VerifyFailed
         }
 
         if (!purchase.isAcknowledged) acknowledge(purchase)
@@ -200,7 +224,7 @@ class BillingRepository(
                 },
             )
         }
-        return granted
+        return if (granted) RedeemOutcome.Granted else RedeemOutcome.VerifyFailed
     }
 
     private suspend fun acknowledge(purchase: Purchase) {
@@ -212,6 +236,19 @@ class BillingRepository(
                 if (continuation.isActive) continuation.resume(Unit)
             }
         }
+    }
+
+    enum class PurchaseSyncOutcome {
+        Restored,
+        NoneFound,
+        /** Play lists a Pro purchase, but notes-api / Google could not confirm it. */
+        VerifyFailed,
+    }
+
+    private enum class RedeemOutcome {
+        Granted,
+        Skipped,
+        VerifyFailed,
     }
 
     companion object {

@@ -105,8 +105,10 @@ class RecordingForegroundService : Service() {
         scope.launch {
             val note = app.notes.get(noteId)?.copy(durationSeconds = duration) ?: return@launch
             app.notes.save(note)
-            runCatching { app.processRecording.execute(note) { } }
-            runCatching { app.emailNoteIfConfigured(noteId) }
+            val processed = runCatching { app.processRecording.execute(note) { } }.isSuccess
+            if (processed) {
+                runCatching { app.emailNoteIfConfigured(noteId) }
+            }
             stopSelf()
         }
     }

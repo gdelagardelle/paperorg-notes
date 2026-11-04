@@ -26,6 +26,7 @@
     <string name="record_status_recording">Aufnahme</string>
     <string name="record_status_paused">Pausiert</string>
     <string name="record_start">Aufnahme starten</string>
+    <string name="auto_new_note">Neue Notiz</string>
     <string name="record_stop">Stopp</string>
     <string name="record_pause">Pause</string>
     <string name="record_resume">Fortsetzen</string>
@@ -177,6 +178,7 @@
     <string name="email_sending">Senden…</string>
     <string name="billing_restored">Paperorg Pro wiederhergestellt.</string>
     <string name="billing_none">Kein Paperorg-Pro-Abo auf diesem Google-Konto.</string>
+    <string name="billing_verify_failed">Google Play konnte diesen Kauf noch nicht bestätigen. Versuchen Sie Wiederherstellen in ein paar Stunden erneut.</string>
     <string name="error_mic">Mikrofon konnte nicht gestartet werden.</string>
     <string name="error_play">Aufnahme konnte nicht abgespielt werden.</string>
     <string name="error_pdf">PDF konnte nicht erstellt werden.</string>

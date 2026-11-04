@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.paperorg.notes.PaperorgNotesApp
 import com.paperorg.notes.R
+import com.paperorg.notes.data.BillingRepository
 import com.paperorg.notes.data.EmailComposer
 import com.paperorg.notes.data.PdfNoteWriter
 import com.paperorg.notes.data.ProPlan
@@ -104,11 +105,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun restorePurchases() {
         viewModelScope.launch {
-            val restored = app.billing.syncPurchases()
-            _billingMessage.value = if (restored) {
-                getApplication<Application>().getString(R.string.billing_restored)
-            } else {
-                getApplication<Application>().getString(R.string.billing_none)
+            val resources = getApplication<Application>()
+            _billingMessage.value = when (app.billing.syncPurchases()) {
+                BillingRepository.PurchaseSyncOutcome.Restored ->
+                    resources.getString(R.string.billing_restored)
+                BillingRepository.PurchaseSyncOutcome.VerifyFailed ->
+                    resources.getString(R.string.billing_verify_failed)
+                BillingRepository.PurchaseSyncOutcome.NoneFound ->
+                    resources.getString(R.string.billing_none)
             }
         }
     }

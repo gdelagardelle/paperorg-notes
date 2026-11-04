@@ -55,6 +55,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes ORDER BY createdAtMillis DESC")
     fun observeAll(): Flow<List<NoteEntity>>
 
+    @Query("SELECT * FROM notes ORDER BY createdAtMillis DESC")
+    suspend fun list(): List<NoteEntity>
+
     @Query("SELECT * FROM notes WHERE id = :id")
     suspend fun get(id: String): NoteEntity?
 
@@ -78,6 +81,7 @@ abstract class NotesDatabase : RoomDatabase() {
 
 class NotesRepository(private val dao: NoteDao) {
     fun observeNotes(): Flow<List<Note>> = dao.observeAll().map { rows -> rows.map { it.toNote() } }
+    suspend fun list(): List<Note> = dao.list().map { it.toNote() }
     suspend fun get(id: String): Note? = dao.get(id)?.toNote()
     suspend fun save(note: Note) = dao.upsert(note.toEntity())
     suspend fun delete(id: String) = dao.delete(id)
