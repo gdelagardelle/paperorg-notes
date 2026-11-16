@@ -59,14 +59,24 @@ class RecordingForegroundService : Service() {
         }
         maxMinutes = intent?.getIntExtra(EXTRA_CAP, 0) ?: 0
         createChannel()
-        if (Build.VERSION.SDK_INT >= 34) {
-            startForeground(
-                RecordingNotice.NOTIFICATION_ID,
-                notification(DurationFormat.format(0.0)),
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE,
-            )
-        } else {
-            startForeground(RecordingNotice.NOTIFICATION_ID, notification(DurationFormat.format(0.0)))
+        // Android 14+ refuses a microphone foreground service started while the app is in
+        // the background (Android Auto, for one). Report that instead of crashing.
+        val foreground = runCatching {
+            if (Build.VERSION.SDK_INT >= 34) {
+                startForeground(
+                    RecordingNotice.NOTIFICATION_ID,
+                    notification(DurationFormat.format(0.0)),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE,
+                )
+            } else {
+                startForeground(RecordingNotice.NOTIFICATION_ID, notification(DurationFormat.format(0.0)))
+            }
+        }.isSuccess
+        foregroundResult?.invoke(foreground)
+        foregroundResult = null
+        if (!foreground) {
+            stopSelf()
+            return START_NOT_STICKY
         }
         handler.removeCallbacks(tick)
         handler.post(tick)
@@ -163,6 +173,22 @@ class RecordingForegroundService : Service() {
             val intent = Intent(context, RecordingForegroundService::class.java)
                 .putExtra(EXTRA_CAP, maxMinutes ?: 0)
             ContextCompat.startForegroundService(context, intent)
+        }
+
+        /** Told once whether the last start became a microphone foreground service. */
+        @Volatile
+        var foregroundResult: ((Boolean) -> Unit)? = null
+
+        /**
+         * Start for a take that began without a visible activity (Android Auto). A plain
+         * start, so a refused startForeground does not trip Android's
+         * "did not call startForeground" crash. Returns false when Android refused the start.
+         */
+        fun startWithoutActivity(context: Context, onForeground: (Boolean) -> Unit): Boolean {
+            foregroundResult = onForeground
+            return runCatching {
+                context.startService(Intent(context, RecordingForegroundService::class.java))
+            }.isSuccess.also { if (!it) foregroundResult = null }
         }
 
         fun stop(context: Context) {

@@ -27,6 +27,7 @@
     <string name="record_status_paused">En pause</string>
     <string name="record_start">Démarrer l’enregistrement</string>
     <string name="auto_new_note">Nouvelle note</string>
+    <string name="auto_open_phone_to_record">Ouvrez Paperorg Notes sur le téléphone pour enregistrer</string>
     <string name="record_stop">Arrêter</string>
     <string name="record_pause">Pause</string>
     <string name="record_resume">Reprendre</string>

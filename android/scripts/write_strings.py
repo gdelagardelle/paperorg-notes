@@ -46,6 +46,7 @@ CATALOG = {
     "record_status_paused": ("Paused", "En pause", "Pausiert"),
     "record_start": ("Start recording", "Démarrer l’enregistrement", "Aufnahme starten"),
     "auto_new_note": ("New note", "Nouvelle note", "Neue Notiz"),
+    "auto_open_phone_to_record": ("Open Paperorg Notes on the phone to record", "Ouvrez Paperorg Notes sur le téléphone pour enregistrer", "Öffnen Sie Paperorg Notes auf dem Telefon, um aufzunehmen"),
     "record_stop": ("Stop", "Arrêter", "Stopp"),
     "record_pause": ("Pause", "Pause", "Pause"),
     "record_resume": ("Resume", "Reprendre", "Fortsetzen"),
