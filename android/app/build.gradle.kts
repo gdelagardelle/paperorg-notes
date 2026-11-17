@@ -18,13 +18,16 @@ val notesApiUrl = localProperties.getProperty(
 )
 val playCloudProjectNumber = localProperties.getProperty("playCloudProjectNumber", "357171624667")
 
+// Upload key since 2026-11-17 (SHA1 F2:CA:30:…). The August key
+// (paperorg-notes-upload.p12, SHA1 57:4C:…) lost its password and is replaced
+// through a Play upload key reset; see docs/PLAY_BILLING_SETUP.md.
 val uploadKeystore = file(
     localProperties.getProperty(
         "uploadKeystore",
-        "${System.getProperty("user.home")}/.android-keystores/paperorg-notes-upload.p12",
+        "${System.getProperty("user.home")}/.android-keystores/paperorg-notes-upload-2026-11.p12",
     ),
 )
-val uploadKeystoreAlias = localProperties.getProperty("uploadKeystoreAlias", "paperorg-upload")
+val uploadKeystoreAlias = localProperties.getProperty("uploadKeystoreAlias", "upload")
 val uploadKeystorePassword: String? = System.getenv("PAPERORG_UPLOAD_STORE_PASSWORD")
 // The password is only present when Gradle is launched through secret_run.py, so
 // every other build has to keep working without it rather than failing to configure.
