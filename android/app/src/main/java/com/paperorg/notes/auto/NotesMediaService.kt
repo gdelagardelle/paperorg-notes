@@ -4,7 +4,9 @@ import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioManager
 import android.net.Uri
+import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -31,17 +33,24 @@ import com.paperorg.notes.domain.NoteStatus
 import com.paperorg.notes.domain.OutputType
 import java.io.File
 import java.util.UUID
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Android Auto browses saved notes and can start one new note.
  * The new-note row records on the phone microphone. Pause ends the take and the
  * phone transcribes and emails it with the same settings as a recording made in the app.
  * The car's own microphone is not available to this app.
+ *
+ * Android may refuse the microphone while the phone shows no Paperorg Notes screen
+ * (Android 14+ background rules). Then the row says to open the app on the phone,
+ * rather than recording silence or crashing.
  */
 @UnstableApi
 class NotesMediaService : MediaLibraryService() {
@@ -209,19 +218,40 @@ class NotesMediaService : MediaLibraryService() {
                     ?: OutputType.Meeting.code,
                 status = NoteStatus.Draft.name.lowercase(),
             )
+            var failure = R.string.error_mic
             try {
                 app.notes.save(note)
                 if (ticket != recordTicket) {
                     app.notes.delete(noteId)
                     return@launch
                 }
+                val allowed = CompletableDeferred<Boolean>()
+                val requested = RecordingForegroundService.startWithoutActivity(this@NotesMediaService) {
+                    allowed.complete(it)
+                }
+                val foreground = requested && (withTimeoutOrNull(FOREGROUND_WAIT_MS) { allowed.await() } ?: false)
+                if (!foreground) {
+                    failure = R.string.auto_open_phone_to_record
+                    error("Android refused the microphone service.")
+                }
+                if (ticket != recordTicket) {
+                    RecordingForegroundService.stop(this@NotesMediaService)
+                    app.notes.delete(noteId)
+                    return@launch
+                }
                 app.recording.start(noteId)
-                RecordingForegroundService.start(this@NotesMediaService, null)
                 carHasTake = true
+                delay(SILENCE_CHECK_MS)
+                if (carHasTake && ticket == recordTicket && microphoneSilenced()) {
+                    carHasTake = false
+                    failure = R.string.auto_open_phone_to_record
+                    error("Android silenced the microphone.")
+                }
             } catch (_: Exception) {
-                app.notes.delete(noteId)
                 if (app.recording.currentNoteId == noteId) app.recording.cancel()
-                if (ticket == recordTicket) showMicFailure()
+                RecordingForegroundService.stop(this@NotesMediaService)
+                app.notes.delete(noteId)
+                if (ticket == recordTicket) showMicFailure(failure)
             } finally {
                 if (ticket == recordTicket) startingTake = false
             }
@@ -235,20 +265,29 @@ class NotesMediaService : MediaLibraryService() {
         recordTicket++
         player?.volume = 1f
         player?.repeatMode = Player.REPEAT_MODE_OFF
-        startService(
-            Intent(this, RecordingForegroundService::class.java)
-                .setAction(RecordingForegroundService.ACTION_STOP),
-        )
+        runCatching {
+            startService(
+                Intent(this, RecordingForegroundService::class.java)
+                    .setAction(RecordingForegroundService.ACTION_STOP),
+            )
+        }
     }
 
-    private fun showMicFailure() {
+    /** True when Android gave this app an open but muted microphone (background capture). */
+    private fun microphoneSilenced(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
+        val audio = getSystemService(AudioManager::class.java) ?: return false
+        return audio.activeRecordingConfigurations.any { it.isClientSilenced }
+    }
+
+    private fun showMicFailure(message: Int = R.string.error_mic) {
         val exo = player ?: return
         exo.playWhenReady = false
         exo.volume = 1f
         val failed = newNoteItem().buildUpon()
             .setMediaMetadata(
                 newNoteItem().mediaMetadata.buildUpon()
-                    .setTitle(getString(R.string.error_mic))
+                    .setTitle(getString(message))
                     .build(),
             )
             .build()
@@ -265,8 +304,14 @@ class NotesMediaService : MediaLibraryService() {
 
     private suspend fun resolve(requested: MediaItem): MediaItem {
         if (requested.mediaId == AutoCatalog.NEW_NOTE_ID) return newNoteItem()
-        val match = playableNotes().find { it.first.id == requested.mediaId }
-        return if (match == null) requested else mediaItem(match.first, match.second)
+        val saved = playableNotes()
+        saved.find { it.first.id == requested.mediaId }?.let { return mediaItem(it.first, it.second) }
+        // "Hey Google, play new note on Paperorg Notes" arrives as a search query.
+        val query = requested.requestMetadata.searchQuery ?: return requested
+        val target = AutoCatalog.searchTarget(query, saved.map { it.first }) ?: return requested
+        if (target == AutoCatalog.NEW_NOTE_ID) return newNoteItem()
+        val match = saved.first { it.first.id == target }
+        return mediaItem(match.first, match.second)
     }
 
     private fun newNoteItem(): MediaItem =
@@ -330,6 +375,14 @@ class NotesMediaService : MediaLibraryService() {
         val notes = PaperorgNotesApp.instance.notes.list()
         return AutoCatalog.playable(notes) { id -> audioFile(id).let { it.exists() && it.length() > 0L } }
             .map { note -> note to audioFile(note.id) }
+    }
+
+    private companion object {
+        /** Android answers startForeground within a frame or two; this only guards a hang. */
+        const val FOREGROUND_WAIT_MS = 3_000L
+
+        /** Long enough for AudioManager to list the new capture and its silenced flag. */
+        const val SILENCE_CHECK_MS = 1_500L
     }
 
     private fun rootItem(): MediaItem =

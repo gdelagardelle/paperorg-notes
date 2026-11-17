@@ -37,9 +37,17 @@ key would end the app's ability to ship updates.
 
 | What | Where |
 |---|---|
-| Keystore | `~/.android-keystores/paperorg-notes-upload.p12`, 4096-bit RSA, valid to 2054 |
-| Alias | `paperorg-upload` |
-| Password | macOS login keychain, `paperorg-notes-upload-keystore` |
+| Keystore | `~/.android-keystores/paperorg-notes-upload-2026-11.p12`, 4096-bit RSA, valid to 2054 |
+| Alias | `upload` |
+| Certificate | SHA1 `F2:CA:30:AC:5A:F4:C7:69:1F:28:9F:9D:AF:EE:7D:B4:0E:21:CB:F3` |
+| Password | macOS login keychain, service `agenticos.secret`, account `paperorg-notes-upload-2026-11` |
+| Backup | iCloud Drive `Key backups (encrypted)/paperorg-notes-android-upload-2026-11-17.cms` (keystore, password, certificate), restore-tested 2026-11-17 |
+
+This key replaced the August 2026 key (`paperorg-notes-upload.p12`, alias
+`paperorg-upload`, SHA1 `57:4C:…`) on 2026-11-17: its stored password no longer
+opened the keystore, so it is replaced through an upload key reset in Play
+Console (App integrity → App signing → Request upload key reset). Until Google approves a reset, Play
+rejects bundles signed with the new key.
 
 The keystore lives outside the repository so it cannot be committed, and the
 password is never written to disk in the clear. Build the bundle with:
@@ -47,7 +55,7 @@ password is never written to disk in the clear. Build the bundle with:
 ```
 cd android
 python3 ~/Documents/AgenticOS/.agents/skills/secure-secret-intake/scripts/secret_run.py \
-  --name paperorg-notes-upload-keystore --env PAPERORG_UPLOAD_STORE_PASSWORD \
+  --name paperorg-notes-upload-2026-11 --env PAPERORG_UPLOAD_STORE_PASSWORD \
   -- ./gradlew :app:bundleRelease
 ```
 

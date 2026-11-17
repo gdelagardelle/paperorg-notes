@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="auto_new_note">Nei Notiz</string>
+    <string name="auto_open_phone_to_record">Maacht Paperorg Notes um Telefon op fir opzehuelen</string>
 </resources>
